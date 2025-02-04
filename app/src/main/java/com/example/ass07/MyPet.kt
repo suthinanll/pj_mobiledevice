@@ -1,5 +1,6 @@
 package com.example.ass07
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -29,6 +30,8 @@ fun MyPet(navController: NavHostController) {
     var petItemsList = remember { mutableStateListOf<petMember>() }
     val contextForToast = LocalContext.current.applicationContext
 
+
+
     fun showAllData() {
         val createClient = PetApi.create()
         createClient.retrievepetMember()
@@ -37,8 +40,16 @@ fun MyPet(navController: NavHostController) {
                     call: Call<List<petMember>>, response: Response<List<petMember>>
                 ) {
                     petItemsList.clear()
-                    response.body()?.let {
-                        petItemsList.addAll(it.filter { pet -> !pet.delete_at })
+
+                    if (response.isSuccessful) {
+                        val pets = response.body()
+                        pets?.let {
+                            val filteredPets = it.filter { pet -> pet.deleted_at.isNullOrEmpty() }
+                            petItemsList.addAll(filteredPets)
+
+                        }
+                    } else {
+                        Log.e("API_ERROR", "Response failed: ${response.errorBody()?.string()}")
                     }
                 }
 
@@ -46,24 +57,33 @@ fun MyPet(navController: NavHostController) {
                     Toast.makeText(contextForToast, "Error: ${t.message}", Toast.LENGTH_LONG).show()
                 }
             })
+
     }
+
+
 
     fun softDeletePet(pet: petMember) {
         val createClient = PetApi.create()
         val currentTime = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
+
+        Log.d("SoftDelete", "Deleting pet ID: ${pet.petID}, Time: $currentTime") // ✅ Debug Log
+
         createClient.softDeletePet(pet.petID.toInt(), currentTime)
             .enqueue(object : Callback<Void> {
                 override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                    Log.d("SoftDelete", "Response code: ${response.code()}") // ✅ Debug Response Code
                     if (response.isSuccessful) {
                         Toast.makeText(contextForToast, "ลบข้อมูลสำเร็จ", Toast.LENGTH_SHORT).show()
                         showAllData()
                     } else {
                         Toast.makeText(contextForToast, "ลบข้อมูลไม่สำเร็จ", Toast.LENGTH_SHORT).show()
+                        Log.e("SoftDelete", "Error: ${response.errorBody()?.string()}") // ✅ Debug Error
                     }
                 }
 
                 override fun onFailure(call: Call<Void>, t: Throwable) {
                     Toast.makeText(contextForToast, "Error: ${t.message}", Toast.LENGTH_LONG).show()
+                    Log.e("SoftDelete", "Failure: ${t.message}") // ✅ Debug Failure
                 }
             })
     }
@@ -134,3 +154,5 @@ fun PetCard(pet: petMember, onDelete: () -> Unit) {
         }
     }
 }
+
+

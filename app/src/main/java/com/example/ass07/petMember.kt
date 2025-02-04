@@ -32,7 +32,7 @@ data class petMember (
     @SerializedName("Pet_type_id") val Pet_type_id: Int,
 
     @Expose
-    @SerializedName("delete_at") val delete_at: Boolean,
+    @SerializedName("deleted_at") val deleted_at: String?,
 
     @Expose
     @SerializedName("User_id") val userId: Int

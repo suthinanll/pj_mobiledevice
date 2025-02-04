@@ -26,10 +26,10 @@ interface PetApi {
     ): Call<petMember>
 
     @FormUrlEncoded
-    @POST("softDeletePet") // 🔥 ต้องตรงกับ API endpoint บนเซิร์ฟเวอร์
+    @POST("softDeletePet")
     fun softDeletePet(
         @Field("pet_id") petId: Int,  // ✅ ต้องมี @Field
-        @Field("delete_at") deleteAt: String // ✅ ต้องเพิ่ม @Field
+        @Field("deleted_at") deleteAt: String? // ✅ ต้องเพิ่ม @Field
     ): Call<Void>
 
     companion object {
