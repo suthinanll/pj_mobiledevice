@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 
@@ -63,7 +64,11 @@ class BB {
 
             CenterAlignedTopAppBar(
                 title = {
-                    Text(text = "Chill Pet Story")
+                    Text(
+                        text = "Chill Pet Stay",
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = Color(0xFFFFBC2B)
