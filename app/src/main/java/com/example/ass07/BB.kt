@@ -110,11 +110,11 @@ class BB {
                             Toast.makeText(contextForToast, screen.name, Toast.LENGTH_SHORT).show()
                         },
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Color.White, // สีไอคอนเมื่อถูกเลือก
-                            selectedTextColor = Color.White, // สีข้อความเมื่อถูกเลือก
-                            unselectedIconColor = Color.Black, // สีไอคอนปกติ
-                            unselectedTextColor = Color.Black, // สีข้อความปกติ
-                            indicatorColor = Color.Transparent // เอาสีพื้นหลังออก ไม่ให้มีไฮไลต์
+                            selectedIconColor = Color.White,
+                            selectedTextColor = Color.White,
+                            unselectedIconColor = Color.Black,
+                            unselectedTextColor = Color.Black,
+                            indicatorColor = Color.Transparent
                         )
                     )
                 }

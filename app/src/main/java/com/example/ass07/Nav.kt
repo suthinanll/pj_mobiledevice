@@ -19,10 +19,13 @@ fun NavGraph(navController: NavHostController) {
             Home()
         }
         composable(route = Screen.MyPet.route) {
-            MyPet()
+            MyPet(navController)
         }
         composable(route = Screen.Profile.route) {
             Profile()
+        }
+        composable(route = Screen.Mypetinsert.route) {
+           Mypetinsert(navController)
         }
     }
 }
