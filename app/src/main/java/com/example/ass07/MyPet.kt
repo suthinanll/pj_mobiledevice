@@ -1,345 +1,130 @@
 package com.example.ass07
 
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.ripple.rememberRipple
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.RadioButtonDefaults
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.navigation.NavHostController
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 @Composable
-fun MyPet() {
-    MyScreen()
-}
-    @Composable
-    fun MyRadioGroup(
-        mItems:List<String>,
-        selected:String,
-        setSelected:(selected:String)->Unit,
-    ){
-        Row{
-            mItems.forEach{item->
-                Row(verticalAlignment=Alignment.CenterVertically){
-                    RadioButton(
-                        selected=selected==item,
-                        onClick={setSelected(item)},
-                        enabled=true,
-                        colors= RadioButtonDefaults.colors(
-                            selectedColor= Color.Magenta
-                        )
-                    )
-                    Text(
-                        text=item,
-                        modifier=Modifier.padding(start=1.dp)
-                    )
-                }
-            }
-        }
-    }
-    @Composable
-    fun RadioGroupUsage(
-        selected:String,
-        setSelected:(String)->Unit,
-        modifier:Modifier=Modifier
-    ){
+fun MyPet(navController: NavHostController) {
+    var petItemsList = remember { mutableStateListOf<petMember>() }
+    val contextForToast = LocalContext.current.applicationContext
 
-        val genderList = listOf("Male", "Female", "Other")
-        Column{
-            Text(
-                text="Gender:$selected",
-            )
-            MyRadioGroup(
-                mItems=genderList,
-                selected=selected,
-                setSelected=setSelected
-            )
-        }
+    fun showAllData() {
+        val createClient = PetApi.create()
+        createClient.retrievepetMember()
+            .enqueue(object : Callback<List<petMember>> {
+                override fun onResponse(
+                    call: Call<List<petMember>>, response: Response<List<petMember>>
+                ) {
+                    petItemsList.clear()
+                    response.body()?.let { petItemsList.addAll(it.filter { pet -> !pet.delete_at }) }
+                }
+
+                override fun onFailure(call: Call<List<petMember>>, t: Throwable) {
+                    Toast.makeText(contextForToast, "Error: ${t.message}", Toast.LENGTH_LONG).show()
+                }
+            })
     }
 
-
-    @Composable
-    fun MyScreen() {
-
-
-        var albumItemsList = remember { mutableStateListOf<Member>() }
-        val contextForToast = LocalContext.current.applicationContext
-        var addDialog by remember { mutableStateOf(false) }
-        var deleteDialog by remember { mutableStateOf(false) }
-        var itemClick by remember { mutableStateOf(Member("", "", "",0)) }
-        var textFieldName by remember { mutableStateOf("") }
-        var textFieldEmail by remember { mutableStateOf("") }
-        var textFieldSalary by remember { mutableStateOf("") }
-        var gender by rememberSaveable{ mutableStateOf("") }
-
-
-
-
-        Column {
-            Spacer(modifier = Modifier.height(20.dp))
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(modifier = Modifier.weight(0.85f)) {
-                    Text(text = "Member Lists:", fontSize = 25.sp)
-                }
-                Button(onClick = { addDialog = true }) {
-                    Text(text = "Add Album", fontSize = 17.sp)
-                }
-            }
-
-
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.fillMaxSize().background(Color.White) // กำหนดสีพื้นหลังของ LazyColumn
-            ) {
-                itemsIndexed(items = albumItemsList) { index, item ->
-                    Card(
-                        modifier = Modifier
-                            .padding(horizontal = 8.dp, vertical = 8.dp)
-                            .fillMaxWidth()
-                            .height(200.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White), // การ์ดเป็นพื้นหลังสีขาว
-                        elevation = CardDefaults.cardElevation(4.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        onClick = {
-                            Toast.makeText(
-                                contextForToast,
-                                "Click on ${item.name}",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(12.dp),
-                            verticalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = """
-                        Name: ${item.name}
-                        Gender: ${item.gender}
-                        E-mail: ${item.email}
-                        Salary: ${item.salary}
-                    """.trimIndent(),
-                                fontSize = 16.sp,
-                                color = Color.Black,
-                                fontWeight = FontWeight.Medium
-                            )
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.End
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .background(Color.Yellow, shape = RoundedCornerShape(8.dp)) // พื้นหลังสีเหลือง
-                                        .padding(horizontal = 12.dp, vertical = 6.dp) // ระยะห่าง
-                                        .clickable {
-                                            itemClick = item
-                                            deleteDialog = true
-                                            Toast.makeText(
-                                                contextForToast,
-                                                "Click on Delete ${itemClick.name}.",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        }
-                                ) {
-                                    Text(
-                                        text = "Delete",
-                                        color = Color.White, // ตัวอักษรสีขาว
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 18.sp
-                                    )
-                                }
-                            }
-                        }
+    fun softDeletePet(pet: petMember) {
+        val createClient = PetApi.create()
+        createClient.softDeletePet(pet.petID.toInt())
+            .enqueue(object : Callback<Void> {
+                override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                    if (response.isSuccessful) {
+                        Toast.makeText(contextForToast, "ลบข้อมูลสำเร็จ", Toast.LENGTH_SHORT).show()
+                        showAllData()
+                    } else {
+                        Toast.makeText(contextForToast, "ลบข้อมูลไม่สำเร็จ", Toast.LENGTH_SHORT).show()
                     }
                 }
-            }
 
+                override fun onFailure(call: Call<Void>, t: Throwable) {
+                    Toast.makeText(contextForToast, "Error: ${t.message}", Toast.LENGTH_LONG).show()
+                }
+            })
+    }
 
-
-            if (addDialog) {
-                AlertDialog(
-                    onDismissRequest = { addDialog = false },
-                    title = { Text(text = "Enter Information") },
-                    text = {
-                        Column {
-
-
-                            OutlinedTextField(
-                                value = textFieldName,
-                                onValueChange = { textFieldName = it },
-                                label = { Text(text = "Enter your Name") }
-                            )
-                            RadioGroupUsage(
-                                selected=gender,
-                                setSelected={gender=it}
-                            )
-                            OutlinedTextField(
-                                value = textFieldEmail,
-                                onValueChange = { textFieldEmail = it },
-                                label = { Text(text = "Enter your email") },
-                                keyboardOptions = KeyboardOptions(
-                                    keyboardType = KeyboardType.Email
-                                )
-                            )
-                            OutlinedTextField(
-                                value = textFieldSalary,
-                                onValueChange = { textFieldSalary = it },
-                                label = { Text(text = "Enter your Salary") },
-                                keyboardOptions = KeyboardOptions(
-                                    keyboardType = KeyboardType.Number
-                                )
-                            )
-
-                        }
-
-                    },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                addDialog = false
-                                albumItemsList.add(
-                                    Member(
-
-
-                                        textFieldName,
-                                        gender = gender,
-                                        textFieldEmail,
-                                        textFieldSalary.toInt(),
-                                    )
-                                )
-                                textFieldName = ""
-                                textFieldEmail = ""
-                                textFieldSalary = "0"
-                                gender = ""
-                            }
-                        ) {
-                            Text(text = "Register")
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(
-
-
-                            onClick = {
-                                addDialog = false
-                                textFieldName = ""
-                                textFieldEmail = ""
-                                textFieldSalary = "0"
-                                gender = ""
-                            }
-                        ) {
-                            Text(text = "Cancel")
-                        }
-                    }
-                )
-            }
-            if (deleteDialog) {
-                AlertDialog(
-                    onDismissRequest = { deleteDialog = false },
-                    title = { Text(text = "Warning") },
-                    text = { Text(text = "Are you sure you want to delete ${itemClick.name}?") },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                deleteDialog = false
-                                Toast.makeText(
-                                    contextForToast,
-                                    "Yes, ${itemClick.name} is deleted",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                albumItemsList.remove(itemClick)
-                            }
-                        ) {
-                            Text(text = "Yes")
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(
-                            onClick = {
-                                deleteDialog = false
-                                Toast.makeText(
-                                    contextForToast,
-                                    "Click on No",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                        ) {
-                            Text(text = "No")
-                        }
-                    }
-                )
-            }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(lifecycleOwner.lifecycle.currentState) {
+        if (lifecycleOwner.lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) {
+            showAllData()
         }
     }
-@Composable
-fun DialogButton(
-    modifier: Modifier = Modifier,
-    cornerRadiusPercent: Int = 26,
-    buttonText: String,
-    onDismiss: () -> Unit
-) {
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(percent = cornerRadiusPercent))
-            .background(color = Color.Yellow)
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = rememberRipple(bounded = true)
-            ) { onDismiss() }
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        contentAlignment = Alignment.Center
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFFFFAF0)),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = buttonText,
-            color = Color.White,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold
-        )
+        LazyColumn(
+            modifier = Modifier.weight(1f).padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            itemsIndexed(petItemsList) { _, pet ->
+                PetCard(pet, onDelete = { softDeletePet(pet) })
+            }
+        }
+
+        Button(
+            onClick = { navController.navigate(Screen.Mypetinsert.route) },
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD966)),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Text("เพิ่มข้อมูลสัตว์เลี้ยง", fontSize = 18.sp, color = Color.Black)
+        }
+    }
+}
+
+@Composable
+fun PetCard(pet: petMember, onDelete: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text("สัตว์เลี้ยงของฉัน", fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
+            Text("ชื่อสัตว์เลี้ยง: ${pet.petName}", fontSize = 16.sp)
+            Text("เพศ: ${pet.petGender}", fontSize = 16.sp)
+            Text("สายพันธุ์: ${pet.petBreed}", fontSize = 16.sp)
+            Text("อายุ: ${pet.petAge} ปี", fontSize = 16.sp)
+            Text("น้ำหนัก: ${pet.petWeight} กิโลกรัม", fontSize = 16.sp)
+            Text("คำแนะนำ / คำอธิบายเพิ่มเติม: ${pet.additionalInfo}", fontSize = 16.sp)
+
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Button(onClick = { /* แก้ไขข้อมูล */ }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD966))) {
+                    Text("แก้ไข", color = Color.Black)
+                }
+                Button(onClick = onDelete, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD966))) {
+                    Text("ลบ", color = Color.Black)
+                }
+            }
+        }
     }
 }
