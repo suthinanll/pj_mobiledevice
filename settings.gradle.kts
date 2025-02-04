@@ -19,6 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "pj_Mobiledevice"
+rootProject.name = "ASS07"
 include(":app")
- 
