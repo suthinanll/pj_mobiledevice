@@ -32,17 +32,15 @@ fun Mypetinsert(navController: NavHostController) {
     var petGender by rememberSaveable { mutableStateOf("") }
     var petTypename by rememberSaveable { mutableStateOf("") }
     var UserId by remember { mutableStateOf("") }
-    var Pet_type_id by rememberSaveable { mutableStateOf("") }
 
 
     val createClient = PetApi.create()
     val contextForToast = LocalContext.current
+    val userId = 3 // หรือส่งผ่าน parameter หรือดึงจาก session
 
-    if (petTypename == "สุนัข"){
-        Pet_type_id.equals(1)
-    }else{
-        Pet_type_id.equals(2)
-    }
+
+    // แก้ไขการกำหนด Pet_type_id
+    val Pet_type_id = if (petTypename == "สุนัข") "1" else "2"
 
     Column(
         modifier = Modifier
@@ -111,22 +109,31 @@ fun Mypetinsert(navController: NavHostController) {
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
+                val genderCode = when (petGender) {
+                    "เพศผู้" -> "M"
+                    "เพศเมีย" -> "F"
+                    else -> "" // กรณีค่าไม่ตรงกับเงื่อนไขที่กำหนด
+                }
+
                 Button(
                     onClick = {
                         createClient.insertPet(
                             textFieldPetName,
-                            petGender,
+                            genderCode,
                             textFieldPetBreed,
                             textFieldPetAge.toIntOrNull() ?: 0,
                             textFieldPetWeight.toIntOrNull() ?: 0,
                             textFieldAdditionalInfo,
-                            Pet_type_id,
-                            petTypename,
-                            UserId.toInt()
+                            Pet_type_id.toInt(),  // รหัสประเภท
+                            userId       // รหัสผู้ใช้
                         ).enqueue(object : Callback<petMember> {
                             override fun onResponse(call: Call<petMember>, response: Response<petMember>) {
-                                Toast.makeText(contextForToast, "บันทึกสำเร็จ", Toast.LENGTH_SHORT).show()
-                                navController.navigate(Screen.MyPet.route)
+                                if (response.isSuccessful) {
+                                    Toast.makeText(contextForToast, "บันทึกสำเร็จ", Toast.LENGTH_SHORT).show()
+                                    navController.navigate(Screen.MyPet.route)
+                                } else {
+                                    Toast.makeText(contextForToast, "บันทึกไม่สำเร็จ: ${response.message()}", Toast.LENGTH_SHORT).show()
+                                }
                             }
                             override fun onFailure(call: Call<petMember>, t: Throwable) {
                                 Toast.makeText(contextForToast, "เกิดข้อผิดพลาด: ${t.message}", Toast.LENGTH_LONG).show()

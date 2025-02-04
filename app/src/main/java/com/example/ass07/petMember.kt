@@ -34,7 +34,6 @@ data class petMember (
     @Expose
     @SerializedName("delete_at") val delete_at: Boolean,
 
-
     @Expose
     @SerializedName("User_id") val userId: Int
 )

@@ -77,8 +77,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             ASS07Theme {
                 BB.MyScaffoldLayout()
-
-
             }
             }
         }
