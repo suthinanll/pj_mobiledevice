@@ -1,6 +1,5 @@
 package com.example.ass07
 
-import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -21,6 +20,9 @@ import androidx.navigation.NavHostController
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun MyPet(navController: NavHostController) {
@@ -35,7 +37,9 @@ fun MyPet(navController: NavHostController) {
                     call: Call<List<petMember>>, response: Response<List<petMember>>
                 ) {
                     petItemsList.clear()
-                    response.body()?.let { petItemsList.addAll(it.filter { pet -> !pet.delete_at }) }
+                    response.body()?.let {
+                        petItemsList.addAll(it.filter { pet -> !pet.delete_at })
+                    }
                 }
 
                 override fun onFailure(call: Call<List<petMember>>, t: Throwable) {
@@ -46,7 +50,8 @@ fun MyPet(navController: NavHostController) {
 
     fun softDeletePet(pet: petMember) {
         val createClient = PetApi.create()
-        createClient.softDeletePet(pet.petID.toInt())
+        val currentTime = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
+        createClient.softDeletePet(pet.petID.toInt(), currentTime)
             .enqueue(object : Callback<Void> {
                 override fun onResponse(call: Call<Void>, response: Response<Void>) {
                     if (response.isSuccessful) {
@@ -62,6 +67,7 @@ fun MyPet(navController: NavHostController) {
                 }
             })
     }
+
 
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(lifecycleOwner.lifecycle.currentState) {

@@ -21,17 +21,16 @@ interface PetApi {
         @Field("Pet_age") petAge: Int,
         @Field("Pet_weight") petWeight: Int,
         @Field("additional_info") additionalInfo: String,
-        @Field("Pet_nametype") petTypename: String,
-        @Field("Pet_type_id") Pet_type_id: String,
+        @Field("Pet_type_id") Pet_type_id: Int,
         @Field("User_id") userId: Int
     ): Call<petMember>
 
     @FormUrlEncoded
-    @POST("softDeletePet")
+    @POST("softDeletePet") // 🔥 ต้องตรงกับ API endpoint บนเซิร์ฟเวอร์
     fun softDeletePet(
-        @Field("Pet_id") petId: Int
+        @Field("pet_id") petId: Int,  // ✅ ต้องมี @Field
+        @Field("delete_at") deleteAt: String // ✅ ต้องเพิ่ม @Field
     ): Call<Void>
-
 
     companion object {
         fun create(): PetApi {
