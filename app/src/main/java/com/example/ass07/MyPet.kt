@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,6 +30,7 @@ import java.util.Locale
 fun MyPet(navController: NavHostController) {
     var petItemsList = remember { mutableStateListOf<petMember>() }
     val contextForToast = LocalContext.current.applicationContext
+
 
 
 
@@ -107,9 +109,10 @@ fun MyPet(navController: NavHostController) {
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             itemsIndexed(petItemsList) { _, pet ->
-                PetCard(pet, onDelete = { softDeletePet(pet) })
+                PetCard(pet, onDelete = { softDeletePet(pet) },navController)
             }
         }
+
 
         Button(
             onClick = { navController.navigate(Screen.Mypetinsert.route) },
@@ -123,8 +126,9 @@ fun MyPet(navController: NavHostController) {
     }
 }
 
+
 @Composable
-fun PetCard(pet: petMember, onDelete: () -> Unit) {
+fun PetCard(pet: petMember, onDelete: () -> Unit ,navController: NavHostController) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -134,7 +138,11 @@ fun PetCard(pet: petMember, onDelete: () -> Unit) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text("สัตว์เลี้ยงของฉัน", fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
             Text("ชื่อสัตว์เลี้ยง: ${pet.petName}", fontSize = 16.sp)
-            Text("เพศ: ${pet.petGender}", fontSize = 16.sp)
+            Text("ประเภท: ${pet.petTypename}", fontSize = 16.sp)
+            Text(
+                "เพศ: ${if (pet.petGender == "M") "เพศผู้" else if (pet.petGender == "F") "เพศเมีย" else "ไม่ระบุ"}",
+                fontSize = 16.sp
+            )
             Text("สายพันธุ์: ${pet.petBreed}", fontSize = 16.sp)
             Text("อายุ: ${pet.petAge} ปี", fontSize = 16.sp)
             Text("น้ำหนัก: ${pet.petWeight} กิโลกรัม", fontSize = 16.sp)
@@ -144,10 +152,17 @@ fun PetCard(pet: petMember, onDelete: () -> Unit) {
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Button(onClick = { /* แก้ไขข้อมูล */ }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD966))) {
+                Button(
+                    onClick = { navController.navigate("mypetedit/${pet.petID}") },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD966))
+                ) {
                     Text("แก้ไข", color = Color.Black)
                 }
-                Button(onClick = onDelete, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD966))) {
+
+                Button(
+                    onClick = onDelete,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD966))
+                ) {
                     Text("ลบ", color = Color.Black)
                 }
             }
