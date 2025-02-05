@@ -8,9 +8,10 @@ android {
     namespace = "com.example.ass07"
     compileSdk = 35
 
+
     defaultConfig {
         applicationId = "com.example.ass07"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"

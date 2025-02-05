@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -59,11 +61,32 @@ fun Mypetedit(navController: NavHostController, pet: petMember) {
                 modifier = Modifier.padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = "แก้ไขข้อมูลสัตว์เลี้ยง",
-                    fontSize = 20.sp,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(
+                        onClick = { navController.navigate(Screen.MyPet.route) },
+                        modifier = Modifier.align(Alignment.CenterVertically) // ✅ ชิดซ้ายสุด
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowBack,
+                            contentDescription = "ย้อนกลับ",
+                            tint = Color.Black
+                        )
+                    }
+
+                    Text(
+                        text = "แก้ไขข้อมูลสัตว์เลี้ยง",
+                        fontSize = 20.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .weight(1f)
+                            .align(Alignment.CenterVertically)
+                    )
+                }
 
                 OutlinedTextField(
                     value = textFieldPetName,
