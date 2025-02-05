@@ -112,7 +112,7 @@ class BB {
                         onClick = {
                             selectedScreen = index
                             navController.navigate(screen.route)
-                            Toast.makeText(contextForToast, screen.name, Toast.LENGTH_SHORT).show()
+
                         },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = Color.White,

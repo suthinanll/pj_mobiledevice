@@ -1,5 +1,7 @@
 package com.example.ass07
 
+
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import android.widget.Toast
@@ -22,24 +24,24 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
+
 @Composable
-fun Mypetinsert(navController: NavHostController) {
-    var textFieldPetName by remember { mutableStateOf("") }
-    var textFieldPetAge by remember { mutableStateOf("") }
-    var textFieldPetWeight by remember { mutableStateOf("") }
-    var textFieldAdditionalInfo by remember { mutableStateOf("") }
-    var textFieldPetBreed by remember { mutableStateOf("") }
-    var petGender by rememberSaveable { mutableStateOf("") }
-    var petTypename by rememberSaveable { mutableStateOf("") }
-    var UserId by remember { mutableStateOf("") }
+fun Mypetedit(navController: NavHostController, pet: petMember) {
+    var textFieldPetName by remember { mutableStateOf(pet.petName) }
+    var textFieldPetAge by remember { mutableStateOf(pet.petAge.toString()) }
+    var textFieldPetWeight by remember { mutableStateOf(pet.petWeight.toString()) }
+    var textFieldAdditionalInfo by remember { mutableStateOf(pet.additionalInfo) }
+    var textFieldPetBreed by remember { mutableStateOf(pet.petBreed) }
+    var petGender by rememberSaveable { mutableStateOf(if (pet.petGender == "M") "เพศผู้" else "เพศเมีย") }
+    var petTypename by rememberSaveable { mutableStateOf(if (pet.Pet_type_id == 1) "สุนัข" else "แมว") }
+    var Pet_type_id by rememberSaveable { mutableStateOf(pet.Pet_type_id) }
 
 
     val createClient = PetApi.create()
     val contextForToast = LocalContext.current
-    val userId = 3 // หรือส่งผ่าน parameter หรือดึงจาก session
+    val userId = pet.userId
 
 
-    val Pet_type_id = if (petTypename == "สุนัข") "1" else "2"
 
     Column(
         modifier = Modifier
@@ -57,7 +59,11 @@ fun Mypetinsert(navController: NavHostController) {
                 modifier = Modifier.padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = "เพิ่มข้อมูลสัตว์เลี้ยง", fontSize = 20.sp, modifier = Modifier.padding(bottom = 16.dp))
+                Text(
+                    text = "แก้ไขข้อมูลสัตว์เลี้ยง",
+                    fontSize = 20.sp,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
 
                 OutlinedTextField(
                     value = textFieldPetName,
@@ -69,7 +75,11 @@ fun Mypetinsert(navController: NavHostController) {
 
                 RadioGroupUsage(
                     selected = petTypename,
-                    setSelected = { petTypename = it },
+                    setSelected = { selectedType ->
+                        petTypename = selectedType
+                        Pet_type_id =
+                            if (selectedType == "สุนัข") 1 else 2 // อัปเดตค่า Pet_type_id ตามประเภทที่เลือก
+                    },
                     label = "ประเภท",
                     options = listOf("สุนัข", "แมว")
                 )
@@ -118,69 +128,46 @@ fun Mypetinsert(navController: NavHostController) {
                 val genderCode = when (petGender) {
                     "เพศผู้" -> "M"
                     "เพศเมีย" -> "F"
-                    else -> ""
+                    else -> pet.petGender
                 }
 
                 Button(
                     onClick = {
-                        createClient.insertPet(
-                            textFieldPetName,
-                            genderCode,
-                            textFieldPetBreed,
-                            textFieldPetAge.toIntOrNull() ?: 0,
-                            textFieldPetWeight.toIntOrNull() ?: 0,
-                            textFieldAdditionalInfo,
-                            Pet_type_id.toInt(),  // รหัสประเภท
-                            userId       // รหัสผู้ใช้
-                        ).enqueue(object : Callback<petMember> {
-                            override fun onResponse(call: Call<petMember>, response: Response<petMember>) {
-                                if (response.isSuccessful) {
-                                    Toast.makeText(contextForToast, "บันทึกสำเร็จ", Toast.LENGTH_SHORT).show()
-                                    navController.navigate(Screen.MyPet.route)
-                                } else {
-                                    Toast.makeText(contextForToast, "บันทึกไม่สำเร็จ: ${response.message()}", Toast.LENGTH_SHORT).show()
+                        val petData = UpdatePetRequest(
+                            petName = textFieldPetName,
+                            petGender = genderCode,
+                            petBreed = textFieldPetBreed,
+                            petAge = textFieldPetAge.toIntOrNull() ?: 0,
+                            petWeight = textFieldPetWeight.toIntOrNull() ?: 0,
+                            additionalInfo = textFieldAdditionalInfo,
+                            Pet_type_id = Pet_type_id
+                        )
+
+                        Log.d("API_REQUEST", "Sending updatePet: $petData") // ✅ Debug log ก่อนส่ง API
+
+                        createClient.updatePet(pet.petID.toInt(), petData)
+                            .enqueue(object : Callback<petMember> {
+                                override fun onResponse(call: Call<petMember>, response: Response<petMember>) {
+                                    if (response.isSuccessful) {
+                                        Log.d("API_RESPONSE", "Update Successful: ${response.body()}") // ✅ Debug log หลังส่ง API สำเร็จ
+                                        Toast.makeText(contextForToast, "อัปเดตสำเร็จ", Toast.LENGTH_SHORT).show()
+                                        navController.navigate(Screen.MyPet.route)
+                                    } else {
+                                        Log.e("API_ERROR", "Update Failed: ${response.message()} - ${response.errorBody()?.string()}")
+                                        Toast.makeText(contextForToast, "อัปเดตไม่สำเร็จ: ${response.message()}", Toast.LENGTH_SHORT).show()
+                                    }
                                 }
-                            }
-                            override fun onFailure(call: Call<petMember>, t: Throwable) {
-                                Toast.makeText(contextForToast, "เกิดข้อผิดพลาด: ${t.message}", Toast.LENGTH_LONG).show()
-                            }
-                        })
+
+                                override fun onFailure(call: Call<petMember>, t: Throwable) {
+                                    Log.e("API_ERROR", "Error updating pet: ${t.message}")
+                                    Toast.makeText(contextForToast, "เกิดข้อผิดพลาด: ${t.message}", Toast.LENGTH_LONG).show()
+                                }
+                            })
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD966)),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("เพิ่มข้อมูล", color = Color.Black)
-                }
-            }
-        }
-    }
-}
-
-
-@Composable
-fun RadioGroupUsage(
-    selected: String,
-    setSelected: (String) -> Unit,
-    label: String,
-    options: List<String>
-) {
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text(
-            text = "$label: $selected",
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-            options.forEach { item ->
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(
-                        selected = selected == item,
-                        onClick = { setSelected(item) },
-                        enabled = true,
-                        colors = RadioButtonDefaults.colors(
-                            selectedColor = Color.Magenta
-                        )
-                    )
-                    Text(text = item)
+                    Text("แก้ไข", color = Color.Black)
                 }
             }
         }

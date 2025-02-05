@@ -28,4 +28,16 @@ sealed class Screen(val route: String, val name: String, val icon: (@Composable 
             }
         }
     )
+    object Mypetedit : Screen(
+        route = "Mypetedit",
+        name = "Mypetedit",
+        icon = {
+            remember {
+                object : Painter() {
+                    override val intrinsicSize = Size(1f, 1f)
+                    override fun DrawScope.onDraw() { /* ไม่วาดอะไร */ }
+                }
+            }
+        }
+    )
 }
