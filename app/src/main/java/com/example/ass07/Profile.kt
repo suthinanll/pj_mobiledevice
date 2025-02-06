@@ -165,7 +165,7 @@ fun Profile() {
                 // ปุ่มออกจากระบบ
                 Button(
                     onClick = { /* รอ login logout */ },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFBC2B)),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Icon(
