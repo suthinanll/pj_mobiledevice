@@ -1,5 +1,6 @@
 package com.example.ass07
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -13,10 +14,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -38,19 +37,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-val customFontFamily = FontFamily(
-    Font(R.font.thai), // ฟอนต์ปกติ
-    Font(R.font.thai, FontWeight.Bold) // ฟอนต์ที่มีน้ำหนัก Bold
-)
+
 @Composable
-fun RoomManagementScreen(onToast: (String) -> Unit) {
+fun RoomManagementScreen() {
+    val context = LocalContext.current // เข้าถึง context ที่ใช้ในการแสดง Toast
+
     var filterDialogOpen by remember { mutableStateOf(false) }
 
     // Storing selected options
@@ -59,30 +56,47 @@ fun RoomManagementScreen(onToast: (String) -> Unit) {
 
     val roomList = List(10) { it } // Example room list
 
-
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp).background(Color.Gray.copy(alpha = 0.5f))) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(5.dp)
+            .background(Color(0xFFFFF3D9)) // เปลี่ยนเป็นพื้นหลังสีตามที่กำหนด
+    ) {
         // Header with Title and Buttons
         Row(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            horizontalArrangement = Arrangement.Start
         ) {
-            IconButton(onClick = { onToast("Back clicked") }) {
+            // Spacer to push items down
+            Spacer(modifier = Modifier.weight(1f))
+
+            IconButton(onClick = {
+                Toast.makeText(context, "Back clicked", Toast.LENGTH_SHORT).show() // ใช้ context เพื่อแสดง Toast
+            }) {
                 Icon(
                     imageVector = Icons.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = Color.Black
+                    tint = Color(0xFF3D3D3D) // ใช้สีเข้ม
                 )
             }
 
+             // ระยะห่างระหว่างปุ่ม Back และข้อความ
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ){
             Text(
                 text = "Room Management",
                 style = MaterialTheme.typography.headlineMedium.copy(
-                    color = Color.Black,
-                    fontFamily = customFontFamily
+                    color = Color.Black
                 ),
-                modifier = Modifier.weight(1f)
+                 // ให้ข้อความอยู่กลาง
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center // ข้อความอยู่กลาง
             )
-        }
+
+            Spacer(modifier = Modifier.weight(1f)) // ให้ย้ายปุ่ม "Back" และข้อความให้อยู่กลาง
+
+        }}
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -94,8 +108,7 @@ fun RoomManagementScreen(onToast: (String) -> Unit) {
             TextButton(onClick = { filterDialogOpen = true }) {
                 Text(
                     text = "Filter/Sort",
-                    color = Color.Black, // เปลี่ยนเป็นสีดำ
-                    fontFamily = customFontFamily
+                    color = Color(0xFF007AFF), // สีปุ่ม Filter/Sort
                 )
             }
         }
@@ -107,8 +120,7 @@ fun RoomManagementScreen(onToast: (String) -> Unit) {
                 title = {
                     Text(
                         text = "Select Filter/Sort",
-                        color = Color.Black, // เปลี่ยนเป็นสีดำ
-                        fontFamily = customFontFamily
+                        color = Color.Black
                     )
                 },
                 text = {
@@ -116,23 +128,21 @@ fun RoomManagementScreen(onToast: (String) -> Unit) {
                         TextButton(onClick = {
                             selectedFilter = "Filter Option"
                             filterDialogOpen = false
-                            onToast("Filter selected")
+                            Toast.makeText(context, "Filter selected", Toast.LENGTH_SHORT).show() // ใช้ context
                         }) {
                             Text(
                                 "Filter",
-                                color = Color.Black, // เปลี่ยนเป็นสีดำ
-                                fontFamily = customFontFamily
+                                color = Color.Black
                             )
                         }
                         TextButton(onClick = {
                             selectedSort = "Sort Option"
                             filterDialogOpen = false
-                            onToast("Sort selected")
+                            Toast.makeText(context, "Sort selected", Toast.LENGTH_SHORT).show() // ใช้ context
                         }) {
                             Text(
                                 "Sort",
-                                color = Color.Black, // เปลี่ยนเป็นสีดำ
-                                fontFamily = customFontFamily
+                                color = Color.Black
                             )
                         }
                     }
@@ -141,14 +151,13 @@ fun RoomManagementScreen(onToast: (String) -> Unit) {
                     Button(
                         onClick = {
                             filterDialogOpen = false
-                            onToast("Filter/Sort Applied")
+                            Toast.makeText(context, "Filter/Sort Applied", Toast.LENGTH_SHORT).show() // ใช้ context
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Black) // เปลี่ยนเป็นสีดำ
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFBC2B)) // ปุ่มสีตามที่กำหนด
                     ) {
                         Text(
                             "Apply",
-                            color = Color.White, // สีขาวเพื่อให้เห็นชัด
-                            fontFamily = customFontFamily
+                            color = Color.White
                         )
                     }
                 },
@@ -156,8 +165,7 @@ fun RoomManagementScreen(onToast: (String) -> Unit) {
                     TextButton(onClick = { filterDialogOpen = false }) {
                         Text(
                             "Cancel",
-                            color = Color.Black, // เปลี่ยนเป็นสีดำ
-                            fontFamily = customFontFamily
+                            color = Color.Black
                         )
                     }
                 }
@@ -175,22 +183,19 @@ fun RoomManagementScreen(onToast: (String) -> Unit) {
                 Text(
                     text = "Selected Filters/Sort Options",
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        color = Color.Black, // เปลี่ยนเป็นสีดำ
-                        fontFamily = customFontFamily
+                        color = Color.Black
                     )
                 )
                 selectedFilter?.let {
                     Text(
                         text = "Filter: $it",
-                        color = Color.Black, // เปลี่ยนเป็นสีดำ
-                        fontFamily = customFontFamily
+                        color = Color.Black
                     )
                 }
                 selectedSort?.let {
                     Text(
                         text = "Sort: $it",
-                        color = Color.Black, // เปลี่ยนเป็นสีดำ
-                        fontFamily = customFontFamily
+                        color = Color.Black
                     )
                 }
             }
@@ -201,104 +206,109 @@ fun RoomManagementScreen(onToast: (String) -> Unit) {
         // Room List
         LazyColumn(modifier = Modifier.weight(1f)) {
             items(roomList) { id ->
-                RoomCard(id = id, onToast = onToast)
+                RoomCard(id = id) // ส่ง id ของห้อง
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
             // Add Room Button
             item {
-                AddRoomButton(onToast)
+                AddRoomButton()
             }
         }
     }
 }
 
 @Composable
-fun RoomCard(id: Int, onToast: (String) -> Unit) {
+fun RoomCard(id: Int) {
+    val context = LocalContext.current // เข้าถึง context ที่ใช้ในการแสดง Toast
+
     androidx.compose.material3.Card(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .clickable { onToast("Card ID: $id") }
-            .background(Color.Gray),
+            .clickable {
+                Toast.makeText(context, "Card ID: $id", Toast.LENGTH_SHORT).show() // ใช้ context
+            }
+            .background(Color(0xFFFFFFFF)), // เปลี่ยนเป็นสีเทาอ่อนสำหรับ Card
         colors = androidx.compose.material3.CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
-        elevation = androidx.compose.material3.CardDefaults.elevatedCardElevation(4.dp)
+        elevation = androidx.compose.material3.CardDefaults.elevatedCardElevation(8.dp) // ปรับให้มีเงา
     ) {
         Row(modifier = Modifier.padding(16.dp)) {
-            // Status Indicator
+            // จุดสีเขียวทางด้านซ้ายของรูป
             Box(
                 modifier = Modifier
-                    .size(16.dp)
-                    .clip(CircleShape)
-                    .background(Color.Green) // Replace with dynamic color
+                    .size(10.dp) // ขนาดของจุด
+                    .background(Color.Green, shape = RoundedCornerShape(50)) // รูปทรงวงกลมและสีเขียว
+                    .align(Alignment.CenterVertically) // จัดให้อยู่กลางแนวตั้ง
             )
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            // Room Preview Image
-            Image(
-                painter = painterResource(id = R.drawable.ic_launcher_background),
-                contentDescription = "Room Preview",
-                modifier = Modifier
-                    .size(64.dp)
-                    .clip(RoundedCornerShape(8.dp))
-            )
-
-            Spacer(modifier = Modifier.width(16.dp))
 
             // Room Info
+            Image(
+                painter = painterResource(R.drawable.logoapp),
+                contentDescription = "Room Image",
+                modifier = Modifier
+                    .size(50.dp) // ขนาดของรูป
+                    .padding(start = 8.dp) // ช่องว่างระหว่างจุดสีเขียวและรูป
+                    .clip(RoundedCornerShape(8.dp)) // ขอบมุมรูปภาพ
+            )
+
+            // Room Info Details
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "สุนัข Deluxe",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black, // เปลี่ยนเป็นสีดำ
-                    fontFamily = customFontFamily
+                    color = Color.Black
                 )
                 Text(
                     text = "คำอธิบายห้องพัก",
                     fontSize = 14.sp,
-                    color = Color.Gray,
-                    fontFamily = customFontFamily
+                    color = Color.Gray
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "ราคา: 1,200 บาท",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
-                    color = Color.Black, // เปลี่ยนเป็นสีดำ
-                    fontFamily = customFontFamily
+                    color = Color.Black
                 )
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
-
-            // More Button using Icons.Default.MoreVert
-            IconButton(onClick = { onToast("More for ID: $id") }) {
+            // IconButton (More) on the right
+            IconButton(
+                onClick = {
+                    Toast.makeText(context, "More", Toast.LENGTH_SHORT).show() // ใช้ context เพื่อแสดง Toast
+                },
+                modifier = Modifier
+                    .align(Alignment.CenterVertically) // จัดตำแหน่งให้อยู่กลางแนวตั้ง
+                    .padding(start = 8.dp) // ช่องว่างระหว่างข้อมูลห้องและปุ่ม
+            ) {
                 Icon(
-                    imageVector = Icons.Default.MoreVert,
+                    imageVector = Icons.Filled.MoreVert,
                     contentDescription = "More",
-                    tint = Color.Black
+                    tint = Color(0xFF3D3D3D) // ใช้สีเข้ม
                 )
             }
-        }
-    }
-}
+        }}}
 
 @Composable
-fun AddRoomButton(onToast: (String) -> Unit) {
+fun AddRoomButton() {
+    val context = LocalContext.current // เข้าถึง context
+
     Button(
-        onClick = { onToast("Add Room clicked") },
+        onClick = {
+            Toast.makeText(context, "Add Room clicked", Toast.LENGTH_SHORT).show() // ใช้ context
+        },
         modifier = Modifier.fillMaxWidth().padding(16.dp),
         shape = RoundedCornerShape(16.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = Color.Black) // เปลี่ยนเป็นสีดำ
+        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFBC2B)) // ปุ่มสีตามที่กำหนด
     ) {
         Text(
             text = "เพิ่มห้องพัก",
-            color = Color.White, // สีขาวเพื่อให้เห็นชัด
-            fontFamily = customFontFamily
+            color = Color.White
         )
     }
 }
+

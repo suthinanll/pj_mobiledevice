@@ -12,8 +12,8 @@ sealed class Screen(val route: String, val name: String, val icon: (@Composable 
     object History : Screen(route = "History", name = "History", icon = { painterResource(id = R.drawable.history) })
     object MyPet : Screen(route = "MyPet", name = "MyPet", icon = { painterResource(id = R.drawable.mypet) })
     object Profile : Screen(route = "Profile", name = "Profile", icon = { painterResource(id = R.drawable.user) })
-    object Dashboard : Screen("dashboard", name = "Profile", icon = { painterResource(id = R.drawable.user) })
-    object RoomManagement : Screen("room_management", name = "Profile", icon = { painterResource(id = R.drawable.user) })
+    object Dashboard : Screen("dashboard", name = "Dashboard", icon = { painterResource(id = R.drawable.user) })
+    object RoomManagement : Screen("room_manage", name = "Room Management", icon = { painterResource(id = R.drawable.user) })
     object Mypetinsert : Screen(
         route = "Mypetinsert",
         name = "Mypetinsert",
@@ -39,3 +39,4 @@ sealed class Screen(val route: String, val name: String, val icon: (@Composable 
         }
     )
 }
+

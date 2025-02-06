@@ -18,12 +18,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -39,7 +35,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -54,66 +49,22 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ASS07Theme {
-                BB.MyScaffoldLayout()
-            }
-            }
-        }
-    }
-@Composable
-fun Dashboard(navController: NavController) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFE3F2FD)),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = "Dashboard Screen",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF1976D2)
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = { navController.popBackStack() },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF1976D2),
-                    contentColor = Color.White
-                )
-            ) {
-                Text(text = "Back to Login")
+                AppNavigator() // เรียกใช้ AppNavigator ที่ทำการนำทางหน้า
             }
         }
     }
 }
 
+
 @Composable
-fun RoomManagement(navController: NavController) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFFFF3E0)),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = "Room Management Screen",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFFFF6F00)
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = { navController.popBackStack() },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFFF6F00),
-                    contentColor = Color.White
-                )
-            ) {
-                Text(text = "Back to Login")
-            }
-        }
+fun AppNavigator() {
+    val navController = rememberNavController()
+    NavHost(navController = navController, startDestination = "room_management") {
+        composable("login") { Login(navController) }
+
+        composable("dashboard") { DashboardScreen() }
+        composable("room_management") { RoomManagementScreen() }
+
     }
 }
 
@@ -201,126 +152,5 @@ fun Login(navController: NavController) {
                 }
             }
         }
-    }
-}
-@Composable
-fun Register(navController: NavController) {
-    val contextForToast = LocalContext.current
-    val name = remember { mutableStateOf("") }
-    val newusername = remember { mutableStateOf("") }
-    val email = remember { mutableStateOf("") }
-    val newpassword = remember { mutableStateOf("") }
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFFFF3D9))
-            .padding(20.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            modifier = Modifier
-                .background(Color.White, shape = RoundedCornerShape(16.dp))
-                .padding(vertical = 20.dp)
-                .clip(RoundedCornerShape(20.dp)),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start
-            ) {
-                IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                }
-            }
-            Text(
-                text = "Register",
-                fontSize = 25.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 5.dp)
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-            OutlinedTextField(
-                value = name.value,
-                onValueChange = { name.value = it },
-                label = { Text("Name") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 30.dp),
-                singleLine = true
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-            OutlinedTextField(
-                value = newusername.value,
-                onValueChange = { newusername.value = it },
-                label = { Text("Username") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 30.dp),
-                singleLine = true
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-            OutlinedTextField(
-                value = email.value,
-                onValueChange = { email.value = it },
-                label = { Text("Email") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 30.dp),
-                singleLine = true
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-            OutlinedTextField(
-                value = newpassword.value,
-                onValueChange = { newpassword.value = it },
-                label = { Text("Password") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 30.dp),
-                singleLine = true
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-            Button(
-                onClick = {
-                    Toast.makeText(contextForToast, "Registered as ${name.value}", Toast.LENGTH_SHORT).show()
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 30.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFFFBC2B),
-                    contentColor = Color.White
-                )
-            ) {
-                Text(text = "Register")
-            }
-            Spacer(modifier = Modifier.height(180.dp))
-        }
-    }
-}
-@Composable
-fun AppNavigator() {
-    val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = "login") {
-        composable("login") { Login(navController) }
-        composable("register") { Register(navController) }
-        composable("dashboard") { Dashboard(navController) } // เพิ่มเส้นทาง Dashboard
-        composable("room_management") { RoomManagement(navController) } // เพิ่มเส้นทาง Room Management
-    }
-}
-
-
-
-
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    ASS07Theme {
-        BB.MyScaffoldLayout()
-
-
     }
 }
