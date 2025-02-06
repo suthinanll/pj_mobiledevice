@@ -17,19 +17,24 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.foundation.text.KeyboardOptions
+
+
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+
 import androidx.compose.material3.OutlinedTextField
+
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,16 +42,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
+
 import com.example.ass07.ui.theme.ASS07Theme
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,17 +60,26 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ASS07Theme {
-                BB.MyScaffoldLayout()
-            }
+BB.MyScaffoldLayout()            }
             }
         }
     }
 
+
+@Preview(showBackground = true)
 @Composable
-fun Login(navController: NavController) {
+fun GreetingPreview() {
+    ASS07Theme {
+        BB.MyScaffoldLayout()
+    }
+}
+
+@Composable
+fun Login() {
     val contextForToast = LocalContext.current
     val username = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -102,7 +117,9 @@ fun Login(navController: NavController) {
                     .padding(horizontal = 30.dp),
                 singleLine = true
             )
+
             Spacer(modifier = Modifier.height(10.dp))
+
             OutlinedTextField(
                 value = password.value,
                 onValueChange = { password.value = it },
@@ -113,7 +130,9 @@ fun Login(navController: NavController) {
                 visualTransformation = PasswordVisualTransformation(),
                 singleLine = true
             )
+
             Spacer(modifier = Modifier.height(10.dp))
+
             Button(
                 onClick = {
                     Toast.makeText(contextForToast, "Logged in as ${username.value}", Toast.LENGTH_SHORT).show()
@@ -128,31 +147,36 @@ fun Login(navController: NavController) {
             ) {
                 Text(text = "Login")
             }
+
             Spacer(modifier = Modifier.height(10.dp))
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 30.dp),
                 horizontalArrangement = Arrangement.End
             ) {
-                TextButton(
-                    onClick = {
-                        navController.navigate("register") // ✅ นำทางไปหน้า Register
-                    }
-                ) {
-                    Text(text = "Register?")
-                }
+
             }
         }
     }
 }
+
+
 @Composable
-fun Register(navController: NavController) {
-    val contextForToast = LocalContext.current
-    val name = remember { mutableStateOf("") }
-    val newusername = remember { mutableStateOf("") }
-    val email = remember { mutableStateOf("") }
-    val newpassword = remember { mutableStateOf("") }
+fun Register() {
+    var name by remember { mutableStateOf("") }
+    var phonenumber by remember { mutableStateOf("") }
+    var em by remember { mutableStateOf("") }
+    var pw by remember { mutableStateOf("") }
+
+
+    val createClient = projectApi.create()
+
+    val contextForToast = LocalContext.current.applicationContext
+
+
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -167,14 +191,8 @@ fun Register(navController: NavController) {
                 .clip(RoundedCornerShape(20.dp)),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start
-            ) {
-                IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                }
-            }
+
+
             Text(
                 text = "Register",
                 fontSize = 25.sp,
@@ -184,50 +202,86 @@ fun Register(navController: NavController) {
                     .fillMaxWidth()
                     .padding(vertical = 5.dp)
             )
+
             Spacer(modifier = Modifier.height(10.dp))
+
             OutlinedTextField(
-                value = name.value,
-                onValueChange = { name.value = it },
+                value = name,
+                onValueChange = { name = it },
                 label = { Text("Name") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 30.dp),
                 singleLine = true
             )
-            Spacer(modifier = Modifier.height(10.dp))
             OutlinedTextField(
-                value = newusername.value,
-                onValueChange = { newusername.value = it },
-                label = { Text("Username") },
+                value = phonenumber,
+                onValueChange = { phonenumber = it },
+                label = { Text("Phone number") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 30.dp),
-                singleLine = true
+                singleLine = true,
+                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
             )
+
             Spacer(modifier = Modifier.height(10.dp))
             OutlinedTextField(
-                value = email.value,
-                onValueChange = { email.value = it },
-                label = { Text("Email") },
+                value = em,
+                onValueChange = { em = it },
+                label = { Text("emsil") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 30.dp),
-                singleLine = true
+                singleLine = true,
+                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Email)
             )
+
             Spacer(modifier = Modifier.height(10.dp))
+
+
+            Spacer(modifier = Modifier.height(10.dp))
+
             OutlinedTextField(
-                value = newpassword.value,
-                onValueChange = { newpassword.value = it },
+                value = pw,
+                onValueChange = { pw = it },
                 label = { Text("Password") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 30.dp),
                 singleLine = true
             )
+
             Spacer(modifier = Modifier.height(10.dp))
             Button(
                 onClick = {
-                    Toast.makeText(contextForToast, "Registered as ${name.value}", Toast.LENGTH_SHORT).show()
+                    createClient.insertuser(
+                        name,phonenumber.toInt(),em,pw
+                    ).enqueue(object : Callback<users> {
+                        override fun onResponse(call: Call<users>, response: Response<users>) {
+                            if (response.isSuccessful) {
+                                Toast.makeText(
+                                    contextForToast,
+                                    "Successfully Inserted",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            } else {
+                                Toast.makeText(
+                                    contextForToast,
+                                    "Insertion Failed",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+
+                        override fun onFailure(call: Call<users>, t: Throwable) {
+                            Toast.makeText(
+                                contextForToast,
+                                "Error: ${t.message}",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    })
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -239,29 +293,11 @@ fun Register(navController: NavController) {
             ) {
                 Text(text = "Register")
             }
-            Spacer(modifier = Modifier.height(180.dp))
+
         }
     }
-}
-@Composable
-fun AppNavigator() {
-    val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = "login") {
-        composable("login") { Login(navController) }
-        composable("register") { Register(navController) }
-    }
+
+
 }
 
 
-
-
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    ASS07Theme {
-        BB.MyScaffoldLayout()
-
-
-    }
-}
