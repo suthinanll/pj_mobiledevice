@@ -2,11 +2,13 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id ("kotlin-parcelize")
 }
 
 android {
     namespace = "com.example.ass07"
     compileSdk = 35
+
 
     defaultConfig {
         applicationId = "com.example.ass07"
@@ -40,6 +42,7 @@ android {
 }
 
 dependencies {
+
 
     implementation("io.coil-kt.coil3:coil-compose:3.0.4")
     implementation(libs.androidx.core.ktx)
