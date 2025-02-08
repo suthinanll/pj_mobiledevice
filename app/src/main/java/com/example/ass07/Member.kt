@@ -1,9 +1,17 @@
 package com.example.ass07
 
+import com.google.gson.annotations.Expose
+import com.google.gson.annotations.SerializedName
+
 data class Member(
-    var name: String,
-    var gender: String,
-    var email: String,
-    var salary: Int,
+    @Expose
+    @SerializedName("name") val user_name: String,
+
+    @Expose
+    @SerializedName("tell_number") val tell: String,
+
+    @Expose
+    @SerializedName("email") val email: String,
+
     )
 
