@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 
@@ -63,7 +64,11 @@ class BB {
 
             CenterAlignedTopAppBar(
                 title = {
-                    Text(text = "Chill Pet Story")
+                    Text(
+                        text = "Chill Pet Stay",
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = Color(0xFFFFBC2B)
@@ -107,14 +112,14 @@ class BB {
                         onClick = {
                             selectedScreen = index
                             navController.navigate(screen.route)
-                            Toast.makeText(contextForToast, screen.name, Toast.LENGTH_SHORT).show()
+
                         },
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Color.White, // สีไอคอนเมื่อถูกเลือก
-                            selectedTextColor = Color.White, // สีข้อความเมื่อถูกเลือก
-                            unselectedIconColor = Color.Black, // สีไอคอนปกติ
-                            unselectedTextColor = Color.Black, // สีข้อความปกติ
-                            indicatorColor = Color.Transparent // เอาสีพื้นหลังออก ไม่ให้มีไฮไลต์
+                            selectedIconColor = Color.White,
+                            selectedTextColor = Color.White,
+                            unselectedIconColor = Color.Black,
+                            unselectedTextColor = Color.Black,
+                            indicatorColor = Color.Transparent
                         )
                     )
                 }
