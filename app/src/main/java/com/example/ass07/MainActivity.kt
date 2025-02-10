@@ -60,7 +60,11 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ASS07Theme {
-BB.MyScaffoldLayout()            }
+
+                BB.MyScaffoldLayout()
+                //AdminNav.MyScaffoldLayout()
+            }
+
             }
         }
     }
