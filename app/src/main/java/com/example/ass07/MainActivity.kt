@@ -61,8 +61,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             ASS07Theme {
 
-                BB.MyScaffoldLayout()
-                //AdminNav.MyScaffoldLayout()
+                //BB.MyScaffoldLayout()
+                AdminNav.MyScaffoldLayout()
             }
 
             }
@@ -74,7 +74,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun GreetingPreview() {
     ASS07Theme {
-        BB.MyScaffoldLayout()
+        //BB.MyScaffoldLayout()
+        AdminNav.MyScaffoldLayout()
     }
 }
 
