@@ -33,6 +33,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,6 +45,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import retrofit2.Call
+import retrofit2.Response
 
 
 @Composable
@@ -51,13 +54,35 @@ fun ManageRoom() {
     val context = LocalContext.current
     var filterDialogOpen by remember { mutableStateOf(false) }
     var selectedFilter by remember { mutableStateOf<String?>(null) }
+    var rooms by remember { mutableStateOf<List<Room>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    // เรียกข้อมูลจาก API
+    LaunchedEffect(Unit) {
+        val api = RoomAPI.create()
+        api.retrieveAllRooms().enqueue(object : retrofit2.Callback<List<Room>> {
+            override fun onResponse(call: Call<List<Room>>, response: Response<List<Room>>) {
+                if (response.isSuccessful) {
+                    rooms = response.body() ?: emptyList()
+                } else {
+                    errorMessage = "Error: ${response.message()}"
+                }
+                isLoading = false
+            }
+
+            override fun onFailure(call: Call<List<Room>>, t: Throwable) {
+                errorMessage = "Error: ${t.message}"
+                isLoading = false
+            }
+        })
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFFFFBEB)) // amber-50 equivalent
     ) {
-
         // Filter/Sort Section
         Row(
             modifier = Modifier
@@ -120,14 +145,24 @@ fun ManageRoom() {
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(getSampleRooms()) { room ->
-                RoomCard(room = room)
-            }
+            if (isLoading) {
+                item {
+                    Text("Loading rooms...")
+                }
+            } else if (errorMessage != null) {
+                item {
+                    Text("Error: $errorMessage")
+                }
+            } else {
+                items(rooms) { room ->
+                    RoomCard(room = room)
+                }
 
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-                AddRoomButton()
-                Spacer(modifier = Modifier.height(16.dp))
+                item {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    AddRoomButton()
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
             }
         }
     }
@@ -174,84 +209,22 @@ fun ManageRoom() {
 }
 
 @Composable
-fun RoomCard(room: Room) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .clickable { /* Handle click */ },
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Status indicator
-            Box(
-                modifier = Modifier
-                    .size(8.dp)
-                    .background(
-                        if (room.isAvailable) Color(0xFF22C55E) // green-500
-                        else Color(0xFFFBBF24), // amber-400
-                        shape = CircleShape
-                    )
-            )
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            // Room image
-            Box(
-                modifier = Modifier
-                    .size(64.dp)
-                    .background(Color(0xFFFDE68A), RoundedCornerShape(8.dp))
-                    .padding(8.dp)
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.logoapp),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            // Room details
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = room.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color(0xFF1F2937)
-                )
-                Text(
-                    text = room.description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color(0xFF6B7280)
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "฿${room.price}",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = Color(0xFFD97706) // amber-600
-                )
-            }
-
-            IconButton(onClick = { /* Handle more options */ }) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = "More options",
-                    tint = Color(0xFF9CA3AF) // gray-400
-                )
-            }
-        }
-    }
-}
-
-@Composable
 fun AddRoomButton() {
     Button(
-        onClick = { /* Handle add room */ },
+        onClick = {
+            // เรียก API เพิ่มห้องพัก
+            val api = RoomAPI.create()
+            api.insertRoom("New Room", 1, 1, "available").enqueue(object : retrofit2.Callback<Room> {
+                override fun onResponse(call: Call<Room>, response: Response<Room>) {
+                    if (response.isSuccessful) {
+                        // เพิ่มห้องพักสำเร็จ
+                    }
+                }
+                override fun onFailure(call: Call<Room>, t: Throwable) {
+                    // จัดการข้อผิดพลาด
+                }
+            })
+        },
         modifier = Modifier
             .fillMaxWidth()
             .height(48.dp),
@@ -276,6 +249,78 @@ fun AddRoomButton() {
 }
 
 @Composable
+fun RoomCard(room: Room) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .clickable { /* Handle click to view details or edit */ },
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Status indicator (ห้องว่าง/ไม่ว่าง)
+            Box(
+                modifier = Modifier
+                    .size(8.dp)
+                    .background(
+                        if (room.room_status == 1) Color(0xFF22C55E) // green-500
+                        else Color(0xFFFBBF24), // amber-400
+                        shape = CircleShape
+                    )
+            )
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            // Room image (ภาพห้อง)
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .background(Color(0xFFFDE68A), RoundedCornerShape(8.dp))
+                    .padding(8.dp)
+            ) {
+                // ใช้รูปภาพห้อง (ถ้ามี)
+                Image(
+                    painter = painterResource(id = R.drawable.logoapp), // เปลี่ยนเป็นรูปภาพห้องถ้ามี
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            // Room details (รายละเอียดห้อง)
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = room.room_type, // ชื่อห้อง
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color(0xFF1F2937) // สีเทาเข้ม
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "฿${room.price_per_day}", // ราคาห้อง
+                    style = MaterialTheme.typography.titleSmall,
+                    color = Color(0xFFD97706) // amber-600
+                )
+            }
+
+            // More options (เพิ่มเติม)
+            IconButton(onClick = { /* Handle more options */ }) {
+                Icon(
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = "More options",
+                    tint = Color(0xFF9CA3AF) // gray-400
+                )
+            }
+        }
+    }
+}
+
+@Composable
 fun FilterOption(text: String, onClick: () -> Unit) {
     TextButton(
         onClick = onClick,
@@ -288,17 +333,4 @@ fun FilterOption(text: String, onClick: () -> Unit) {
     }
 }
 
-// Data class for room
-data class Room(
-    val id: Int,
-    val name: String,
-    val description: String,
-    val price: Double,
-    val isAvailable: Boolean
-)
 
-// Sample data
-fun getSampleRooms() = listOf(
-    Room(1, "สุนัข Deluxe", "ห้องพักสุดหรูสำหรับสุนัข", 1200.0, true),
-    Room(2, "แมว Premium", "ห้องพักแสนสบายสำหรับแมว", 900.0, false)
-)
