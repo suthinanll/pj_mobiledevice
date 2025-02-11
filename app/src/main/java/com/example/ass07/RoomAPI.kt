@@ -4,9 +4,7 @@ package com.example.ass07
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.Body
 import retrofit2.http.GET
-import retrofit2.http.POST
 
 
 interface RoomAPI {
@@ -16,13 +14,13 @@ interface RoomAPI {
     fun retrieveAllRooms(): Call<List<Room>>
 
     // เพิ่มห้องใหม่
-    @POST("/addroom")
-    fun insertRoom(
-        @Body roomName: String,
-        @Body roomTypeId: Int,
-        @Body roomStatus: Int,
-        @Body additionalInfo: String
-    ): Call<Room>
+//    @POST("/addroom")
+//    fun insertRoom(
+//        @Body roomName: String,
+//        @Body roomTypeId: Int,
+//        @Body roomStatus: Int,
+//        @Body additionalInfo: String
+//    ): Call<Room>
 
     companion object {
         // สร้าง Retrofit instance และ return API
