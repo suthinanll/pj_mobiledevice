@@ -28,9 +28,9 @@ sealed class Screen(val route: String, val name: String, val icon: (@Composable 
             }
         }
     )
-    object BookingDetailsScreen : Screen(
-        route = "BookingDetailsScreen",
-        name = "BookingDetailsScreen",
+    object Mypetedit : Screen(
+        route = "Mypetedit",
+        name = "Mypetedit",
         icon = {
             remember {
                 object : Painter() {

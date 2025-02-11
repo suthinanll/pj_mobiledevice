@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -32,17 +34,14 @@ fun Mypetinsert(navController: NavHostController) {
     var petGender by rememberSaveable { mutableStateOf("") }
     var petTypename by rememberSaveable { mutableStateOf("") }
     var UserId by remember { mutableStateOf("") }
-    var Pet_type_id by rememberSaveable { mutableStateOf("") }
 
 
     val createClient = PetApi.create()
     val contextForToast = LocalContext.current
+    val userId = 3 // หรือส่งผ่าน parameter หรือดึงจาก session
 
-    if (petTypename == "สุนัข"){
-        Pet_type_id.equals(1)
-    }else{
-        Pet_type_id.equals(2)
-    }
+
+    val Pet_type_id = if (petTypename == "สุนัข") "1" else "2"
 
     Column(
         modifier = Modifier
@@ -51,6 +50,7 @@ fun Mypetinsert(navController: NavHostController) {
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFAF0)),
@@ -60,7 +60,36 @@ fun Mypetinsert(navController: NavHostController) {
                 modifier = Modifier.padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = "เพิ่มข้อมูลสัตว์เลี้ยง", fontSize = 20.sp, modifier = Modifier.padding(bottom = 16.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(
+                        onClick = { navController.navigate(Screen.MyPet.route) },
+                        modifier = Modifier.align(Alignment.CenterVertically)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowBack,
+                            contentDescription = "ย้อนกลับ",
+                            tint = Color.Black
+                        )
+                    }
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally)
+                    {
+                        Text(
+                            text = "เพิ่มข้อมูลสัตว์เลี้ยง",
+                            fontSize = 20.sp,
+                            textAlign = TextAlign.Center ,
+                            modifier = Modifier
+                                .fillMaxWidth()
+
+
+                        )
+                    }
+                }
 
                 OutlinedTextField(
                     value = textFieldPetName,
@@ -69,6 +98,13 @@ fun Mypetinsert(navController: NavHostController) {
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(8.dp))
+
+                RadioGroupUsage(
+                    selected = petTypename,
+                    setSelected = { petTypename = it },
+                    label = "ประเภท",
+                    options = listOf("สุนัข", "แมว")
+                )
 
                 RadioGroupUsage(
                     selected = petGender,
@@ -111,22 +147,31 @@ fun Mypetinsert(navController: NavHostController) {
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
+                val genderCode = when (petGender) {
+                    "เพศผู้" -> "M"
+                    "เพศเมีย" -> "F"
+                    else -> ""
+                }
+
                 Button(
                     onClick = {
                         createClient.insertPet(
                             textFieldPetName,
-                            petGender,
+                            genderCode,
                             textFieldPetBreed,
                             textFieldPetAge.toIntOrNull() ?: 0,
                             textFieldPetWeight.toIntOrNull() ?: 0,
                             textFieldAdditionalInfo,
-                            Pet_type_id,
-                            petTypename,
-                            UserId.toInt()
+                            Pet_type_id.toInt(),  // รหัสประเภท
+                            userId       // รหัสผู้ใช้
                         ).enqueue(object : Callback<petMember> {
                             override fun onResponse(call: Call<petMember>, response: Response<petMember>) {
-                                Toast.makeText(contextForToast, "บันทึกสำเร็จ", Toast.LENGTH_SHORT).show()
-                                navController.navigate(Screen.MyPet.route)
+                                if (response.isSuccessful) {
+                                    Toast.makeText(contextForToast, "บันทึกสำเร็จ", Toast.LENGTH_SHORT).show()
+                                    navController.navigate(Screen.MyPet.route)
+                                } else {
+                                    Toast.makeText(contextForToast, "บันทึกไม่สำเร็จ: ${response.message()}", Toast.LENGTH_SHORT).show()
+                                }
                             }
                             override fun onFailure(call: Call<petMember>, t: Throwable) {
                                 Toast.makeText(contextForToast, "เกิดข้อผิดพลาด: ${t.message}", Toast.LENGTH_LONG).show()

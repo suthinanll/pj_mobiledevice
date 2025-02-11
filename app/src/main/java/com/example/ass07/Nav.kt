@@ -2,11 +2,13 @@ package com.example.ass07
 
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
 
 @Composable
 fun NavGraph(navController: NavHostController) {
@@ -29,13 +31,16 @@ fun NavGraph(navController: NavHostController) {
         composable(route = Screen.Mypetinsert.route) {
            Mypetinsert(navController)
         }
-        composable(
-            route = Screen.BookingDetailsScreen.route + "/{bookingId}",
-            arguments = listOf(navArgument("bookingId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val bookingId = backStackEntry.arguments?.getString("bookingId") ?: ""
-            BookingDetailsScreen(bookingId) // ส่งค่าไป
-        }
+        composable(route = Screen.Mypetedit.route + "/{petId}") { backStackEntry ->
+            val petId = backStackEntry.arguments?.getString("petId")?.toIntOrNull()
+            val petViewModel: PetViewModel = viewModel()
+            val pet by petViewModel.pet.observeAsState()
 
+            LaunchedEffect(petId) {
+                petId?.let { petViewModel.loadPet(it) }
+            }
+
+            pet?.let { Mypetedit(navController, it) }
+        }
     }
 }

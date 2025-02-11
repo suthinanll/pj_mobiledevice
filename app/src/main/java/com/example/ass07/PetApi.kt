@@ -3,10 +3,13 @@ package com.example.ass07
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.Body
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Path
 
 interface PetApi {
     @GET("allpet")
@@ -21,17 +24,25 @@ interface PetApi {
         @Field("Pet_age") petAge: Int,
         @Field("Pet_weight") petWeight: Int,
         @Field("additional_info") additionalInfo: String,
-        @Field("Pet_nametype") petTypename: String,
-        @Field("Pet_type_id") Pet_type_id: String,
+        @Field("Pet_type_id") Pet_type_id: Int,
         @Field("User_id") userId: Int
     ): Call<petMember>
 
     @FormUrlEncoded
     @POST("softDeletePet")
     fun softDeletePet(
-        @Field("Pet_id") petId: Int
+        @Field("pet_id") petId: Int,
+        @Field("deleted_at") deleteAt: String?
     ): Call<Void>
 
+    @PUT("updatePet/{id}")
+    fun updatePet(
+        @Path("id") petID: Int,
+        @Body petData: UpdatePetRequest
+    ): Call<petMember>
+
+    @GET("getPet/{id}")
+    fun getPet(@Path("id") petID: Int): Call<petMember>
 
     companion object {
         fun create(): PetApi {
@@ -43,4 +54,5 @@ interface PetApi {
             return petClient
         }
     }
+
 }
