@@ -16,4 +16,5 @@ sealed class ScreenAdmin(val route: String, val name: String, val icon: (@Compos
     object Booking : ScreenAdmin(route = "Booking", name = "Room Reservation", icon = { painterResource(id = R.drawable.history) })
     object PetsAdmin : ScreenAdmin(route = "PetsAdmin", name = "Pets", icon = { painterResource(id = R.drawable.mypet) })
 
+
 }

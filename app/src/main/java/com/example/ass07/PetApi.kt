@@ -12,6 +12,9 @@ import retrofit2.http.PUT
 import retrofit2.http.Path
 
 interface PetApi {
+    @GET("/getPetTypes")
+    fun getPetTypes(): Call<List<PetType>>
+
     @GET("allpet")
     fun retrievepetMember(): Call<List<petMember>>
 
@@ -25,7 +28,7 @@ interface PetApi {
         @Field("Pet_weight") petWeight: Int,
         @Field("additional_info") additionalInfo: String,
         @Field("Pet_type_id") Pet_type_id: Int,
-        @Field("User_id") userId: Int
+        @Field("user_id") userId: Int
     ): Call<petMember>
 
     @FormUrlEncoded
