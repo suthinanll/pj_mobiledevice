@@ -77,33 +77,35 @@ app.delete("/delete_emp/:emp_id", function (req, res) {
   });
 });
 
+const bcrypt = require('bcryptjs');
+
 
 app.post("/insertAccount",async function(req,res){
   let post  = req.body
-  let std_id = post.std_id
-  let std_name = post.std_name
-  let std_password = post.std_password
-  let std_gender = post.std_gender
-  let role = post.role
+  let name = post.name
+  let tell_number = post.tell_number
+  let email = post.email
+  let password = post.password
+  let user_type = post.user_type
 
   const salt = await bcrypt.genSalt(10)
-  let password_hash = await bcrypt.hash(std_password,salt)
+  let password_hash = await bcrypt.hash(password,salt)
 
   if(!post){
       return res.status(400).send({ error: post, message: 'Please provide student data' })
   }
 
-  dbConn.query('SELECT * FROM register_student WHERE std_id = ? ',std_id,function(error,results,fields){
+  dbConn.query('SELECT * FROM users WHERE name = ? ',name,function(error,results,fields){
       if(error) throw error
       if(results[0]){
-          return res.status(400).send({ error: true, message: 'The student ID already in the database.' })
+          return res.status(400).send({ error: true, message: 'The user name already in the database.' })
       }else{
-          if(!role){
-              var insertData = `INSERT INTO register_student (std_id,std_name,std_password,std_gender) 
-              VALUES('${std_id}','${std_name}','${password_hash}','${std_gender}')`
+          if(!user_type){
+            var insertData = `INSERT INTO users (name,password,tell_number,email,user_type)  
+            VALUES('${name}','${password_hash}','${tell_number}','${email}', 2)`
           }else{
-              var insertData = `INSERT INTO register_student (std_id,std_name,std_password,std_gender,role) VALUES
-              ('${std_id}','${std_name}','${password_hash}','${std_gender}','admin')`
+            var insertData = `INSERT INTO users (name,password,tell_number,email,user_type)  
+            VALUES('${name}','${password_hash}','${tell_number}','${email}',2)`;
           }
 
           dbConn.query(insertData,function(error,results,fields){
@@ -115,21 +117,21 @@ app.post("/insertAccount",async function(req,res){
 })
 
 app.post("/login",async function(req,res){  
-  let std = req.body
-  let std_id = std.std_id
-  let password = std.std_password
+  let user = req.body
+  let name = user.name
+  let password = user.password
 
-  if(!std_id || !password){
-      return res.status(400).send({ error: std, message: 'Please provide id and password' })
+  if(!name || !password){
+      return res.status(400).send({ error: name, message: 'Please provide name and password' })
   }
 
-  dbConn.query('SELECT * FROM register_student WHERE std_id = ? ',[std_id],function(error,results,fields){
+  dbConn.query('SELECT * FROM users WHERE name = ? ',[name],function(error,results,fields){
       if(error) throw error
       if(results[0]){
-          bcrypt.compare(password,results[0].std_password,function(err,result){
+          bcrypt.compare(password,results[0].password,function(err,result){
               if(err) throw err
               if(result){
-                  return res.send({ "success": 1,"std_id":results[0].std_id,"role":results[0].role })
+                  return res.send({ "success": 1,"name":results[0].name,"user_type":results[0].user_type })
               }else{
                   return res.send({ "success": 0 })
               }
@@ -140,21 +142,21 @@ app.post("/login",async function(req,res){
   })
 })
 
-app.get("/search/:std_id",function(req,res){
-  var id = req.params.std_id
-  if(!id){
-      return res.status(400).send({ error: true, message: 'Please provide student id' })
-  }
-  dbConn.query('SELECT * FROM register_student WHERE std_id = ?',[id],function(error,results,fields){
-      if(error) throw error
-      if(results[0]){
-          return res.send({"std_id":results[0].std_id,"std_name":results[0].std_name,"std_gender":results[0].std_gender,
-              "role":results[0].role})
-      }else{
-          return res.send({ error: true, message: 'Student id not found' })
-      }
-  })
-})
+// app.get("/search/:std_id",function(req,res){
+//   var id = req.params.std_id
+//   if(!id){
+//       return res.status(400).send({ error: true, message: 'Please provide student id' })
+//   }
+//   dbConn.query('SELECT * FROM register_student WHERE std_id = ?',[id],function(error,results,fields){
+//       if(error) throw error
+//       if(results[0]){
+//           return res.send({"std_id":results[0].std_id,"std_name":results[0].std_name,"std_gender":results[0].std_gender,
+//               "role":results[0].role})
+//       }else{
+//           return res.send({ error: true, message: 'Student id not found' })
+//       }
+//   })
+// })
 
 
 

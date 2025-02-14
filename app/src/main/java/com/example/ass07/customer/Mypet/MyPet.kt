@@ -1,4 +1,4 @@
-package com.example.ass07
+package com.example.ass07.customer.Mypet
 
 import android.util.Log
 import android.widget.Toast
@@ -9,7 +9,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -19,6 +18,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavHostController
+import com.example.ass07.customer.API.PetApi
+import com.example.ass07.customer.Screen
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -128,7 +129,7 @@ fun MyPet(navController: NavHostController) {
 
 
 @Composable
-fun PetCard(pet: petMember, onDelete: () -> Unit ,navController: NavHostController) {
+fun PetCard(pet: petMember, onDelete: () -> Unit, navController: NavHostController) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),

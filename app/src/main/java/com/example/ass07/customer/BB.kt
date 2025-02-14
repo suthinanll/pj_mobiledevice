@@ -1,4 +1,4 @@
-package com.example.ass07
+package com.example.ass07.customer
 
 import android.content.Context
 import androidx.compose.foundation.layout.Column
@@ -28,7 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 
-class AdminNav {
+class BB {
     companion object {
         data class NavigationDrawerItemData(val label: String, val icon: ImageVector)
         @Composable
@@ -48,7 +48,7 @@ class AdminNav {
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
 
-                    NavGraphAdmin(navController = navController)
+                    NavGraph(navController = navController)
                 }
             }
         }
@@ -60,7 +60,7 @@ class AdminNav {
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = "Chill Pet Stay Admin",
+                        text = "Chill Pet Stay",
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
@@ -77,9 +77,10 @@ class AdminNav {
         @Composable
         fun MyBottomBar(navController: NavHostController, contextForToast: Context) {
             val navigationItems = listOf(
-                ScreenAdmin.ManageRoom,
-                ScreenAdmin.Booking,
-                ScreenAdmin.PetsAdmin
+                Screen.Home,
+                Screen.History,
+                Screen.MyPet,
+                Screen.Profile
             )
 
             var selectedScreen by remember { mutableStateOf(0) }

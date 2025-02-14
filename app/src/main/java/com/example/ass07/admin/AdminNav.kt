@@ -1,18 +1,13 @@
-package com.example.ass07
+package com.example.ass07.admin
 
 import android.content.Context
-import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Face
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -33,7 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 
-class BB {
+class AdminNav {
     companion object {
         data class NavigationDrawerItemData(val label: String, val icon: ImageVector)
         @Composable
@@ -53,7 +48,7 @@ class BB {
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
 
-                    NavGraph(navController = navController)
+                    NavGraphAdmin(navController = navController)
                 }
             }
         }
@@ -65,7 +60,7 @@ class BB {
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = "Chill Pet Stay",
+                        text = "Chill Pet Stay Admin",
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
@@ -82,10 +77,9 @@ class BB {
         @Composable
         fun MyBottomBar(navController: NavHostController, contextForToast: Context) {
             val navigationItems = listOf(
-                Screen.Home,
-                Screen.History,
-                Screen.MyPet,
-                Screen.Profile
+                ScreenAdmin.ManageRoom,
+                ScreenAdmin.Booking,
+                ScreenAdmin.PetsAdmin
             )
 
             var selectedScreen by remember { mutableStateOf(0) }

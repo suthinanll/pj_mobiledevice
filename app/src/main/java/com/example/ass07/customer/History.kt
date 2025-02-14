@@ -1,4 +1,4 @@
-package com.example.ass07
+package com.example.ass07.customer
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,8 +15,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+
 @Composable
-fun Profile() {
+fun History() {
     val contextForToast = LocalContext.current
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -31,7 +32,7 @@ fun Profile() {
 //        )
 
         Text(
-            text = "User",
+            text = "history",
             fontSize = 25.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,

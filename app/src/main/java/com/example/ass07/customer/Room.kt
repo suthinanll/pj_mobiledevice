@@ -1,4 +1,4 @@
-package com.example.ass07
+package com.example.ass07.customer
 
 
 import android.os.Parcelable

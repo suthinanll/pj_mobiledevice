@@ -1,4 +1,4 @@
-package com.example.ass07
+package com.example.ass07.customer.Mypet
 
 import android.util.Log
 import androidx.compose.runtime.Composable
@@ -21,6 +21,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.KeyboardType
+import com.example.ass07.customer.API.PetApi
+import com.example.ass07.customer.Screen
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response

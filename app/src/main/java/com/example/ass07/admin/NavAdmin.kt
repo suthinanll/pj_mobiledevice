@@ -1,14 +1,11 @@
-package com.example.ass07
+package com.example.ass07.admin
 
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.ass07.customer.Booking
 
 @Composable
 fun NavGraphAdmin(navController: NavHostController) {

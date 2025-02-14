@@ -1,4 +1,4 @@
-package com.example.ass07
+package com.example.ass07.customer.Mypet
 
 data class UpdatePetRequest(
     val petName: String,

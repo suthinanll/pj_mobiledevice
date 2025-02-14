@@ -1,7 +1,7 @@
-package com.example.ass07
+package com.example.ass07.admin
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -41,6 +41,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -52,7 +53,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.android.volley.toolbox.ImageRequest
+import com.example.ass07.customer.Room
+import com.example.ass07.customer.API.RoomAPI
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -130,28 +132,28 @@ fun TopActionBar(
     onFilterClick: () -> Unit,
     onSortClick: () -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.End,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        ActionButton(
-            onClick = onFilterClick,
-            icon = R.drawable.ic_filter,
-            text = "Filter"
-        )
-
-        Spacer(modifier = Modifier.width(8.dp))
-
-        ActionButton(
-            onClick = onSortClick,
-            icon = R.drawable.ic_sort,
-            text = "Sort"
-        )
+//    Row(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .padding(16.dp),
+//        horizontalArrangement = Arrangement.End,
+//        verticalAlignment = Alignment.CenterVertically
+//    ) {
+//        ActionButton(
+//            onClick = onFilterClick,
+//            icon = R.drawable.ic_filter,
+//            text = "Filter"
+//        )
+//
+//        Spacer(modifier = Modifier.width(8.dp))
+//
+//        ActionButton(
+//            onClick = onSortClick,
+//            icon = R.drawable.ic_sort,
+//            text = "Sort"
+//        )
     }
-}
+//}
 
 @Composable
 fun ActionButton(
@@ -239,17 +241,17 @@ fun RoomCard(room: Room) {
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // Room image
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(R.drawable.logoapp)
-                    .crossfade(true)
-                    .build(),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(64.dp)
-                    .clip(RoundedCornerShape(8.dp))
-            )
+//            // Room image
+//            AsyncImage(
+//                model = ImageRequest.Builder(LocalContext.current)
+//                    .data(R.drawable.logoapp)
+//                    .crossfade(true)
+//                    .build(),
+//                contentDescription = null,
+//                modifier = Modifier
+//                    .size(64.dp)
+//                    .clip(RoundedCornerShape(8.dp))
+//            )
 
             Spacer(modifier = Modifier.width(16.dp))
 
