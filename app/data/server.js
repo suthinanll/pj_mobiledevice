@@ -1,191 +1,166 @@
-const { error } = require('console');
-var express = require('express');
+var express = require("express");
 var app = express();
-var bodyParser = require('body-parser')
-var mysql = require('mysql');
-require('dotenv').config();
+var bodyParser = require("body-parser");
+var mysql = require("mysql");
+require("dotenv").config();
 
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({
-    extended: true
-}));
+app.use(bodyParser.urlencoded({ extended: true }));
 
-app.get('/', function(req,res){
-    return res.send({error:true, message:'Test Emp Web API'})
+app.get("/", function (req, res) {
+  return res.send({ error: false, message: "Test Student Web API" });
 });
 
 var dbConn = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_DATABASE,
+  port: process.env.DB_PORT,
 });
 
 dbConn.connect();
 
-app.get('/', (req, res) => {
-    return res.send({ error: false, message: 'Test API' });
+app.get("/allEmp", function (req, res) {
+  dbConn.query("SELECT * FROM employee", function (error, results, fields) {
+    if (error) throw error;
+    return res.send(results);
+  });
 });
 
-const tables = ['user_type', 'room_type', 'rooms', 'pet_type', 'pets', 'payment_methods'];
-// เพิ่มข้อมูลใส่ user room room_type rooms pet_type pets payment
-tables.forEach(table => {
-    app.post(`/insert/${table}`, (req, res) => {
-        const data = req.body;
-        if (!data) {
-            return res.status(400).send({ error: true, message: `Please provide data for ${table}` });
-        }
-        dbConn.query(`INSERT INTO ${table} SET ?`, data, (error, results) => {
-            if (error) return res.status(500).send(error);
-            return res.send({ message: `${table} inserted successfully`, data: results });
-        });
-    });
-});
+app.post("/emp", function (req, res) {
+  var std = req.body;
 
-app.post('/create/acccout', (req, res) => {
-    const data = req.body;
-    if(!data){
-        return res.status(400).send({ error: true, message: 'Please provide data for Create User'
-        });
+  if (!std) {
+    return res
+      .status(400)
+      .send({ error: true, message: "Please provide student" });
+  }
+
+  dbConn.query(
+    "INSERT INTO employee SET ? ",
+    std,
+    function (error, results, fields) {
+      if (error) throw error;
+      return res.send(results);
     }
-    dbConn.query("INSERT INTO user SET ?", data, (error, results) => {
-        if(error) return res.status(500).send(error);
-        return res.send({ message: 'Create user successfully', data: results });
-        }
-    );
+  );
 });
 
-//แสดงข้อมูล user
-app.get('/getuser/:user_id', (req, res) => {
-    let id = req.params.user_id
-    dbConn.query('SELECT * FROM users WHERE user_id = ? AND delete_at IS NULL', id , (error,results,fields) => {
-            if(error) throw error;
-            return res.send(results);
-            });
+app.put("/update_emp/:emp_id", function (req, res) {
+  var emp = req.body;
+  var id = req.params.emp_id;
+  if (!emp) {
+    return res
+      .status(400)
+      .send({ error: std, message: "Please provide student" });
+  }
+  dbConn.query(
+    "UPDATE employee SET ? WHERE emp_id = ?",
+    [emp, id],
+    function (error, results, fields) {
+      if (error) throw error;
+      return res.send(results);
     }
-)
+  );
+})
 
-// เอาของสัตว์เลี้ยงของ user มาโชว์ตาม user_id
-app.get('/getpets/:user_id', (req, res) => {
-    let id = req.params.user_id;
-
-    let query = `
-        SELECT pets.name AS petname, pets.sex AS sex, pets.breed AS breed , pets.weight AS weight, pets.age AS age, pets.description AS descrip, pets.birth_date AS birth , pet_type.name AS type
-        FROM users
-        JOIN pets ON pets.user_id = users.user_id
-        JOIN pet_type ON pet_type.id_type = pets.type_pet
-        WHERE users.user_id = ?
-        AND users.deleted_at IS NULL
-        AND pets.deleted_at IS NULL
-        AND pet_type.deleted_at IS NULL
-    `;
-
-    dbConn.query(query, id, (error, results) => {
-        if (error) {
-            console.error("Database Error:", error);
-            return res.status(500).send({ error: true, message: "Internal Server Error" });
-        }
-        console.log("send data get pets from user successfuly")
-        return res.json(results);
-    });
+app.delete("/delete_emp/:emp_id", function (req, res) {
+  var id = req.params.emp_id;
+  dbConn.query("DELETE FROM employee WHERE emp_id = ?", [id], function (
+    error,
+    results,
+    fields
+  ) {
+    if (error) throw error;
+    return res.send(results);
+  });
 });
 
 
-app.get('/getroom/:user_id', (req, res) => {
-    let id = req.params.user_id
-    let query = `SELECT
+app.post("/insertAccount",async function(req,res){
+  let post  = req.body
+  let std_id = post.std_id
+  let std_name = post.std_name
+  let std_password = post.std_password
+  let std_gender = post.std_gender
+  let role = post.role
 
+  const salt = await bcrypt.genSalt(10)
+  let password_hash = await bcrypt.hash(std_password,salt)
 
-    `
-    dbConn.query('SELECT name, sex, type_pet FROM pets WHERE user_id = ?', id , (error,results,fields) => {
-            if(error) throw error;
-            return res.send(results);
-        });
-    }
-);
+  if(!post){
+      return res.status(400).send({ error: post, message: 'Please provide student data' })
+  }
 
-app.get('/allMember', (req, res) =>{
-       dbConn.query('SELECT user_id, name, tell_number, email, user_type FROM users WHERE deleted_at IS NULL', function(error,results, fields){
-               if(error) throw error;
-               console.log("send data successfuly")
-               return res.send(results);
-       });
-    });
+  dbConn.query('SELECT * FROM register_student WHERE std_id = ? ',std_id,function(error,results,fields){
+      if(error) throw error
+      if(results[0]){
+          return res.status(400).send({ error: true, message: 'The student ID already in the database.' })
+      }else{
+          if(!role){
+              var insertData = `INSERT INTO register_student (std_id,std_name,std_password,std_gender) 
+              VALUES('${std_id}','${std_name}','${password_hash}','${std_gender}')`
+          }else{
+              var insertData = `INSERT INTO register_student (std_id,std_name,std_password,std_gender,role) VALUES
+              ('${std_id}','${std_name}','${password_hash}','${std_gender}','admin')`
+          }
 
-// เอาทุกข้อมูล อ้างอิงจาก user_id
-app.get('/AllDataUser/:user_id', (req, res) => {
-    let id = req.params.user_id;
+          dbConn.query(insertData,function(error,results,fields){
+              if(error) throw error
+              return res.send(results)
+          })
+      }
+  })
+})
 
-    let query = `
-       SELECT
-           u.user_id, u.name AS user_name, u.tell_number, u.email, ut.type_name AS user_type,
-           p.id_pet, p.name AS pet_name, p.sex, p.breed, p.weight, p.age, p.description, p.birth_date,
-           pt.name AS pet_type,
-           b.booking_id, b.check_in, b.check_out, b.additional_info, b.pay, b.adjust, b.total_pay,
-           pm.method_name AS payment_method,
-           r.room_id, rt.name_type AS room_type, rt.price_per_day, r.status AS room_status
-       FROM users u
-       LEFT JOIN user_type ut ON u.user_type = ut.type_id
-       LEFT JOIN pets p ON u.user_id = p.user_id AND p.deleted_at IS NULL
-       LEFT JOIN pet_type pt ON p.type_pet = pt.id_type AND pt.deleted_at IS NULL
-       LEFT JOIN bookings b ON p.id_pet = b.pet_id AND b.deleted_at IS NULL
-       LEFT JOIN payment_methods pm ON b.payment_method = pm.method_id
-       LEFT JOIN rooms r ON b.room_id = r.room_id AND r.deleted_at IS NULL
-       LEFT JOIN room_type rt ON r.type_type_id = rt.type_id AND rt.deleted_at IS NULL
-       WHERE u.user_id = ?
-       AND u.deleted_at IS NULL;
+app.post("/login",async function(req,res){  
+  let std = req.body
+  let std_id = std.std_id
+  let password = std.std_password
 
-    `;
+  if(!std_id || !password){
+      return res.status(400).send({ error: std, message: 'Please provide id and password' })
+  }
 
-    dbConn.query(query, id, (error, results) => {
-        if (error) {
-            console.error("Database Error:", error);
-            return res.status(500).send({ error: true, message: "Internal Server Error" });
-        }
-        console.log("send AllData from user successfuly")
-        return res.json(results);
-    });
-});
+  dbConn.query('SELECT * FROM register_student WHERE std_id = ? ',[std_id],function(error,results,fields){
+      if(error) throw error
+      if(results[0]){
+          bcrypt.compare(password,results[0].std_password,function(err,result){
+              if(err) throw err
+              if(result){
+                  return res.send({ "success": 1,"std_id":results[0].std_id,"role":results[0].role })
+              }else{
+                  return res.send({ "success": 0 })
+              }
+          })
+      }else{
+          return res.send({ "success": 0 })
+      }
+  })
+})
 
-// เอาทุกข้อมูล อ้างอิงจาก booking_id
-app.get('/AllDataBooking/:booking_id', (req, res) => {
-    let id = req.params.booking_id;
-
-    let query = `
-       SELECT
-           b.booking_id, b.check_in, b.check_out, b.additional_info,
-           b.pay, b.adjust, b.total_pay,
-           pm.method_name AS payment_method,
-           p.id_pet, p.name AS pet_name, p.sex, p.breed, p.weight, p.age,
-           p.description, p.birth_date,
-           pt.name AS pet_type,
-           u.user_id, u.name AS user_name, u.tell_number, u.email, ut.type_name AS user_type,
-           r.room_id, rt.name_type AS room_type, rt.price_per_day, r.status AS room_status
-       FROM bookings b
-       LEFT JOIN payment_methods pm ON b.payment_method = pm.method_id
-       LEFT JOIN pets p ON b.pet_id = p.id_pet AND p.deleted_at IS NULL
-       LEFT JOIN pet_type pt ON p.type_pet = pt.id_type AND pt.deleted_at IS NULL
-       LEFT JOIN users u ON p.user_id = u.user_id AND u.deleted_at IS NULL
-       LEFT JOIN user_type ut ON u.user_type = ut.type_id
-       LEFT JOIN rooms r ON b.room_id = r.room_id AND r.deleted_at IS NULL
-       LEFT JOIN room_type rt ON r.type_type_id = rt.type_id AND rt.deleted_at IS NULL
-       WHERE b.deleted_at IS NULL;
-    `;
-
-    dbConn.query(query, id, (error, results) => {
-        if (error) {
-            console.error("Database Error:", error);
-            return res.status(500).send({ error: true, message: "Internal Server Error" });
-        }
-        console.log("send AllData from user successfuly")
-        return res.json(results);
-    });
-});
+app.get("/search/:std_id",function(req,res){
+  var id = req.params.std_id
+  if(!id){
+      return res.status(400).send({ error: true, message: 'Please provide student id' })
+  }
+  dbConn.query('SELECT * FROM register_student WHERE std_id = ?',[id],function(error,results,fields){
+      if(error) throw error
+      if(results[0]){
+          return res.send({"std_id":results[0].std_id,"std_name":results[0].std_name,"std_gender":results[0].std_gender,
+              "role":results[0].role})
+      }else{
+          return res.send({ error: true, message: 'Student id not found' })
+      }
+  })
+})
 
 
 
-app.listen(3000, function(){
-    console.log('Node app is running on port 3000');
+
+app.listen(3000, function () {
+  console.log("Node app is running on port 3000");
 });
 
 module.exports = app;

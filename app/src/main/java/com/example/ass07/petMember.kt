@@ -35,5 +35,5 @@ data class petMember (
     @SerializedName("deleted_at") val deleted_at: String?,
 
     @Expose
-    @SerializedName("User_id") val userId: Int
+    @SerializedName("user_id") val userId: Int
 )

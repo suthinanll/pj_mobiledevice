@@ -1,5 +1,6 @@
 package com.example.ass07
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import android.widget.Toast
@@ -41,7 +42,8 @@ fun Mypetinsert(navController: NavHostController) {
     val userId = 3 // หรือส่งผ่าน parameter หรือดึงจาก session
 
 
-    val Pet_type_id = if (petTypename == "สุนัข") "1" else "2"
+
+
 
     Column(
         modifier = Modifier
@@ -99,12 +101,50 @@ fun Mypetinsert(navController: NavHostController) {
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
-                RadioGroupUsage(
-                    selected = petTypename,
-                    setSelected = { petTypename = it },
-                    label = "ประเภท",
-                    options = listOf("สุนัข", "แมว")
-                )
+
+                var petTypes by remember { mutableStateOf(listOf<PetType>()) }
+                var selectedPetType by remember { mutableStateOf<PetType?>(null) }
+
+// เรียกข้อมูลจาก API
+                val createClient = PetApi.create()
+                LaunchedEffect(Unit) {
+                    createClient.getPetTypes()
+                        .enqueue(object : Callback<List<PetType>> {
+                            override fun onResponse(
+                                call: Call<List<PetType>>,
+                                response: Response<List<PetType>>
+                            ) {
+                                if (response.isSuccessful) {
+                                    petTypes = response.body() ?: emptyList()
+                                    Log.d("PetTypes", "Loaded: $petTypes") // ✅ Debug เช็คค่าที่โหลดมา
+                                    if (petTypes.isNotEmpty()) {
+                                        selectedPetType = petTypes[0]
+                                        petTypename = petTypes[0].Pet_name_type
+                                    }
+                                }
+                            }
+                            override fun onFailure(call: Call<List<PetType>>, t: Throwable) {
+                                Log.e("PetTypes", "Failed to load: ${t.message}") // ✅ Debug เช็ค error
+                            }
+                        })
+                }
+
+// ค่า Pet_type_id จะได้จากประเภทที่เลือก
+                val Pet_type_id = selectedPetType?.Pet_type_id?.toString() ?: ""
+
+                if (petTypes.isNotEmpty()) {
+                    RadioGroupUsage(
+                        selected = petTypename,
+                        setSelected = { newTypeName ->
+                            petTypename = newTypeName
+                            selectedPetType = petTypes.find { it.Pet_name_type == newTypeName }
+                        },
+                        label = "ประเภท",
+                        options = petTypes.map { it.Pet_name_type } // ✅ แสดง Pet_name_type จากฐานข้อมูล
+                    )
+                } else {
+                    Text("กำลังโหลดประเภทสัตว์...", fontSize = 16.sp, color = Color.Gray)
+                }
 
                 RadioGroupUsage(
                     selected = petGender,
