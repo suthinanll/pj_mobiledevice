@@ -311,7 +311,7 @@ app.get('/getroom', (req, res) => {
 });
 
 
-// 📌 เพิ่มข้อมูลห้องพัก
+//  เพิ่มข้อมูลห้องพัก
 app.post('/addroom', function (req, res) {
   const { type_type_id, status } = req.body;
   if (!type_type_id || status === undefined) {
@@ -351,7 +351,7 @@ app.post('/addroom', function (req, res) {
   });
 });
 
-//Project Kotlin
+//การจอง Admin
 
 // ดึงข้อมูลการจองทั้งหมด (รวม soft delete)
 app.get("/bookings", function (req, res) {

@@ -6,7 +6,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.ass07.ManageRoom
-import com.example.ass07.customer.Booking
 
 @Composable
 fun NavGraphAdmin(navController: NavHostController) {
@@ -25,6 +24,9 @@ fun NavGraphAdmin(navController: NavHostController) {
             PetsAdmin()
         }
 
+        composable(route = ScreenAdmin.BookingDetail.route) {
+            BookingDetail()
+        }
 
     }
 }

@@ -1,4 +1,4 @@
-package com.example.ass07
+package com.example.ass07.admin
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun Booking(bookingId: String) {
+fun BookingDetail(bookingId: String) {
     val booking = getBookingById(bookingId) // ฟังก์ชันจำลองหาข้อมูลจากฐานข้อมูล
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
