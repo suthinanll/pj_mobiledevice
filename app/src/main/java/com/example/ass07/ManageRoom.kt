@@ -139,7 +139,7 @@ fun TopActionBar(
     ) {
         ActionButton(
             onClick = onFilterClick,
-            icon = R.drawable.ic_filter,
+            icon = R.drawable.logo,
             text = "Filter"
         )
 
@@ -147,7 +147,7 @@ fun TopActionBar(
 
         ActionButton(
             onClick = onSortClick,
-            icon = R.drawable.ic_sort,
+            icon = R.drawable.logo,
             text = "Sort"
         )
     }

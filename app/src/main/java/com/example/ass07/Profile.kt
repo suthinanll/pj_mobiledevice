@@ -49,7 +49,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.compose.rememberAsyncImagePainter
+//import coil3.compose.rememberAsyncImagePainter
 import com.example.ass07.R
 
 
@@ -90,17 +90,17 @@ fun Profile() {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // รูปโปรไฟล์
-                Box(modifier = Modifier.clickable { launcher.launch("image/*") }) {
-                    Image(
-                        painter = if (imageUri != null) rememberAsyncImagePainter(imageUri)
-                        else painterResource(id = R.drawable.chillguy),
-                        contentDescription = "Profile Picture",
-                        modifier = Modifier
-                            .size(80.dp)
-                            .clip(CircleShape)
-                            .border(2.dp, Color.Gray, CircleShape)
-                    )
-                }
+//                Box(modifier = Modifier.clickable { launcher.launch("image/*") }) {
+//                    Image(
+//                        painter = if (imageUri != null) rememberAsyncImagePainter(imageUri)
+//                        else painterResource(id = R.drawable.chillguy),
+//                        contentDescription = "Profile Picture",
+//                        modifier = Modifier
+//                            .size(80.dp)
+//                            .clip(CircleShape)
+//                            .border(2.dp, Color.Gray, CircleShape)
+//                    )
+//                }
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(text = "แตะเพื่อเปลี่ยนรูป", fontSize = 14.sp, color = Color.Gray)
 

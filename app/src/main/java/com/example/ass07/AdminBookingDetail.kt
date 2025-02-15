@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun BookingDetailsScreen(bookingId: String) {
+fun Booking(bookingId: String) {
     val booking = getBookingById(bookingId) // ฟังก์ชันจำลองหาข้อมูลจากฐานข้อมูล
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {

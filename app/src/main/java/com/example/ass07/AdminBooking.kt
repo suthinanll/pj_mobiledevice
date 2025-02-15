@@ -128,7 +128,7 @@ fun BookingItem(booking: BookingData, navController: NavController) {
             .fillMaxWidth()
             .padding(vertical = 8.dp)
             .clickable(enabled = booking.status != "รออนุมัติ") {
-                navController.navigate(Screen.BookingDetailsScreen.route + "/${booking.id}")
+                navController.navigate(Screen.Booking.route + "/${booking.id}")
             },
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
