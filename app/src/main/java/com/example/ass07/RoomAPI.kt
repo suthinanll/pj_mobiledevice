@@ -13,7 +13,9 @@ import retrofit2.http.POST
 
 interface RoomAPI {
 
-    // ดึงข้อมูลห้องทั้งหมด
+    @GET("room_types") //  <--- ADD THIS!  Endpoint to get room types.  ADJUST AS NEEDED.
+    fun getRoomTypes(): Call<List<RoomType>>
+
     @GET("/getroom")
     fun retrieveAllRooms(): Call<List<Room>>
 
@@ -21,7 +23,7 @@ interface RoomAPI {
     @FormUrlEncoded
     @POST("/addroom")
     fun insertRoom(
-        @Field("type_type_id") typeTypeId: String,
+        @Field("type_type_id") typeTypeId: Int,
         @Field("status") status: Int,
     ): Call<Room>
 

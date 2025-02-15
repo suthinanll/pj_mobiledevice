@@ -1,5 +1,7 @@
 package com.example.ass07
 
+import androidx.annotation.DrawableRes
+import androidx.annotation.OptIn
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -24,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -41,6 +44,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -52,11 +56,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.util.Log
+import androidx.media3.common.util.UnstableApi
+import coil.compose.AsyncImage
 import com.android.volley.toolbox.ImageRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.Call
+import retrofit2.Callback
 import retrofit2.Response
 
 
@@ -67,6 +75,11 @@ sealed class RoomUIState {
     data class Error(val message: String) : RoomUIState()
 }
 
+sealed class RoomTypeUIState {
+    object Loading : RoomTypeUIState()
+    data class Success(val roomTypes: List<RoomType>) : RoomTypeUIState()
+    data class Error(val message: String) : RoomTypeUIState()
+}
 // ManageRoom.kt
 @Composable
 fun ManageRoom() {
@@ -75,6 +88,8 @@ fun ManageRoom() {
     var filterDialogOpen by remember { mutableStateOf(false) }
     var selectedFilter by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
+
+
 
     LaunchedEffect(true) {
         scope.launch {
@@ -94,6 +109,25 @@ fun ManageRoom() {
         }
     }
 
+//    LaunchedEffect(Unit) { // Or LaunchedEffect(true) is fine too.
+//        scope.launch {
+//            try {
+//                val api = RoomAPI.create()
+//                val response = withContext(Dispatchers.IO) {
+//                    api.getRoomTypes().execute() // Call the new API method
+//                }
+//                RoomTypeUIState = if (response.isSuccessful) {
+//                    RoomTypeUIState.Success(response.body() ?: emptyList())
+//                } else {
+//                    val errorMessage = "Error: ${response.code()} - ${response.message()}"
+//                    RoomTypeUIState.Error(errorMessage)
+//                }
+//            } catch (e: Exception) {
+//                RoomTypeUIState = RoomTypeUIState.Error("Error: ${e.message}")
+//            }
+//        }
+//    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -108,7 +142,10 @@ fun ManageRoom() {
         // Main Content
         when (val currentState = uiState) {
             is RoomUIState.Loading -> LoadingScreen()
-            is RoomUIState.Success -> RoomList(rooms = currentState.rooms)
+            is RoomUIState.Success -> RoomList(
+                rooms = currentState.rooms,
+                roomTypeUiState = TODO()
+            )
             is RoomUIState.Error -> ErrorScreen(message = currentState.message)
         }
     }
@@ -137,18 +174,42 @@ fun TopActionBar(
         horizontalArrangement = Arrangement.End,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        ActionButton(
-            onClick = onFilterClick,
-            icon = R.drawable.ic_filter,
-            text = "Filter"
+        IconButton(
+            onClick = { /* Handle click */ }
+        ) {
+            Icon(
+                imageVector = Icons.Default.MoreVert,  // ไอคอนสามขีด
+                contentDescription = "More options", // คำอธิบายสำหรับผู้ใช้ที่ใช้เครื่องมือช่วย
+                modifier = Modifier.size(32.dp), // ขนาดของไอคอน
+                tint = Color.Black // สีของไอคอน
+            )
+        }
+
+        // ข้อความ "Filter"
+        Text(
+            text = "Filter",
+            modifier = Modifier
+                .align(Alignment.CenterVertically) // จัดแนวข้อความแนวตั้งให้ตรงกลาง
         )
 
         Spacer(modifier = Modifier.width(8.dp))
 
-        ActionButton(
-            onClick = onSortClick,
-            icon = R.drawable.ic_sort,
-            text = "Sort"
+        IconButton(
+            onClick = { /* Handle click */ }
+        ) {
+            Icon(
+                imageVector = Icons.Default.Search,  // เปลี่ยนเป็นไอคอน Search
+                contentDescription = "Search", // คำอธิบายสำหรับผู้ใช้ที่ใช้เครื่องมือช่วย
+                modifier = Modifier.size(32.dp), // ขนาดของไอคอน
+                tint = Color.Black // สีของไอคอน
+            )
+        }
+
+        // ข้อความ "Filter"
+        Text(
+            text = "Filter",
+            modifier = Modifier
+                .align(Alignment.CenterVertically) // จัดแนวข้อความแนวตั้งให้ตรงกลาง
         )
     }
 }
@@ -183,7 +244,7 @@ fun ActionButton(
 }
 
 @Composable
-fun RoomList(rooms: List<Room>) {
+fun RoomList(rooms: List<Room>,roomTypeUiState: RoomTypeUIState) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -200,7 +261,7 @@ fun RoomList(rooms: List<Room>) {
         }
         item {
             Spacer(modifier = Modifier.height(16.dp))
-            AddRoomButton()
+            AddRoomButton(roomTypeUiState)
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
@@ -241,11 +302,8 @@ fun RoomCard(room: Room) {
 
             // Room image
             AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(R.drawable.logoapp)
-                    .crossfade(true)
-                    .build(),
-                contentDescription = null,
+                model = R.drawable.logoapp,
+                contentDescription = "Room Logo Image",
                 modifier = Modifier
                     .size(64.dp)
                     .clip(RoundedCornerShape(8.dp))
@@ -297,21 +355,13 @@ fun RoomCard(room: Room) {
         }
     }
 }
-
 @Composable
-fun AddRoomButton() {
-    val roomTypes = remember {
-        listOf(
-            Pair(1, "Deluxe Dog Room"),
-            Pair(2, "Standard Cat Room"),
-            Pair(3, "Standard Dog Room"),
-            Pair(4, "Deluxe Cat Room")
-        )
-    }
+fun AddRoomButton(roomTypeUiState: RoomTypeUIState) { // Pass in the state
 
-    var selectedRoom by remember { mutableStateOf(roomTypes[0]) }
+    var selectedRoomId by remember { mutableStateOf<Int?>(null) } // Store the ID, not the whole Pair
     var expanded by remember { mutableStateOf(false) }
     var responseMessage by remember { mutableStateOf("") }
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -322,20 +372,41 @@ fun AddRoomButton() {
                 onClick = { expanded = true },
                 modifier = Modifier.fillMaxWidth(0.8f)
             ) {
-                Text("เลือกประเภทห้อง: ${selectedRoom.second}")
+                // Display the selected room type name, handling loading/error states
+                val buttonText = when (roomTypeUiState) {
+                    is RoomTypeUIState.Loading -> "Loading room types..."
+                    is RoomTypeUIState.Success -> {
+                        val selectedRoomType = roomTypeUiState.roomTypes.find { it.type_id == selectedRoomId }
+                        selectedRoomType?.name_type ?: "Select Room Type" // Default text if none selected
+                    }
+                    is RoomTypeUIState.Error -> "Error loading room types"
+                }
+                Text("เลือกประเภทห้อง: $buttonText")
             }
+
+            // Dropdown menu: Handle loading, success, and error states.
             DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false }
             ) {
-                roomTypes.forEach { room ->
-                    DropdownMenuItem(
-                        text = { Text(room.second) },
-                        onClick = {
-                            selectedRoom = room
-                            expanded = false
+                when (roomTypeUiState) {
+                    is RoomTypeUIState.Loading -> {
+                        DropdownMenuItem(text = { Text("Loading...") }, onClick = {})
+                    }
+                    is RoomTypeUIState.Success -> {
+                        roomTypeUiState.roomTypes.forEach { roomType ->
+                            DropdownMenuItem(
+                                text = { Text(roomType.name_type) },
+                                onClick = {
+                                    selectedRoomId = roomType.type_id
+                                    expanded = false
+                                }
+                            )
                         }
-                    )
+                    }
+                    is RoomTypeUIState.Error -> {
+                        DropdownMenuItem(text = { Text("Error") }, onClick = {})
+                    }
                 }
             }
         }
@@ -344,23 +415,37 @@ fun AddRoomButton() {
 
         Button(
             onClick = {
+                // Use selectedRoomId directly (it's an Int now)
                 val api = RoomAPI.create()
-                api.insertRoom(
-                    typeTypeId = selectedRoom.first.toString(),
-                    status = 1
-                ).enqueue(object : retrofit2.Callback<Room> {
-                    override fun onResponse(call: Call<Room>, response: Response<Room>) {
-                        responseMessage = if (response.isSuccessful) {
-                            "เพิ่มห้องพักสำเร็จ: ${response.body()?.room_type}"
-                        } else {
-                            "เกิดข้อผิดพลาด: ${response.message()}"
+                if (selectedRoomId != null) { // Make sure a room type is selected.
+                    api.insertRoom(
+                        typeTypeId = selectedRoomId!!,
+                        status = 1
+                    ).enqueue(object : Callback<Room> {
+                        @OptIn(UnstableApi::class)
+                        override fun onResponse(call: Call<Room>, response: Response<Room>) {
+                            responseMessage = if (response.isSuccessful) {
+                                "เพิ่มห้องพักสำเร็จ: ${response.body()?.room_type}"
+                            } else ({
+                                val errorBody = response.errorBody()?.string()
+                                responseMessage =
+                                    "เกิดข้อผิดพลาด: ${response.code()} - ${response.message()} - $errorBody"
+                                Log.e(
+                                    "AddRoomButton",
+                                    "Error adding room: ${response.code()} - ${response.message()} - $errorBody"
+                                )
+                            }).toString()
                         }
-                    }
 
-                    override fun onFailure(call: Call<Room>, t: Throwable) {
-                        responseMessage = "การเชื่อมต่อล้มเหลว: ${t.message}"
-                    }
-                })
+                        @OptIn(UnstableApi::class)
+                        override fun onFailure(call: Call<Room>, t: Throwable) {
+                            responseMessage = "การเชื่อมต่อล้มเหลว: ${t.message}"
+                            Log.e("AddRoomButton", "Network Failure", t)
+                        }
+                    })
+                } else {
+                    responseMessage = "กรุณาเลือกประเภทห้อง" // Error message when room has not selected.
+                }
             },
             modifier = Modifier.fillMaxWidth(0.8f),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFBBF24)),
@@ -384,11 +469,12 @@ fun AddRoomButton() {
             Text(
                 text = responseMessage,
                 modifier = Modifier.padding(top = 8.dp),
-                color = Color.Black
+                color = if (responseMessage.startsWith("เพิ่มห้องพักสำเร็จ")) Color.Black else Color.Red
             )
         }
     }
 }
+
 
 @Composable
 fun LoadingScreen() {
