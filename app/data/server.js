@@ -156,8 +156,55 @@ app.get("/search/:std_id",function(req,res){
   })
 })
 
+//Project Kotlin
+
+// ดึงข้อมูลการจองทั้งหมด (รวม soft delete)
+app.get("/bookings", function (req, res) {
+  dbConn.query("SELECT * FROM bookings WHERE deleted_at IS NULL", function (error, results) {
+    if (error) throw error;
+    return res.send(results);
+  });
+});
+
+// อัปเดตข้อมูลการจอง
+app.put("/bookings/:id", function (req, res) {
+  var bookingData = req.body;
+  var bookingId = req.params.id;
+
+  // ตรวจสอบว่ามีข้อมูลที่ต้องอัปเดตหรือไม่
+  if (!bookingData || Object.keys(bookingData).length === 0) {
+    return res.status(400).send({ error: true, message: "Please provide booking data" });
+  }
+  dbConn.query(
+    "UPDATE bookings SET ? WHERE booking_id = ? AND deleted_at IS NULL",
+    [bookingData, bookingId],
+    function (error, results) {
+      if (error) throw error;
+      // เช็กว่ามีข้อมูลถูกอัปเดตจริงหรือไม่
+      if (results.affectedRows === 0) {
+        return res.status(404).send({ error: true, message: "Booking not found or already deleted" });
+      }
+      return res.send({ message: "Booking updated successfully" });
+    }
+  );
+});
 
 
+// Soft Delete การจอง
+app.delete("/bookings/:id", function (req, res) {
+  const bookingId = req.params.id;
+  const deletedAt = new Date().toISOString().slice(0, 19).replace("T", " "); // เวลาปัจจุบัน
+
+  dbConn.query(
+    `UPDATE bookings SET deleted_at = ?
+    WHERE booking_id = ? AND deleted_at IS NULL`,
+    [deletedAt, bookingId],
+    function (error, results) {
+      if (error) throw error;
+      return res.send({ message: "Booking soft deleted successfully" });
+    }
+  );
+});
 
 app.listen(3000, function () {
   console.log("Node app is running on port 3000");
