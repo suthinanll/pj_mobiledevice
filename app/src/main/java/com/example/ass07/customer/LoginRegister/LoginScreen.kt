@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavHostController
 import com.example.ass07.R
+import com.example.ass07.admin.ScreenAdmin
 import com.example.ass07.customer.Screen
 import com.example.ass07.customer.API.projectApi
 import retrofit2.Call
@@ -190,6 +191,7 @@ fun Login(navController : NavHostController) {
                     onClick = {
                         keyboardController?.hide()
                         focusManager.clearFocus()
+
                         studentClient.login_acc(accID, password)
                             .enqueue(object : Callback<LoginClass> {
                                 override fun onResponse(
@@ -197,18 +199,25 @@ fun Login(navController : NavHostController) {
                                     response: Response<LoginClass>
                                 ) {
                                     if (response.isSuccessful) {
-                                        if (response.body()!!.success == 1) {
+                                        // หลังจากล็อกอินสำเร็จ
+                                        val loginResponse = response.body()
+                                        if (loginResponse != null && loginResponse.success == 1) {
                                             sharePreferences.isLoggedIn = true
-                                            sharePreferences.userId = response.body()!!.name
+                                            sharePreferences.userId = loginResponse.name
+                                            sharePreferences.userRole = loginResponse.user_type.toString()  // ✅ บันทึก role ของผู้ใช้
+
+                                            Toast.makeText(contextForToast, "Login Successful.", Toast.LENGTH_SHORT).show()
+
+                                            // ✅ เช็คว่าเป็น admin หรือ user
+                                            if (loginResponse.user_type == 1) {
+                                                navController.navigate(ScreenAdmin.ManageRoom.route)  // ไปหน้า Admin
+                                            } else {
+                                                navController.navigate(Screen.Home.route)  // ไปหน้า User
+                                            }
+
+                                    } else {
                                             Toast.makeText(
-                                                contextForToast, "Login Successful.",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                            navController.navigate(Screen.Home.route)
-                                        } else {
-                                            Toast.makeText(
-                                                contextForToast, "Username or password" +
-                                                        " is incorrect.",
+                                                contextForToast, "Username or password is incorrect.",
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                         }
@@ -227,6 +236,7 @@ fun Login(navController : NavHostController) {
                                     ).show()
                                 }
                             })
+
                     },
                     enabled = isButtonEnabled,
                     modifier = Modifier.fillMaxWidth().padding(20.dp)

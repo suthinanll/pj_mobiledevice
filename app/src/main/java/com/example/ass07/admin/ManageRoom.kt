@@ -1,9 +1,9 @@
 package com.example.ass07
 
+import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.annotation.OptIn
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -56,10 +56,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.media3.common.util.Log
 import androidx.media3.common.util.UnstableApi
 import coil.compose.AsyncImage
-import com.android.volley.toolbox.ImageRequest
+import com.example.ass07.admin.RoomAPI
+import com.example.ass07.admin.RoomType
+import com.example.ass07.admin.Room
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -147,6 +148,7 @@ fun ManageRoom() {
                 roomTypeUiState = TODO()
             )
             is RoomUIState.Error -> ErrorScreen(message = currentState.message)
+            else -> {}
         }
     }
 
@@ -244,7 +246,7 @@ fun ActionButton(
 }
 
 @Composable
-fun RoomList(rooms: List<Room>,roomTypeUiState: RoomTypeUIState) {
+fun RoomList(rooms: List<Room>, roomTypeUiState: RoomTypeUIState) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -380,6 +382,7 @@ fun AddRoomButton(roomTypeUiState: RoomTypeUIState) { // Pass in the state
                         selectedRoomType?.name_type ?: "Select Room Type" // Default text if none selected
                     }
                     is RoomTypeUIState.Error -> "Error loading room types"
+                    else -> {}
                 }
                 Text("เลือกประเภทห้อง: $buttonText")
             }
@@ -407,6 +410,8 @@ fun AddRoomButton(roomTypeUiState: RoomTypeUIState) { // Pass in the state
                     is RoomTypeUIState.Error -> {
                         DropdownMenuItem(text = { Text("Error") }, onClick = {})
                     }
+
+                    else -> {}
                 }
             }
         }

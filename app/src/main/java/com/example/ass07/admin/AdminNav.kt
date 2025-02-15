@@ -37,8 +37,8 @@ class AdminNav {
             val navController = rememberNavController()
 
             Scaffold(
-                topBar = { MyTopAppBar(navController, contextForToast) },
-                bottomBar = { MyBottomBar(navController, contextForToast) },
+                topBar = { MyTopAppBarAdmin(navController, contextForToast) },
+                bottomBar = { MyBottomBarAdmin(navController, contextForToast) },
                 floatingActionButtonPosition = FabPosition.End
             ) { paddingValues ->
                 Column(
@@ -54,7 +54,7 @@ class AdminNav {
         }
         @OptIn(ExperimentalMaterial3Api::class)
         @Composable
-        fun MyTopAppBar(navController: NavHostController, contextForToast: Context) {
+        fun MyTopAppBarAdmin(navController: NavHostController, contextForToast: Context) {
             var expanded by remember { mutableStateOf(false) }
 
             CenterAlignedTopAppBar(
@@ -75,7 +75,7 @@ class AdminNav {
             )
         }
         @Composable
-        fun MyBottomBar(navController: NavHostController, contextForToast: Context) {
+        fun MyBottomBarAdmin(navController: NavHostController, contextForToast: Context) {
             val navigationItems = listOf(
                 ScreenAdmin.ManageRoom,
                 ScreenAdmin.Booking,

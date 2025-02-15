@@ -1,4 +1,4 @@
-package com.example.ass07
+package com.example.ass07.admin
 
 data class RoomType(
     val type_id: Int,

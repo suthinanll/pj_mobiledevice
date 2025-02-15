@@ -15,6 +15,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,19 +27,57 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.ass07.admin.AdminNav.Companion.MyBottomBarAdmin
+import com.example.ass07.admin.AdminNav.Companion.MyTopAppBarAdmin
+
+import com.example.ass07.customer.LoginRegister.ScreenLogin
+import com.example.ass07.customer.LoginRegister.SharePreferencesManager
 
 class BB {
     companion object {
         data class NavigationDrawerItemData(val label: String, val icon: ImageVector)
+
         @Composable
         fun MyScaffoldLayout() {
             val contextForToast = LocalContext.current.applicationContext
             val navController = rememberNavController()
 
+            val currentBackStackEntry by navController.currentBackStackEntryAsState()
+            val currentRoute = currentBackStackEntry?.destination?.route
+
+            // ✅ ตรวจสอบว่าเป็นหน้า Login/Register หรือไม่
+            val hideBars = currentRoute == ScreenLogin.Login.route || currentRoute == ScreenLogin.Register.route
+
+            // ✅ ใช้ SharePreferencesManager
+            val preferencesManager = remember { SharePreferencesManager(contextForToast) }
+            val isAdmin = remember { mutableStateOf(false) }
+
+            // ✅ ดึงข้อมูล Role จาก SharedPreferences
+            val userRole = preferencesManager.userRole // ดึงข้อมูล role
+            LaunchedEffect(userRole) {
+                // ใช้ userRole ที่ได้จาก SharedPreferences เพื่ออัปเดต isAdmin
+                if (userRole == "1") {
+                    isAdmin.value = true  // กำหนดว่าเป็น admin
+                } else {
+                    isAdmin.value = false  // กำหนดว่าเป็น user
+                }
+            }
+
             Scaffold(
-                topBar = { MyTopAppBar(navController, contextForToast) },
-                bottomBar = { MyBottomBar(navController, contextForToast) },
+                topBar = {
+                    if (!hideBars) {
+                        if (isAdmin.value) MyTopAppBarAdmin(navController, contextForToast)
+                        else MyTopAppBar(navController, contextForToast)
+                    }
+                },
+                bottomBar = {
+                    if (!hideBars) {
+                        if (isAdmin.value) MyBottomBarAdmin(navController, contextForToast)
+                        else MyBottomBar(navController, contextForToast)
+                    }
+                },
                 floatingActionButtonPosition = FabPosition.End
             ) { paddingValues ->
                 Column(
@@ -47,11 +86,13 @@ class BB {
                         .padding(paddingValues),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-
                     NavGraph(navController = navController)
                 }
             }
         }
+
+
+
         @OptIn(ExperimentalMaterial3Api::class)
         @Composable
         fun MyTopAppBar(navController: NavHostController, contextForToast: Context) {
@@ -70,10 +111,10 @@ class BB {
                 ),
                 actions = {
 
-
                 }
             )
         }
+
         @Composable
         fun MyBottomBar(navController: NavHostController, contextForToast: Context) {
             val navigationItems = listOf(
@@ -121,4 +162,4 @@ class BB {
             }
         }
     }
-}
+    }

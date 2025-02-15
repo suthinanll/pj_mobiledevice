@@ -1,7 +1,6 @@
-package com.example.ass07.customer.API
+package com.example.ass07.admin
 
 
-import com.example.ass07.customer.Room
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory

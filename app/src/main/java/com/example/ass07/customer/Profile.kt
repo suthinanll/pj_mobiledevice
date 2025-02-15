@@ -110,7 +110,7 @@ fun Profile(navController : NavHostController){
                     onClick = {
                         if(remember_id){
                             navController.currentBackStackEntry?.savedStateHandle?.set(
-                                "std_id",sharePreferences.userId
+                                "name",sharePreferences.userId
                             )
                         }
                         sharePreferences.isLoggedIn = false
