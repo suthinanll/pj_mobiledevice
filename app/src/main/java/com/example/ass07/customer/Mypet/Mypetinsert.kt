@@ -142,7 +142,7 @@ fun Mypetinsert(navController: NavHostController) {
                             selectedPetType = petTypes.find { it.Pet_name_type == newTypeName }
                         },
                         label = "ประเภท",
-                        options = petTypes.map { it.Pet_name_type } // ✅ แสดง Pet_name_type จากฐานข้อมูล
+                        options = petTypes.map { it.Pet_name_type }
                     )
                 } else {
                     Text("กำลังโหลดประเภทสัตว์...", fontSize = 16.sp, color = Color.Gray)
