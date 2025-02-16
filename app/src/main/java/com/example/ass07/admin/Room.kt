@@ -23,7 +23,7 @@ data class Room(
     @Expose
     @SerializedName("type_id") val type_id:Int,
     @Expose
-    @SerializedName("pet_type") val pet_type:Int,
+    @SerializedName("pet_type") val pet_type:String,
     @Expose
     @SerializedName("image") val image:String,
     @Expose

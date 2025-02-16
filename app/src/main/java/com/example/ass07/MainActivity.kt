@@ -1,23 +1,19 @@
 package com.example.ass07
 
+
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-
-
 import androidx.compose.runtime.Composable
-
 import androidx.compose.ui.Alignment
-import androidx.compose. ui.Modifier
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import com.example.ass07.admin.AdminNav
-import com.example.ass07.customer.BB
 import com.example.ass07.customer.NavGraph
-
 import com.example.ass07.ui.theme.ASS07Theme
 
 class MainActivity : ComponentActivity() {
@@ -27,8 +23,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             ASS07Theme {
 
-                BB.MyScaffoldLayout()
-//                AdminNav.MyScaffoldLayout()
+//                BB.MyScaffoldLayout()
+                AdminNav.MyScaffoldLayout()
 //                MyScreen()
             }
 
