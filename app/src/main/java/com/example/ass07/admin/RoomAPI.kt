@@ -19,11 +19,20 @@ interface RoomAPI {
     fun retrieveAllRooms(): Call<List<Room>>
 
     // เพิ่มห้องใหม่
-    @FormUrlEncoded
+//    @FormUrlEncoded
+//    @POST("/addroom")
+//    fun insertRoom(
+//        @Field("type_type_id") typeTypeId: Int,
+//        @Field("status") status: Int,
+//    ): Call<Room>
+
+    // เพิ่มห้องใหม่
     @POST("/addroom")
     fun insertRoom(
-        @Field("type_type_id") typeTypeId: Int,
-        @Field("status") status: Int,
+        @Body roomName: String,
+        @Body roomTypeId: Int,
+        @Body roomStatus: Int,
+        @Body additionalInfo: String
     ): Call<Room>
 
     companion object {
