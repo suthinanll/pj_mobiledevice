@@ -353,20 +353,66 @@ app.post('/addroom', function (req, res) {
 
 //การจอง Admin
 
-// ดึงข้อมูลการจองทั้งหมด (รวม soft delete)
+// ดึงข้อมูลการจองทั้งหมด พร้อมข้อมูลสัตว์เลี้ยงและเจ้าของ
 app.get("/bookings", function (req, res) {
-  dbConn.query("SELECT * FROM bookings WHERE deleted_at IS NULL", function (error, results) {
+  const query = `
+    SELECT 
+      bookings.*, 
+      pets.pet_name, pets.pet_gender, pets.pet_breed, pets.pet_age, pets.pet_height, pets.pet_weight, 
+      users.name , users.tell_number, users.email,
+      rooms.room_id , rooms.type_type_id ,rooms.status,
+      room_type.name_type, room_type.price_per_day , room_type.image, room_type.pet_type,
+      pet_type.pet_name_type
+    FROM bookings 
+    JOIN pets ON bookings.pet_id = pets.pet_id
+    JOIN users ON pets.user_id = users.user_id
+    JOIN rooms ON bookings.room_id = rooms.room_id
+    JOIN room_type ON rooms.type_type_id = room_type.type_id
+    JOIN pet_type ON room_type.pet_type = pet_type.pet_type_id`;
+    // WHERE bookings.deleted_at IS NULL
+  
+
+  dbConn.query(query, function (error, results) {
     if (error) throw error;
     return res.send(results);
   });
 });
+
+// ดึงข้อมูลการจองตาม ID พร้อมข้อมูลสัตว์เลี้ยงและเจ้าของ
+app.get("/bookings/:id", function (req, res) {
+  const bookingId = req.params.id;
+
+  const query = `
+    SELECT 
+      bookings.*, 
+      pets.pet_name, pets.pet_gender, pets.pet_breed, pets.pet_age, pets.pet_height, pets.pet_weight, 
+      users.name , users.tell_number, users.email,
+      rooms.room_id , rooms.type_type_id ,rooms.status,
+      room_type.name_type, room_type.price_per_day , room_type.image, room_type.pet_type,
+      pet_type.pet_name_type
+    FROM bookings 
+    JOIN pets ON bookings.pet_id = pets.pet_id
+    JOIN users ON pets.user_id = users.user_id
+    JOIN rooms ON bookings.room_id = rooms.room_id
+    JOIN room_type ON rooms.type_type_id = room_type.type_id
+    JOIN pet_type ON room_type.pet_type = pet_type.pet_type_id
+    WHERE bookings.booking_id = ? AND bookings.deleted_at IS NULL`;
+
+  dbConn.query(query, [bookingId], function (error, results) {
+    if (error) throw error;
+    if (results.length === 0) {
+      return res.status(404).send({ error: true, message: "Booking not found" });
+    }
+    return res.send(results[0]);
+  });
+});
+
 
 // อัปเดตข้อมูลการจอง
 app.put("/bookings/:id", function (req, res) {
   var bookingData = req.body;
   var bookingId = req.params.id;
 
-  // ตรวจสอบว่ามีข้อมูลที่ต้องอัปเดตหรือไม่
   if (!bookingData || Object.keys(bookingData).length === 0) {
     return res.status(400).send({ error: true, message: "Please provide booking data" });
   }
@@ -375,11 +421,32 @@ app.put("/bookings/:id", function (req, res) {
     [bookingData, bookingId],
     function (error, results) {
       if (error) throw error;
-      // เช็กว่ามีข้อมูลถูกอัปเดตจริงหรือไม่
       if (results.affectedRows === 0) {
         return res.status(404).send({ error: true, message: "Booking not found or already deleted" });
       }
       return res.send({ message: "Booking updated successfully" });
+    }
+  );
+});
+
+// อัปเดตสถานะการจอง (ใหม่)
+app.put("/bookings/:id/status", function (req, res) {
+  const bookingId = req.params.id;
+  const { status } = req.body;
+
+  if (status === undefined) {
+    return res.status(400).send({ error: true, message: "Please provide booking status" });
+  }
+
+  dbConn.query(
+    "UPDATE bookings SET status = ? WHERE booking_id = ? AND deleted_at IS NULL",
+    [status, bookingId],
+    function (error, results) {
+      if (error) throw error;
+      if (results.affectedRows === 0) {
+        return res.status(404).send({ error: true, message: "Booking not found or already deleted" });
+      }
+      return res.send({ message: "Booking status updated successfully" });
     }
   );
 });

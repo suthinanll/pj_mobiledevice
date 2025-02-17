@@ -15,6 +15,15 @@ interface BookingAPI {
     @GET("bookings")
     fun getBookings(): Call<List<Booking>>
 
+    @GET("bookings/{id}")
+    fun getBookingById(@Path("id") bookingId: Int): Call<Booking>
+
+    @PUT("bookings/{id}/status")
+    fun updateBooking(
+        @Path("id") bookingId: Int,
+        @Body status: Int
+    ): Call<Map<String, String>> // ใช้ Map รับ message กลับมา
+
     //  อัปเดตข้อมูลการจอง
     @PUT("bookings/{id}")
     fun updateBooking(

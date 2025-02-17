@@ -18,14 +18,14 @@ fun NavGraphAdmin(navController: NavHostController) {
             ManageRoom()
         }
         composable(route = ScreenAdmin.Booking.route) {
-            Booking()
+            Booking(navController)
         }
         composable(route = ScreenAdmin.PetsAdmin.route) {
             PetsAdmin()
         }
 
         composable(route = ScreenAdmin.BookingDetail.route) {
-            BookingDetail()
+            BookingDetail("1")
         }
 
     }

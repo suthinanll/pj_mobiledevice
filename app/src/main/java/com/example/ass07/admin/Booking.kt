@@ -29,6 +29,9 @@ data class Booking(
     @SerializedName("total_pay") val totalPay: Int,
 
     @Expose
+    @SerializedName("status") val status: Int,
+
+    @Expose
     @SerializedName("payment_method") val paymentMethod: Int,
 
     @Expose
