@@ -4,12 +4,14 @@ import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -25,6 +27,9 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
+
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Mypetinsert(navController: NavHostController) {
     var textFieldPetName by remember { mutableStateOf("") }
@@ -33,13 +38,17 @@ fun Mypetinsert(navController: NavHostController) {
     var textFieldAdditionalInfo by remember { mutableStateOf("") }
     var textFieldPetBreed by remember { mutableStateOf("") }
     var petGender by rememberSaveable { mutableStateOf("") }
-    var petTypename by rememberSaveable { mutableStateOf("") }
-    var UserId by remember { mutableStateOf("") }
+    var petTypes by remember { mutableStateOf(listOf<PetType>()) }
+    var selectedPetType by remember { mutableStateOf<PetType?>(null) }
+    var isAddingPetType by remember { mutableStateOf(false) }
 
+    var expanded by remember { mutableStateOf(false) }
 
     val createClient = PetApi.create()
     val contextForToast = LocalContext.current
     val userId = 3 // หรือส่งผ่าน parameter หรือดึงจาก session
+
+
 
 
 
@@ -107,6 +116,7 @@ fun Mypetinsert(navController: NavHostController) {
 
 // เรียกข้อมูลจาก API
                 val createClient = PetApi.create()
+                // เรียกข้อมูลประเภทสัตว์เลี้ยง
                 LaunchedEffect(Unit) {
                     createClient.getPetTypes()
                         .enqueue(object : Callback<List<PetType>> {
@@ -116,35 +126,81 @@ fun Mypetinsert(navController: NavHostController) {
                             ) {
                                 if (response.isSuccessful) {
                                     petTypes = response.body() ?: emptyList()
-                                    Log.d("PetTypes", "Loaded: $petTypes") // ✅ Debug เช็คค่าที่โหลดมา
                                     if (petTypes.isNotEmpty()) {
                                         selectedPetType = petTypes[0]
-                                        petTypename = petTypes[0].Pet_name_type
                                     }
+                                } else {
+                                    Toast.makeText(
+                                        contextForToast,
+                                        "ไม่สามารถโหลดข้อมูลประเภทสัตว์เลี้ยงได้",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
                             }
+
                             override fun onFailure(call: Call<List<PetType>>, t: Throwable) {
-                                Log.e("PetTypes", "Failed to load: ${t.message}") // ✅ Debug เช็ค error
+                                Toast.makeText(
+                                    contextForToast,
+                                    "เกิดข้อผิดพลาด: ${t.message}",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
                         })
                 }
 
-// ค่า Pet_type_id จะได้จากประเภทที่เลือก
-                val Pet_type_id = selectedPetType?.Pet_type_id?.toString() ?: ""
 
-                if (petTypes.isNotEmpty()) {
-                    RadioGroupUsage(
-                        selected = petTypename,
-                        setSelected = { newTypeName ->
-                            petTypename = newTypeName
-                            selectedPetType = petTypes.find { it.Pet_name_type == newTypeName }
-                        },
-                        label = "ประเภท",
-                        options = petTypes.map { it.Pet_name_type }
-                    )
-                } else {
-                    Text("กำลังโหลดประเภทสัตว์...", fontSize = 16.sp, color = Color.Gray)
-                }
+                val Pet_type_id = selectedPetType?.Pet_type_id?.toString() ?: ""
+                var selectPetType by remember { mutableStateOf<PetType?>(null) }
+                val petType = remember { mutableStateListOf(PetType(1, "สุนัข"), PetType(2, "แมว"),PetType(3, "นก")) }
+
+
+                PetTypeDropdown(
+                    petType = petTypes,
+                    selectPetType = selectedPetType,
+                    onPetTypeSelected = { selectedPetType = it },
+                    onAddNewPetType = { newTypeName ->
+                        isAddingPetType = true
+                        createClient.addPetType(newTypeName).enqueue(object: Callback<AddPetTypeResponse> {
+                            override fun onResponse(call: Call<AddPetTypeResponse>, response: Response<AddPetTypeResponse>) {
+                                isAddingPetType = false
+                                if (response.isSuccessful) {
+                                    val newPetType = response.body()?.petType
+                                    if (newPetType!= null) {
+                                        petTypes = petTypes + newPetType
+                                        selectedPetType = newPetType
+                                    } else {
+                                        // Handle error: new pet type not found in response
+                                        Toast.makeText(
+                                            contextForToast,
+                                            "ไม่สามารถเพิ่มประเภทสัตว์เลี้ยงได้",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                } else {
+                                    // Handle error: API request failed
+                                    Toast.makeText(
+                                        contextForToast,
+                                        "ไม่สามารถเพิ่มประเภทสัตว์เลี้ยงได้",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
+
+                            override fun onFailure(call: Call<AddPetTypeResponse>, t: Throwable) {
+                                isAddingPetType = false
+                                // Handle error: API request failed
+                                Toast.makeText(
+                                    contextForToast,
+                                    "เกิดข้อผิดพลาด: ${t.message}",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        })
+                    }
+                )
+
+
+
 
                 RadioGroupUsage(
                     selected = petGender,
@@ -198,12 +254,12 @@ fun Mypetinsert(navController: NavHostController) {
                         createClient.insertPet(
                             textFieldPetName,
                             genderCode,
+                            userId,
+                            selectedPetType?.Pet_type_id ?: 0,
                             textFieldPetBreed,
                             textFieldPetAge.toIntOrNull() ?: 0,
-                            textFieldPetWeight.toIntOrNull() ?: 0,
-                            textFieldAdditionalInfo,
-                            Pet_type_id.toInt(),  // รหัสประเภท
-                            userId       // รหัสผู้ใช้
+                            textFieldPetWeight.toDoubleOrNull() ?: 0.0,
+                            textFieldAdditionalInfo
                         ).enqueue(object : Callback<petMember> {
                             override fun onResponse(call: Call<petMember>, response: Response<petMember>) {
                                 if (response.isSuccessful) {
@@ -255,6 +311,94 @@ fun RadioGroupUsage(
                     Text(text = item)
                 }
             }
+        }
+    }
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PetTypeDropdown(
+    petType: List<PetType>,
+    selectPetType: PetType?,
+    onPetTypeSelected: (PetType) -> Unit,
+    onAddNewPetType: (String) -> Unit
+) {
+
+    var expanded by remember { mutableStateOf(false) }
+    var newPetTypeName by remember { mutableStateOf("") }
+    var showAddDialog by remember { mutableStateOf(false) }
+
+    Column {
+        // Dropdown Menu
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = it }
+        ) {
+            OutlinedTextField(
+                value = selectPetType?.Pet_name_type ?: "เลือกประเภทสัตว์",
+                onValueChange = {},
+                readOnly = true,
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth()
+                    .clickable { expanded = true },
+                label = { Text("ประเภทสัตว์") },
+                trailingIcon = { Icon(Icons.Default.ArrowDropDown, contentDescription = "Dropdown") }
+            )
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                petType.forEach { petType ->
+                    DropdownMenuItem(
+                        text = { Text(petType.Pet_name_type) },
+                        onClick = {
+                            onPetTypeSelected(petType) // Call the function with selected PetType
+                            expanded = false
+                        }
+                    )
+                }
+                HorizontalDivider()
+                DropdownMenuItem(
+                    text = { Text("➕ เพิ่มประเภทสัตว์ใหม่") },
+                    onClick = {
+                        expanded = false
+                        showAddDialog = true
+                    }
+                )
+            }
+        }
+
+        // Dialog for adding a new pet type
+        if (showAddDialog) {
+            AlertDialog(
+                onDismissRequest = { showAddDialog = false },
+                title = { Text("เพิ่มประเภทสัตว์ใหม่") },
+                text = {
+                    OutlinedTextField(
+                        value = newPetTypeName,
+                        onValueChange = { newPetTypeName = it },
+                        label = { Text("ชื่อประเภทสัตว์") }
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            if (newPetTypeName.isNotBlank()) {
+                                onAddNewPetType(newPetTypeName) // Call the callback
+                                showAddDialog = false
+                                newPetTypeName = "" // Clear input
+                            }
+                        }
+                    ) {
+                        Text("เพิ่ม")
+                    }
+                },
+                dismissButton = {
+                    Button(onClick = { showAddDialog = false }) {
+                        Text("ยกเลิก")
+                    }
+                }
+            )
         }
     }
 }

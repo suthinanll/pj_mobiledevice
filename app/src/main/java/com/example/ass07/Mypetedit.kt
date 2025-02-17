@@ -5,12 +5,14 @@ import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -34,6 +36,7 @@ fun Mypetedit(navController: NavHostController, pet: petMember) {
     var textFieldAdditionalInfo by remember { mutableStateOf(pet.additionalInfo) }
     var textFieldPetBreed by remember { mutableStateOf(pet.petBreed) }
     var petGender by rememberSaveable { mutableStateOf(if (pet.petGender == "M") "เพศผู้" else "เพศเมีย") }
+    var isAddingPetType by remember { mutableStateOf(false) }
 
     val contextForToast = LocalContext.current
     val createClient = PetApi.create()
@@ -103,20 +106,11 @@ fun Mypetedit(navController: NavHostController, pet: petMember) {
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
-
-                // 📌 Radio Group เลือกประเภทสัตว์
-                if (petTypes.isNotEmpty()) {
-                    RadioGroupUsage(
-                        selected = selectedPetType?.Pet_name_type ?: "ไม่ระบุ",
-                        setSelected = { newTypeName ->
-                            selectedPetType = petTypes.find { it.Pet_name_type == newTypeName }
-                        },
-                        label = "ประเภทสัตว์",
-                        options = petTypes.map { it.Pet_name_type }
-                    )
-                } else {
-                    Text("กำลังโหลดประเภทสัตว์...", fontSize = 16.sp, color = Color.Gray)
-                }
+                PetTypeDropdown(
+                    petType = petTypes,
+                    selectPetType = selectedPetType,
+                    onPetTypeSelected = { selectedPetType = it }
+                )
 
                 RadioGroupUsage(
                     selected = petGender,
@@ -172,13 +166,13 @@ fun Mypetedit(navController: NavHostController, pet: petMember) {
                 Button(
                     onClick = {
                         val petData = UpdatePetRequest(
-                            petName = textFieldPetName,
-                            petGender = genderCode,
-                            petBreed = textFieldPetBreed,
-                            petAge = textFieldPetAge.toIntOrNull() ?: 0,
-                            petWeight = textFieldPetWeight.toIntOrNull() ?: 0,
-                            additionalInfo = textFieldAdditionalInfo,
-                            Pet_type_id = selectedPetType?.Pet_type_id ?: pet.Pet_type_id
+                            pet_name = textFieldPetName,
+                            pet_gender = genderCode,
+                            pet_breed = textFieldPetBreed,
+                            pet_age = textFieldPetAge.toIntOrNull() ?: 0,
+                            pet_weight = textFieldPetWeight.toDoubleOrNull() ?: 0.0,
+                            additional_info = textFieldAdditionalInfo,
+                            pet_type_id = selectedPetType?.Pet_type_id ?: pet.Pet_type_id
                         )
 
                         Log.d("API_REQUEST", "Sending updatePet: $petData")
@@ -206,6 +200,50 @@ fun Mypetedit(navController: NavHostController, pet: petMember) {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("แก้ไข", color = Color.Black)
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PetTypeDropdown(
+    petType: List<PetType>,
+    selectPetType: PetType?,
+    onPetTypeSelected: (PetType) -> Unit,
+    onAddNewPetType: () -> Unit = {}  // เพิ่ม default value
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Column {
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = it }
+        ) {
+            OutlinedTextField(
+                value = selectPetType?.Pet_name_type ?: "เลือกประเภทสัตว์",
+                onValueChange = {},
+                readOnly = true,
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth()
+                    .clickable { expanded = true },
+                label = { Text("ประเภทสัตว์") },
+                trailingIcon = { Icon(Icons.Default.ArrowDropDown, contentDescription = "Dropdown") }
+            )
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                petType.forEach { petType ->
+                    DropdownMenuItem(
+                        text = { Text(petType.Pet_name_type) },
+                        onClick = {
+                            onPetTypeSelected(petType)
+                            expanded = false
+                        }
+                    )
                 }
             }
         }

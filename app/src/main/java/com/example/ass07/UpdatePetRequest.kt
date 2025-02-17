@@ -1,11 +1,11 @@
 package com.example.ass07
 
 data class UpdatePetRequest(
-    val petName: String,
-    val petGender: String,
-    val petBreed: String,
-    val petAge: Int,
-    val petWeight: Int,
-    val additionalInfo: String,
-    val Pet_type_id: Int
+    val pet_name: String,
+    val pet_gender: String,
+    val pet_breed: String,
+    val pet_age: Int,
+    val pet_weight: Double,
+    val additional_info: String,
+    val pet_type_id: Int
 )
