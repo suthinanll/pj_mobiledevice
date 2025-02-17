@@ -1,5 +1,6 @@
 package com.example.ass07.customer.API
 
+import com.example.ass07.customer.Mypet.AddPetTypeResponse
 import com.example.ass07.customer.Mypet.PetType
 import com.example.ass07.customer.Mypet.UpdatePetRequest
 import com.example.ass07.customer.Mypet.petMember
@@ -36,7 +37,7 @@ interface PetApi {
     ): Call<petMember>
 
     @FormUrlEncoded
-    @POST("addPetType") //  <-- ADD THIS!  Endpoint to add a new pet type.
+    @POST("addPetType") //
     fun addPetType(@Field("pet_name_type") petTypeName: String): Call<AddPetTypeResponse> // Use the new data class
 
     @GET("getPet/{id}")
