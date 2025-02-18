@@ -49,7 +49,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.ass07.admin.Room
 import com.example.ass07.admin.RoomAPI
+import com.example.ass07.admin.RoomGroupInfo
 import retrofit2.Call
+import retrofit2.Callback
 import retrofit2.Response
 
 
@@ -80,11 +82,11 @@ fun ManageRoom() {
     var filteredRooms by remember { mutableStateOf<List<Room>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-
+    var selectedRoomGroup by remember { mutableStateOf<RoomGroupInfo?>(null) } // เพิ่มการประกาศนี้
     // เรียกข้อมูลจาก API
     LaunchedEffect(Unit) {
         val api = RoomAPI.create()
-        api.retrieveAllRooms().enqueue(object : retrofit2.Callback<List<Room>> {
+        api.retrieveAllRooms().enqueue(object : Callback<List<Room>> {
             override fun onResponse(call: Call<List<Room>>, response: Response<List<Room>>) {
                 if (response.isSuccessful) {
                     rooms = response.body() ?: emptyList()
@@ -220,10 +222,37 @@ fun ManageRoom() {
                     Text("เกิดข้อผิดพลาด: $errorMessage")
                 }
             } else {
-                items(filteredRooms) { room ->
-                    RoomCard(room = room)
-                }
+                // จัดกลุ่มห้องตามประเภทสัตว์เลี้ยง
+                val groupedByPetType = filteredRooms.groupBy { it.pet_type }
 
+                groupedByPetType.forEach { (petType, rooms) ->
+                    // หัวข้อประเภทสัตว์เลี้ยง
+                    item {
+                        Text(
+                            text = "$petType",
+                            style = MaterialTheme.typography.titleSmall,
+                            modifier = Modifier.padding(vertical = 8.dp),
+                            color = Color.Gray
+                        )
+                    }
+
+                    // จัดกลุ่มห้องที่เหมือนกัน
+                    val groupedRooms = rooms.groupBy {
+                        Triple(it.room_type, it.price_per_day, it.pet_type)
+                    }.map { (key, groupedRooms) ->
+                        RoomGroupInfo(
+                            roomType = key.first,
+                            price = key.second,
+                            petType = key.third,
+                            availableCount = groupedRooms.count { it.room_status == 1 },
+                            occupiedCount = groupedRooms.count { it.room_status == 0 }
+                        )
+                    }
+
+                    items(groupedRooms) { roomGroup ->
+                        GroupedRoomCard(roomGroup = roomGroup) { selectedRoomGroup = roomGroup }
+                    }
+                }
 
                 item {
                     Spacer(modifier = Modifier.height(16.dp))
@@ -234,6 +263,24 @@ fun ManageRoom() {
         }
     }
 
+    // แสดงหน้าต่างใหม่เมื่อมีการเลือก RoomGroup
+    selectedRoomGroup?.let { roomGroup ->
+        AlertDialog(
+            onDismissRequest = { selectedRoomGroup = null },
+            title = { Text("ห้องที่ตรงกับเงื่อนไข") },
+            text = {
+                ShowAllMatchingRooms(rooms = rooms, selectedRoomGroup = roomGroup)
+            },
+            confirmButton = {
+                Button(
+                    onClick = { selectedRoomGroup = null },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFBBF24))
+                ) {
+                    Text("ปิด")
+                }
+            }
+        )
+    }
     // Filter Dialog
     var showRoomStatusOptions by remember { mutableStateOf(false) }
     var showRoomTypeOptions by remember { mutableStateOf(false) }
@@ -435,6 +482,81 @@ fun ManageRoom() {
 
 
 @Composable
+fun GroupedRoomCard(roomGroup: RoomGroupInfo, onCardClick: (RoomGroupInfo) -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .clickable { onCardClick(roomGroup) },
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .background(Color(0xFFFDE68A), RoundedCornerShape(8.dp))
+                    .padding(8.dp)
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.logoapp),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = roomGroup.roomType,
+
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color(0xFF1F2937)
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    text = "฿${roomGroup.price}",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = Color(0xFFD97706)
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Row {
+                    Text(
+                        text = "ว่าง ${roomGroup.availableCount} ห้อง",
+                        color = Color(0xFF22C55E),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "ไม่ว่าง ${roomGroup.occupiedCount} ห้อง",
+                        color = Color(0xFFFBBF24),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+
+            IconButton(onClick = { /* Handle more options */ }) {
+                Icon(
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = "More options",
+                    tint = Color(0xFF9CA3AF)
+                )
+            }
+        }
+    }
+
+}
+
+
+@Composable
 fun AddRoomButton() {
     Button(
         onClick = {
@@ -531,6 +653,7 @@ fun RoomCard(room: Room) {
                     color = Color(0xFF1F2937) // สีเทาเข้ม
                 )
 
+
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = room.pet_type, // ชื่อห้อง
@@ -571,5 +694,27 @@ fun FilterOption(text: String, onClick: () -> Unit) {
                 .padding(vertical = 4.dp),
             textAlign = TextAlign.Start
         )
+    }
+}
+@Composable
+fun ShowAllMatchingRooms(
+    rooms: List<Room>,
+    selectedRoomGroup: RoomGroupInfo
+) {
+    val filteredRooms = remember(selectedRoomGroup) {
+        rooms.filter { room ->
+            room.room_type == selectedRoomGroup.roomType && room.pet_type == selectedRoomGroup.petType
+        }
+    }
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        items(filteredRooms) { room ->
+            RoomCard(room = room)
+        }
     }
 }

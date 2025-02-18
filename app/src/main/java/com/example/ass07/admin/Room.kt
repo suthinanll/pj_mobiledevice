@@ -13,9 +13,9 @@ data class Room(
     @Expose
     @SerializedName("room_type") val room_type :String,
     @Expose
-    @SerializedName("price_per_day") val price_per_day:String,
+    @SerializedName("price_per_day") val price_per_day:Int,
     @Expose
-    @SerializedName("status") val room_status:Int,
+    @SerializedName("room_status") val room_status:Int,
     @Expose
     @SerializedName("type_type_id") val emp_salary:Int,
     @Expose

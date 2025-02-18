@@ -5,5 +5,6 @@ data class RoomType(
     val name_type: String,
     val price_per_day: Int,
     val image: String,
-    val pet_type: Int
+    val pet_type: Int,
+
 )
