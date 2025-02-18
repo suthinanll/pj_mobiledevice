@@ -25,8 +25,8 @@ interface BookingAPI {
     ): Call<Map<String, String>> // ใช้ Map รับ message กลับมา
 
     //  อัปเดตข้อมูลการจอง
-    @PUT("bookings/{id}")
-    fun updateBooking(
+    @PUT("bookings/update/{id}")
+    fun updateBookingByID(
         @Path("id") bookingId: Int,
         @Body bookingData: Booking
     ): Call<Map<String, String>> // ใช้ Map รับ message กลับมา

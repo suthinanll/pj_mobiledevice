@@ -24,8 +24,9 @@ fun NavGraphAdmin(navController: NavHostController) {
             PetsAdmin()
         }
 
-        composable(route = ScreenAdmin.BookingDetail.route) {
-            BookingDetail("1")
+        composable("booking_detail/{id}") { backStackEntry ->
+            val bookingId = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: 0
+            BookingDetail(bookingId)
         }
 
     }

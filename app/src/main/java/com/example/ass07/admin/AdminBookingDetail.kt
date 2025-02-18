@@ -70,11 +70,16 @@ fun BookingDetail(bookingId: Int) {
                 Text("รหัสการจอง: ${it.bookingId}")
                 Text("วันเช็คอิน: ${it.checkIn}")
                 Text("วันเช็คเอาท์: ${it.checkOut}")
-                Text("ยอดชำระ: ${it.totalPay} บาท")
-                Text("สถานะ: ${it.paymentMethod}")
+                Text("เจ้าของ: ${it.name} (${it.tellNumber})")
+                Text("สัตว์เลี้ยง: ${it.petName} (${it.petBreed}, ${it.petAge} ปี)")
+                Text("ห้องพัก: ${it.roomType} (ราคา ${it.pricePerDay} บาท/วัน)")
+                Text("สถานะ: ${it.status}")
 
-                if (it.paymentMethod == 0) { // 0 = รออนุมัติ
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                if (it.status == 0) { // 0 = รออนุมัติ
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
                         Button(
                             onClick = {
                                 coroutineScope.launch {
@@ -89,7 +94,7 @@ fun BookingDetail(bookingId: Int) {
                         Button(
                             onClick = {
                                 coroutineScope.launch {
-                                    updateBookingStatus(it.bookingId, 2) // 2 = ยกเลิก
+                                    updateBookingStatus(it.bookingId, 3) // 3 = ยกเลิก
                                 }
                             },
                             colors = ButtonDefaults.buttonColors(containerColor = Color.Red)

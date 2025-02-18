@@ -374,6 +374,7 @@ app.get("/bookings", function (req, res) {
 
   dbConn.query(query, function (error, results) {
     if (error) throw error;
+    console.log("Sent all Booking data successfully");
     return res.send(results);
   });
 });
@@ -409,7 +410,7 @@ app.get("/bookings/:id", function (req, res) {
 
 
 // อัปเดตข้อมูลการจอง
-app.put("/bookings/:id", function (req, res) {
+app.put("/bookings/update/:id", function (req, res) {
   var bookingData = req.body;
   var bookingId = req.params.id;
 
@@ -439,7 +440,7 @@ app.put("/bookings/:id/status", function (req, res) {
   }
 
   dbConn.query(
-    "UPDATE bookings SET status = ? WHERE booking_id = ? AND deleted_at IS NULL",
+    "UPDATE bookings SET booking_status = ? WHERE booking_id = ? AND deleted_at IS NULL",
     [status, bookingId],
     function (error, results) {
       if (error) throw error;

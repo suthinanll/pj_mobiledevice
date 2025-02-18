@@ -1,5 +1,5 @@
 package com.example.ass07.admin
-import android.widget.Toast
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,15 +10,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -34,7 +29,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -43,140 +37,155 @@ import androidx.navigation.NavController
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 
 
 @Composable
 fun Booking(navController: NavController) {
     var searchQuery by remember { mutableStateOf("") }
     var selectedStatus by remember { mutableStateOf("ทั้งหมด") }
-    var selectedRoomType by remember { mutableStateOf("ทั้งหมด") }
-    var bookingList by remember { mutableStateOf<List<BookingData>>(emptyList()) }
+    var bookingList by remember { mutableStateOf<List<Booking>>(emptyList()) }
 
     val context = LocalContext.current
-    val retrofit = Retrofit.Builder()
-        .baseUrl("http://10.0.2.2:3000/") // เปลี่ยนเป็น URL จริง
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
+    val bookingService = BookingAPI.create()
 
-    val bookingService = retrofit.create(BookingAPI::class.java)
-
+    // โหลดข้อมูลการจองจาก API
     LaunchedEffect(Unit) {
-        bookingService.getBookings().enqueue(object : Callback<List<Booking>> {
-            override fun onResponse(call: Call<List<Booking>>, response: Response<List<Booking>>) {
-                if (response.isSuccessful) {
-                    bookingList = response.body() ?: emptyList()
-                }
-            }
-            override fun onFailure(call: Call<List<Booking>>, t: Throwable) {
-                Toast.makeText(context, "โหลดข้อมูลล้มเหลว", Toast.LENGTH_SHORT).show()
-            }
-        })
+        fetchBookings(bookingService) { bookings ->
+            Log.d("Booking", "Fetched bookings: $bookings")
+            bookingList = bookings
+        }
     }
 
+
+    // กรองข้อมูลตามสถานะและคำค้นหา
     val filteredBookings = bookingList.filter {
-        (selectedStatus == "ทั้งหมด" || it.status == selectedStatus) &&
-                (selectedRoomType == "ทั้งหมด" || it.roomType == selectedRoomType) &&
-                (it.customer.contains(searchQuery, ignoreCase = true) || it.petName.contains(searchQuery, ignoreCase = true))
+        (selectedStatus == "ทั้งหมด" || it.status?.toString() == selectedStatus) &&
+                (it.petName?.contains(searchQuery, ignoreCase = true) == true ||
+                        it.name?.contains(searchQuery, ignoreCase = true) == true ||
+                        it.roomType?.contains(searchQuery, ignoreCase = true) == true ||
+                        it.bookingId?.toString()?.contains(searchQuery) == true)
     }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Text(text = "การจองที่พักสัตว์เลี้ยง", fontSize = 20.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(8.dp))
 
+        // ช่องค้นหา
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("ค้นหาการจอง...") },
+            placeholder = { Text(" ค้นหาการจอง... \n(ชื่อสัตว์เลี้ยง / เจ้าของ / ประเภทห้อง)") },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") }
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            DropdownSelector(label = "สถานะ", options = listOf("ทั้งหมด", "รออนุมัติ", "ยืนยันแล้ว", "ยกเลิก"), selectedOption = selectedStatus) {
-                selectedStatus = it
-            }
-            DropdownSelector(label = "ประเภทห้อง", options = listOf("ทั้งหมด", "ห้องมาตรฐาน", "ห้อง VIP", "ห้องรวม"), selectedOption = selectedRoomType) {
-                selectedRoomType = it
-            }
+        // Dropdown เลือกสถานะการจอง
+        StatusDropdown(selectedStatus) { newStatus ->
+            selectedStatus = newStatus
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         LazyColumn {
             items(filteredBookings) { booking ->
-                BookingItem(booking, navController, bookingService) { updatedBookingList ->
-                    bookingList = updatedBookingList
-                }
+                BookingItem(booking, navController,bookingService)
             }
         }
     }
 }
 
+// Dropdown สำหรับเลือกสถานะการจอง
 @Composable
-fun DropdownSelector(label: String, options: List<String>, selectedOption: String, onOptionSelected: (String) -> Unit) {
+fun StatusDropdown(selectedStatus: String, onStatusSelected: (String) -> Unit) {
+    val statusOptions = listOf("ทั้งหมด","0", "1" , "2" , "3") // 0 = ยังไม่เช็คอิน 1 = เช็นอิน 2 = เช็คเอาท์ 3 = ยกเลิก
     var expanded by remember { mutableStateOf(false) }
 
-    Box(modifier = Modifier.wrapContentSize()) {
-        OutlinedButton(onClick = { expanded = true }) {
-            Text(text = "$label: $selectedOption")
-            Icon(Icons.Default.ArrowDropDown, contentDescription = "Dropdown")
+    Box(modifier = Modifier.fillMaxWidth()) {
+        OutlinedButton(
+            onClick = { expanded = true },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("สถานะ: $selectedStatus")
         }
-
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            options.forEach { option ->
-                DropdownMenuItem(text = { Text(option) }, onClick = {
-                    onOptionSelected(option)
-                    expanded = false
-                })
+            statusOptions.forEach { status ->
+                DropdownMenuItem(
+                    text = { Text(status) },
+                    onClick = {
+                        onStatusSelected(status)
+                        expanded = false
+                    }
+                )
             }
         }
     }
 }
 
-@Composable
-fun BookingItem(booking: Booking, navController: NavController, bookingService: BookingAPI, onUpdate: (List<Booking>) -> Unit) {
-    val context = LocalContext.current
+// ฟังก์ชันโหลดข้อมูลจาก API
+fun fetchBookings(bookingService: BookingAPI, onResult: (List<Booking>) -> Unit) {
+    bookingService.getBookings().enqueue(object : Callback<List<Booking>> {
+        override fun onResponse(call: Call<List<Booking>>, response: Response<List<Booking>>) {
+            if (response.isSuccessful) {
+                val bookings = response.body() ?: emptyList()
+                Log.d("Booking", "API Response: $bookings")
+                onResult(bookings)
+            } else {
+                Log.e("Booking", "Error: ${response.errorBody()?.string()}")
+            }
+        }
 
+        override fun onFailure(call: Call<List<Booking>>, t: Throwable) {
+            Log.e("Booking", "API Call Failed: ${t.message}")
+        }
+    })
+}
+
+
+// แสดงรายการการจองแต่ละรายการ
+@Composable
+fun BookingItem(booking: Booking, navController: NavController,bookingService: BookingAPI) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .clickable(enabled = booking.status != "รออนุมัติ") {
-                navController.navigate(ScreenAdmin.BookingDetail.route + "/${booking.id}")
+            .clickable {
+                navController.navigate("booking_detail/${booking.bookingId}")
             },
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = "${booking.bookingId} - ${booking.users.name}", fontWeight = FontWeight.Bold)
-            Text(text = "สัตว์เลี้ยง: ${booking.pet_name}")
-            Text(text = "วันที่: ${booking.date}")
-            Text(text = "ประเภทห้อง: ${booking.roomType}")
+            Text(text = "📌 ID: ${booking.bookingId ?: "ไม่ทราบ"}")
+            Text(text = "🐶 สัตว์เลี้ยง: ${booking.petName ?: "ไม่มีข้อมูล"} (${booking.petBreed ?: "ไม่ระบุ"}, ${booking.petAge ?: "?"} ปี)")
+            Text(text = "👤 เจ้าของ: ${booking.name ?: "ไม่ระบุ"} (${booking.tellNumber ?: "ไม่มีเบอร์"})")
+            Text(text = "🏠 ห้อง: ${booking.roomType ?: "ไม่ระบุ"} (ราคา ${booking.pricePerDay ?: "?"} บาท/วัน)")
+            Text(text = "📅 Check-in: ${booking.checkIn ?: "ไม่ระบุ"}")
+            Text(text = "📅 Check-out: ${booking.checkOut ?: "ไม่ระบุ"}")
             Text(
-                text = "สถานะ: ${booking.status}",
-                color = when (booking.status) {
-                    "รออนุมัติ" -> Color.Red
-                    "ยืนยันแล้ว" -> Color.Green
-                    "ยกเลิก" -> Color.Gray
-                    else -> Color.Black
-                }
-            )
-
-            if (booking.status == "รออนุมัติ") {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    Button(onClick = {
-                        updateBookingStatus(booking.bookingId, "ยืนยันแล้ว", bookingService, context, onUpdate)
-                    }, colors = ButtonDefaults.buttonColors(containerColor = Color.Green)) {
-                        Text("อนุมัติ")
+                text = "📌 สถานะ: ${
+                    when (booking.status) {
+                        0 -> "ยังไม่เช็คอิน"
+                        1 -> "เช็คอินแล้ว"
+                        2 -> "เช็คเอาท์แล้ว"
+                        3 -> "ยกเลิก"
+                        else -> "ไม่ระบุ"
                     }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Button(onClick = {
-                        updateBookingStatus(booking.id, "ยกเลิก", bookingService, context, onUpdate)
-                    }, colors = ButtonDefaults.buttonColors(containerColor = Color.Red)) {
-                        Text("ยกเลิก")
+                }"
+            )
+            Row(horizontalArrangement = Arrangement.End) {
+                if (booking.status == 0) {
+                    OutlinedButton(
+                        onClick = { onConfirmBooking(booking.bookingId,bookingService) },
+                        modifier = Modifier.padding(top = 8.dp)
+                    ) {
+                        Text(text = "ยืนยันการจอง")
+                    }
+                    OutlinedButton(
+                        onClick = { onCancelBooking(booking.bookingId, bookingService) },
+                        modifier = Modifier.padding(top = 8.dp)
+                    ) {
+                        Text(text = "ยกเลิกการจอง")
                     }
                 }
             }
@@ -184,35 +193,51 @@ fun BookingItem(booking: Booking, navController: NavController, bookingService: 
     }
 }
 
-fun updateBookingStatus(bookingId: String, newStatus: String, bookingService: BookingService, context: android.content.Context, onUpdate: (List<BookingData>) -> Unit) {
-    val updateData = mapOf("status" to newStatus)
+// ฟังก์ชันจัดการเมื่อปุ่ม "ยืนยัน" ถูกกด
+fun onConfirmBooking(bookingId: Int, bookingService: BookingAPI) {
+    Log.d("Booking", "Confirming booking with ID: $bookingId")
 
-    bookingService.updateBooking(bookingId, updateData).enqueue(object : Callback<Void> {
-        override fun onResponse(call: Call<Void>, response: Response<Void>) {
+    val status = 1 // ตัวเลข, ไม่ใช่ string
+    bookingService.updateBooking(bookingId, status).enqueue(object : Callback<Map<String, String>> {
+        override fun onResponse(call: Call<Map<String, String>>, response: Response<Map<String, String>>) {
             if (response.isSuccessful) {
-                Toast.makeText(context, "อัปเดตสถานะสำเร็จ", Toast.LENGTH_SHORT).show()
-                fetchUpdatedBookings(bookingService, onUpdate)
+                val message = response.body()?.get("message")
+                Log.d("Request", "Status: ${status}")
+                Log.d("Booking", "สถานะการจองอัปเดตสำเร็จ: $message")
             } else {
-                Toast.makeText(context, "อัปเดตสถานะล้มเหลว", Toast.LENGTH_SHORT).show()
+                Log.d("Request", "Status: ${status}")
+                Log.e("Booking", "อัปเดตสถานะล้มเหลว: ${response.message()}")
             }
         }
 
-        override fun onFailure(call: Call<Void>, t: Throwable) {
-            Toast.makeText(context, "เกิดข้อผิดพลาด", Toast.LENGTH_SHORT).show()
+        override fun onFailure(call: Call<Map<String, String>>, t: Throwable) {
+            Log.e("Booking", "API call failed: ${t.message}")
         }
     })
 }
 
-fun fetchUpdatedBookings(bookingService: BookingService, onUpdate: (List<BookingData>) -> Unit) {
-    bookingService.getBookings().enqueue(object : Callback<List<BookingData>> {
-        override fun onResponse(call: Call<List<BookingData>>, response: Response<List<BookingData>>) {
+// ฟังก์ชันจัดการเมื่อปุ่ม "ยกเลิก" ถูกกด
+fun onCancelBooking(bookingId: Int, bookingService: BookingAPI) {
+    Log.d("Booking", "Canceling booking with ID: $bookingId")
+
+    // ส่งคำขอ PUT ไปยัง API เพื่ออัปเดตสถานะเป็น 3 (ยกเลิก)
+    bookingService.updateBooking(bookingId, 3).enqueue(object : Callback<Map<String, String>> {
+        override fun onResponse(call: Call<Map<String, String>>, response: Response<Map<String, String>>) {
             if (response.isSuccessful) {
-                onUpdate(response.body() ?: emptyList())
+                // ตรวจสอบผลลัพธ์จาก response
+                val message = response.body()?.get("message")
+                Log.d("Booking", "สถานะการจองยกเลิกสำเร็จ: $message")
+            } else {
+                Log.e("Booking", "การยกเลิกสถานะล้มเหลว: ${response.message()}")
             }
         }
 
-        override fun onFailure(call: Call<List<BookingData>>, t: Throwable) {
-            // Handle error
+        override fun onFailure(call: Call<Map<String, String>>, t: Throwable) {
+            Log.e("Booking", "API call failed: ${t.message}")
         }
     })
 }
+
+
+
+
