@@ -45,13 +45,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.ass07.R
 import retrofit2.Call
 import retrofit2.Response
 
 
 @Composable
-fun ManageRoom() {
+fun ManageRoom(navController: NavController) {
     val context = LocalContext.current
     var filterDialogOpen by remember { mutableStateOf(false) }
     var selectedFilter by remember { mutableStateOf<String?>(null) }
@@ -161,7 +162,7 @@ fun ManageRoom() {
 
                 item {
                     Spacer(modifier = Modifier.height(16.dp))
-                    AddRoomButton()
+                    AddRoomButton(navController)
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
@@ -210,21 +211,10 @@ fun ManageRoom() {
 }
 
 @Composable
-fun AddRoomButton() {
+fun AddRoomButton(navController: NavController) {
     Button(
         onClick = {
-            // เรียก API เพิ่มห้องพัก
-            val api = RoomAPI.create()
-            api.insertRoom("New Room", 1, 1, "available").enqueue(object : retrofit2.Callback<Room> {
-                override fun onResponse(call: Call<Room>, response: Response<Room>) {
-                    if (response.isSuccessful) {
-                        // เพิ่มห้องพักสำเร็จ
-                    }
-                }
-                override fun onFailure(call: Call<Room>, t: Throwable) {
-                    // จัดการข้อผิดพลาด
-                }
-            })
+            navController.navigate(ScreenAdmin.RoomInsert.route)
         },
         modifier = Modifier
             .fillMaxWidth()

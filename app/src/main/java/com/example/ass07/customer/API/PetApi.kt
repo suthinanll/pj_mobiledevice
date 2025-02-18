@@ -1,5 +1,6 @@
 package com.example.ass07.customer.API
 
+import com.example.ass07.customer.Mypet.AddPetTypeResponse
 import com.example.ass07.customer.Mypet.PetType
 import com.example.ass07.customer.Mypet.UpdatePetRequest
 import com.example.ass07.customer.Mypet.petMember

@@ -159,47 +159,9 @@ fun Mypetinsert(navController: NavHostController) {
                 PetTypeDropdown(
                     petType = petTypes,
                     selectPetType = selectedPetType,
-                    onPetTypeSelected = { selectedPetType = it },
-                    onAddNewPetType = { newTypeName ->
-                        isAddingPetType = true
-                        createClient.addPetType(newTypeName).enqueue(object: Callback<AddPetTypeResponse> {
-                            override fun onResponse(call: Call<AddPetTypeResponse>, response: Response<AddPetTypeResponse>) {
-                                isAddingPetType = false
-                                if (response.isSuccessful) {
-                                    val newPetType = response.body()?.petType
-                                    if (newPetType!= null) {
-                                        petTypes = petTypes + newPetType
-                                        selectedPetType = newPetType
-                                    } else {
-                                        // Handle error: new pet type not found in response
-                                        Toast.makeText(
-                                            contextForToast,
-                                            "ไม่สามารถเพิ่มประเภทสัตว์เลี้ยงได้",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    }
-                                } else {
-                                    // Handle error: API request failed
-                                    Toast.makeText(
-                                        contextForToast,
-                                        "ไม่สามารถเพิ่มประเภทสัตว์เลี้ยงได้",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
-                            }
-
-                            override fun onFailure(call: Call<AddPetTypeResponse>, t: Throwable) {
-                                isAddingPetType = false
-                                // Handle error: API request failed
-                                Toast.makeText(
-                                    contextForToast,
-                                    "เกิดข้อผิดพลาด: ${t.message}",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                        })
-                    }
+                    onPetTypeSelected = { selectedPetType = it }
                 )
+
 
 
 
@@ -316,21 +278,21 @@ fun RadioGroupUsage(
         }
     }
 }
+
+
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PetTypeDropdown(
     petType: List<PetType>,
     selectPetType: PetType?,
     onPetTypeSelected: (PetType) -> Unit,
-    onAddNewPetType: (String) -> Unit
+    onAddNewPetType: () -> Unit = {}  // เพิ่ม default value
 ) {
-
     var expanded by remember { mutableStateOf(false) }
-    var newPetTypeName by remember { mutableStateOf("") }
-    var showAddDialog by remember { mutableStateOf(false) }
 
     Column {
-        // Dropdown Menu
         ExposedDropdownMenuBox(
             expanded = expanded,
             onExpandedChange = { expanded = it }
@@ -354,53 +316,12 @@ fun PetTypeDropdown(
                     DropdownMenuItem(
                         text = { Text(petType.Pet_name_type) },
                         onClick = {
-                            onPetTypeSelected(petType) // Call the function with selected PetType
+                            onPetTypeSelected(petType)
                             expanded = false
                         }
                     )
                 }
-                HorizontalDivider()
-                DropdownMenuItem(
-                    text = { Text("➕ เพิ่มประเภทสัตว์ใหม่") },
-                    onClick = {
-                        expanded = false
-                        showAddDialog = true
-                    }
-                )
             }
-        }
-
-        // Dialog for adding a new pet type
-        if (showAddDialog) {
-            AlertDialog(
-                onDismissRequest = { showAddDialog = false },
-                title = { Text("เพิ่มประเภทสัตว์ใหม่") },
-                text = {
-                    OutlinedTextField(
-                        value = newPetTypeName,
-                        onValueChange = { newPetTypeName = it },
-                        label = { Text("ชื่อประเภทสัตว์") }
-                    )
-                },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            if (newPetTypeName.isNotBlank()) {
-                                onAddNewPetType(newPetTypeName) // Call the callback
-                                showAddDialog = false
-                                newPetTypeName = "" // Clear input
-                            }
-                        }
-                    ) {
-                        Text("เพิ่ม")
-                    }
-                },
-                dismissButton = {
-                    Button(onClick = { showAddDialog = false }) {
-                        Text("ยกเลิก")
-                    }
-                }
-            )
         }
     }
 }
