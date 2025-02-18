@@ -121,11 +121,14 @@ app.post("/login",async function(req,res){
   let name = user.name
   let password = user.password
 
+  console.log(name)
+  console.log(password)
+
   if(!name || !password){
       return res.status(400).send({ error: name, message: 'Please provide name and password' })
   }
 
-  dbConn.query('SELECT * FROM users WHERE name = ? ',[name],function(error,results,fields){
+  dbConn.query('SELECT * FROM users WHERE name = ? OR email = ? OR tell_number = ? ',[name, name, name],function(error,results,fields){
       if(error) throw error
       if(results[0]){
           bcrypt.compare(password,results[0].password,function(err,result){
@@ -133,6 +136,7 @@ app.post("/login",async function(req,res){
               if(result){
                   return res.send({ "success": 1,"name":results[0].name,"user_type":results[0].user_type })
               }else{
+                  console.log("wongpass")
                   return res.send({ "success": 0 })
               }
           })
@@ -176,6 +180,24 @@ app.get('/allpet', function (req, res) {
         WHERE pets.deleted_at IS NULL;
     `; //WHERE pets.User_id = ?
     dbConn.query(query, function (error, results, fields) {
+        if (error) {
+            return res.status(500).send({ error: true, message: 'Database query failed', details: error });
+        }
+        return res.send(results);
+    });
+});
+
+
+app.get('/mypet/:id', function (req, res) {
+    let user_id = req.params.id;
+    const query = `
+        SELECT pets.pet_id, pets.user_id, pets.pet_name, pets.pet_age, pets.pet_breed,
+        pets.pet_weight, pets.pet_gender, pets.additional_info, pet_type.pet_name_type, pets.deleted_at
+        FROM pets
+        INNER JOIN pet_type ON pets.pet_type_id = pet_type.pet_type_id
+        WHERE pets.deleted_at IS NULL AND  pets.user_id = ?;
+    `; //WHERE pets.User_id = ?
+    dbConn.query(query,[user_id] , function (error, results, fields) {
         if (error) {
             return res.status(500).send({ error: true, message: 'Database query failed', details: error });
         }

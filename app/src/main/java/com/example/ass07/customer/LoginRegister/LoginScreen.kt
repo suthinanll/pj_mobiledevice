@@ -143,7 +143,7 @@ fun Login(navController : NavHostController) {
                         accID = it
                         isButtonEnabled = accID.isNotEmpty() && password.isNotEmpty()
                     },
-                    label = { Text("Username") },
+                    label = { Text("Name/Tell-number/E-mail") },
                     keyboardOptions = KeyboardOptions.Default.copy(
                         imeAction = ImeAction.Next
                     ),
