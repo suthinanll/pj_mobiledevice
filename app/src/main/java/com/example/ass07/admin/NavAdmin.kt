@@ -17,9 +17,7 @@ fun NavGraphAdmin(navController: NavHostController) {
         navController = navController,
         startDestination = ScreenAdmin.ManageRoom.route
     ) {
-        composable(route = ScreenLogin.Login.route) {
-            Login(navController)
-        }
+        
         composable(route = ScreenAdmin.ManageRoom.route) {
             ManageRoom(navController)
         }
