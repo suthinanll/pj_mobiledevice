@@ -65,6 +65,7 @@ dependencies {
     implementation(libs.play.services.base)
     implementation(libs.play.services.base)
     implementation(libs.androidx.media3.common.ktx)
+    implementation(libs.androidx.room.ktx)
     testImplementation(libs.junit)
     implementation("io.coil-kt:coil-compose:2.0.0")
     androidTestImplementation(libs.androidx.junit)

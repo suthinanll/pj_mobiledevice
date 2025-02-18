@@ -362,13 +362,16 @@ app.get("/bookings", function (req, res) {
       users.name , users.tell_number, users.email,
       rooms.room_id , rooms.type_type_id ,rooms.status,
       room_type.name_type, room_type.price_per_day , room_type.image, room_type.pet_type,
-      pet_type.pet_name_type
+      pet_type.pet_name_type,
+      payment_methods.method_name
     FROM bookings 
     JOIN pets ON bookings.pet_id = pets.pet_id
     JOIN users ON pets.user_id = users.user_id
     JOIN rooms ON bookings.room_id = rooms.room_id
     JOIN room_type ON rooms.type_type_id = room_type.type_id
-    JOIN pet_type ON room_type.pet_type = pet_type.pet_type_id`;
+    JOIN pet_type ON room_type.pet_type = pet_type.pet_type_id
+    JOIN payment_methods ON bookings.payment_method = payment_methods.method_id
+    ORDER BY bookings.booking_id ASC`;
     // WHERE bookings.deleted_at IS NULL
   
 
@@ -390,13 +393,15 @@ app.get("/bookings/:id", function (req, res) {
       users.name , users.tell_number, users.email,
       rooms.room_id , rooms.type_type_id ,rooms.status,
       room_type.name_type, room_type.price_per_day , room_type.image, room_type.pet_type,
-      pet_type.pet_name_type
+      pet_type.pet_name_type,
+      payment_methods.method_name
     FROM bookings 
     JOIN pets ON bookings.pet_id = pets.pet_id
     JOIN users ON pets.user_id = users.user_id
     JOIN rooms ON bookings.room_id = rooms.room_id
     JOIN room_type ON rooms.type_type_id = room_type.type_id
     JOIN pet_type ON room_type.pet_type = pet_type.pet_type_id
+    JOIN payment_methods ON bookings.payment_method = payment_methods.method_id
     WHERE bookings.booking_id = ? AND bookings.deleted_at IS NULL`;
 
   dbConn.query(query, [bookingId], function (error, results) {
@@ -409,7 +414,7 @@ app.get("/bookings/:id", function (req, res) {
 });
 
 
-// อัปเดตข้อมูลการจอง
+// อัปเดตข้อมูลการจอง(ทั้งหมด)
 app.put("/bookings/update/:id", function (req, res) {
   var bookingData = req.body;
   var bookingId = req.params.id;
@@ -430,27 +435,42 @@ app.put("/bookings/update/:id", function (req, res) {
   );
 });
 
-// อัปเดตสถานะการจอง (ใหม่)
-app.put("/bookings/:id/status", function (req, res) {
+// อัปเดตสถานะการจอง (เฉพาะ status)
+app.put("/bookings/status/:id", function (req, res) {
   const bookingId = req.params.id;
-  const { status } = req.body;
+  
+  // ตรวจสอบ req.body ทั้งหมดก่อน
+  console.log("Full request body:", req.body);
+  
+  // ดึงค่า booking_status โดยตรงจาก req.body
+  const booking_status = req.body.booking_status;
+  console.log("Extracted booking_status:", booking_status);
 
-  if (status === undefined) {
-    return res.status(400).send({ error: true, message: "Please provide booking status" });
+  // ตรวจสอบว่า booking_status เป็น undefined หรือไม่
+  if (booking_status === undefined) {
+    return res.status(400).json({ 
+      error: true, 
+      message: "Please provide booking status",
+      receivedBody: req.body // ส่งกลับข้อมูลที่ได้รับมาด้วยเพื่อการ debug
+    });
   }
 
   dbConn.query(
     "UPDATE bookings SET booking_status = ? WHERE booking_id = ? AND deleted_at IS NULL",
-    [status, bookingId],
+    [booking_status, bookingId],
     function (error, results) {
-      if (error) throw error;
-      if (results.affectedRows === 0) {
-        return res.status(404).send({ error: true, message: "Booking not found or already deleted" });
+      if (error) {
+        console.error("Database error:", error);
+        return res.status(500).json({ error: true, message: error.message });
       }
-      return res.send({ message: "Booking status updated successfully" });
+      if (results.affectedRows === 0) {
+        return res.status(404).json({ error: true, message: "Booking not found or already deleted" });
+      }
+      return res.json({ message: "Booking status updated successfully" });
     }
   );
 });
+
 
 
 // Soft Delete การจอง

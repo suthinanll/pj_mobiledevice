@@ -56,10 +56,18 @@ fun Booking(navController: NavController) {
         }
     }
 
+    // แปลงค่า selectedStatus เป็นตัวเลขสำหรับการ query
+    val statusValue = when (selectedStatus) {
+        "ยังไม่เช็คอิน" -> "0"
+        "เช็คอินแล้ว" -> "1"
+        "เช็คเอาท์แล้ว" -> "2"
+        "ยกเลิก" -> "3"
+        else -> "ทั้งหมด"
+    }
 
     // กรองข้อมูลตามสถานะและคำค้นหา
     val filteredBookings = bookingList.filter {
-        (selectedStatus == "ทั้งหมด" || it.status?.toString() == selectedStatus) &&
+        (statusValue == "ทั้งหมด" || it.status?.toString() == statusValue) &&
                 (it.petName?.contains(searchQuery, ignoreCase = true) == true ||
                         it.name?.contains(searchQuery, ignoreCase = true) == true ||
                         it.roomType?.contains(searchQuery, ignoreCase = true) == true ||
@@ -75,7 +83,7 @@ fun Booking(navController: NavController) {
             value = searchQuery,
             onValueChange = { searchQuery = it },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text(" ค้นหาการจอง... \n(ชื่อสัตว์เลี้ยง / เจ้าของ / ประเภทห้อง)") },
+            placeholder = { Text(" ค้นหาการจอง... (ชื่อสัตว์เลี้ยง / เจ้าของ / ประเภทห้อง)") },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") }
         )
 
@@ -90,16 +98,21 @@ fun Booking(navController: NavController) {
 
         LazyColumn {
             items(filteredBookings) { booking ->
-                BookingItem(booking, navController,bookingService)
+                BookingItem(booking, navController, bookingService)
             }
         }
     }
 }
 
-// Dropdown สำหรับเลือกสถานะการจอง
 @Composable
 fun StatusDropdown(selectedStatus: String, onStatusSelected: (String) -> Unit) {
-    val statusOptions = listOf("ทั้งหมด","0", "1" , "2" , "3") // 0 = ยังไม่เช็คอิน 1 = เช็นอิน 2 = เช็คเอาท์ 3 = ยกเลิก
+    val statusOptions = listOf(
+        "ทั้งหมด",
+        "ยังไม่เช็คอิน",
+        "เช็คอินแล้ว",
+        "เช็คเอาท์แล้ว",
+        "ยกเลิก"
+    )
     var expanded by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxWidth()) {
@@ -145,7 +158,17 @@ fun fetchBookings(bookingService: BookingAPI, onResult: (List<Booking>) -> Unit)
 
 // แสดงรายการการจองแต่ละรายการ
 @Composable
-fun BookingItem(booking: Booking, navController: NavController,bookingService: BookingAPI) {
+fun BookingItem(booking: Booking, navController: NavController, bookingService: BookingAPI) {
+    // คำนวณจำนวนวันจาก pricePerDay และ totalPay
+    val numOfDays = if (booking.pricePerDay != null && booking.pay != null && booking.pricePerDay > 0) {
+        booking.pay / booking.pricePerDay
+    } else {
+        0
+    }
+
+    // ราคารวมที่มีอยู่แล้ว
+    val totalPrice = booking.totalPay ?: 0
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -162,6 +185,8 @@ fun BookingItem(booking: Booking, navController: NavController,bookingService: B
             Text(text = "🏠 ห้อง: ${booking.roomType ?: "ไม่ระบุ"} (ราคา ${booking.pricePerDay ?: "?"} บาท/วัน)")
             Text(text = "📅 Check-in: ${booking.checkIn ?: "ไม่ระบุ"}")
             Text(text = "📅 Check-out: ${booking.checkOut ?: "ไม่ระบุ"}")
+            Text(text = "📅 จำนวนวันที่เข้าพัก: $numOfDays วัน")
+            Text(text = "💰 ราคารวม: ${totalPrice} บาท")
             Text(
                 text = "📌 สถานะ: ${
                     when (booking.status) {
@@ -176,10 +201,10 @@ fun BookingItem(booking: Booking, navController: NavController,bookingService: B
             Row(horizontalArrangement = Arrangement.End) {
                 if (booking.status == 0) {
                     OutlinedButton(
-                        onClick = { onConfirmBooking(booking.bookingId,bookingService) },
+                        onClick = { onConfirmBooking(booking.bookingId) },
                         modifier = Modifier.padding(top = 8.dp)
                     ) {
-                        Text(text = "ยืนยันการจอง")
+                        Text(text = "เช็คอินเข้าพัก")
                     }
                     OutlinedButton(
                         onClick = { onCancelBooking(booking.bookingId, bookingService) },
@@ -193,40 +218,43 @@ fun BookingItem(booking: Booking, navController: NavController,bookingService: B
     }
 }
 
-// ฟังก์ชันจัดการเมื่อปุ่ม "ยืนยัน" ถูกกด
-fun onConfirmBooking(bookingId: Int, bookingService: BookingAPI) {
-    Log.d("Booking", "Confirming booking with ID: $bookingId")
 
-    val status = 1 // ตัวเลข, ไม่ใช่ string
-    bookingService.updateBooking(bookingId, status).enqueue(object : Callback<Map<String, String>> {
+// ฟังก์ชันจัดการเมื่อปุ่ม "ยืนยัน" ถูกกด
+fun onConfirmBooking(bookingId: Int) {
+    val api = BookingAPI.create()
+    val statusUpdate = mapOf("booking_status" to 1)
+
+    // เพิ่ม log เพื่อดูข้อมูลที่จะส่ง
+    Log.d("BookingDetail", "Sending status update: $statusUpdate for booking $bookingId")
+
+    api.updateBooking(bookingId, statusUpdate).enqueue(object : Callback<Map<String, String>> {
         override fun onResponse(call: Call<Map<String, String>>, response: Response<Map<String, String>>) {
+            // เพิ่ม log เพื่อดู response code และ body
+            Log.d("BookingDetail", "Response code: ${response.code()}")
+            Log.d("BookingDetail", "Response body: ${response.body()}")
+
             if (response.isSuccessful) {
-                val message = response.body()?.get("message")
-                Log.d("Request", "Status: ${status}")
-                Log.d("Booking", "สถานะการจองอัปเดตสำเร็จ: $message")
+                Log.d("BookingDetail", "อัปเดตสถานะสำเร็จ: ${response.body()?.get("message")}")
             } else {
-                Log.d("Request", "Status: ${status}")
-                Log.e("Booking", "อัปเดตสถานะล้มเหลว: ${response.message()}")
+                Log.e("BookingDetail", "อัปเดตสถานะล้มเหลว: ${response.message()}")
+                // เพิ่ม log เพื่อดู error body
+                Log.e("BookingDetail", "Error body: ${response.errorBody()?.string()}")
             }
         }
 
         override fun onFailure(call: Call<Map<String, String>>, t: Throwable) {
-            Log.e("Booking", "API call failed: ${t.message}")
+            Log.e("BookingDetail", "API call failed: ${t.message}")
         }
     })
 }
 
-// ฟังก์ชันจัดการเมื่อปุ่ม "ยกเลิก" ถูกกด
 fun onCancelBooking(bookingId: Int, bookingService: BookingAPI) {
-    Log.d("Booking", "Canceling booking with ID: $bookingId")
+    val statusUpdate = mapOf("booking_status" to 3)  // เปลี่ยนเป็น booking_status
 
-    // ส่งคำขอ PUT ไปยัง API เพื่ออัปเดตสถานะเป็น 3 (ยกเลิก)
-    bookingService.updateBooking(bookingId, 3).enqueue(object : Callback<Map<String, String>> {
+    bookingService.updateBooking(bookingId, statusUpdate).enqueue(object : Callback<Map<String, String>> {
         override fun onResponse(call: Call<Map<String, String>>, response: Response<Map<String, String>>) {
             if (response.isSuccessful) {
-                // ตรวจสอบผลลัพธ์จาก response
-                val message = response.body()?.get("message")
-                Log.d("Booking", "สถานะการจองยกเลิกสำเร็จ: $message")
+                Log.d("Booking", "สถานะการจองยกเลิกสำเร็จ: ${response.body()?.get("message")}")
             } else {
                 Log.e("Booking", "การยกเลิกสถานะล้มเหลว: ${response.message()}")
             }

@@ -48,7 +48,11 @@ data class Booking(
     @Expose @SerializedName("pet_type") val petType: Int,
 
     // ข้อมูลประเภทสัตว์ที่เข้าพัก
-    @Expose @SerializedName("pet_name_type") val petNameType: String
+    @Expose @SerializedName("pet_name_type") val petNameType: String,
+
+    // การชำระเงิน
+    @Expose @SerializedName("method_name") val methodName: String
+
 ) : Parcelable
 
 
