@@ -47,15 +47,7 @@ fun NavGraph(navController: NavHostController) {
         composable(route = Screen.Mypetinsert.route) {
            Mypetinsert(navController)
         }
-        composable(route = ScreenAdmin.ManageRoom.route) {
-            ManageRoom()
-        }
-        composable(route = ScreenAdmin.Booking.route) {
-            Booking()
-        }
-        composable(route = ScreenAdmin.PetsAdmin.route) {
-            PetsAdmin()
-        }
+
         composable(route = Screen.Mypetedit.route + "/{petId}") { backStackEntry ->
             val petId = backStackEntry.arguments?.getString("petId")?.toIntOrNull()
             val petViewModel: PetViewModel = viewModel()
