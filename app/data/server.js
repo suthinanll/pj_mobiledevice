@@ -121,11 +121,14 @@ app.post("/login",async function(req,res){
   let name = user.name
   let password = user.password
 
+  console.log(name)
+  console.log(password)
+
   if(!name || !password){
       return res.status(400).send({ error: name, message: 'Please provide name and password' })
   }
 
-  dbConn.query('SELECT * FROM users WHERE name = ? ',[name],function(error,results,fields){
+  dbConn.query('SELECT * FROM users WHERE name = ? OR email = ? OR tell_number = ? ',[name, name, name],function(error,results,fields){
       if(error) throw error
       if(results[0]){
           bcrypt.compare(password,results[0].password,function(err,result){
@@ -133,6 +136,7 @@ app.post("/login",async function(req,res){
               if(result){
                   return res.send({ "success": 1,"name":results[0].name,"user_type":results[0].user_type })
               }else{
+                  console.log("wongpass")
                   return res.send({ "success": 0 })
               }
           })
@@ -159,128 +163,350 @@ app.post("/login",async function(req,res){
 // })
 
 
+
 app.get('/allpet', function (req, res) {
-  // ตรวจสอบว่ามีการล็อกอินหรือไม่
-  // if (!req.session.userId) { 
-  //     return res.status(401).send({ error: true, message: 'Unauthorized: Please log in' });
-  // }
+    // ตรวจสอบว่ามีการล็อกอินหรือไม่
+    // if (!req.session.userId) { 
+    //     return res.status(401).send({ error: true, message: 'Unauthorized: Please log in' });
+    // }
 
-  //const userId = req.session.userId; // ดึง userId จาก session
+    //const userId = req.session.userId; // ดึง `userId` จาก session
 
-  const query = `
-      SELECT pets.Pet_id, pets.User_id, pets.Pet_name, pets.Pet_age, pets.Pet_breed, 
-          pets.Pet_weight, pets.Pet_Gender, pets.additional_info, pet_type.Pet_nametype, pets.deleted_at
-      FROM pets
-      INNER JOIN pet_type ON pets.Pet_type_id = pet_type.Pet_type_id
-      WHERE pets.deleted_at IS NULL;
-  `; //WHERE pets.User_id = ?
-  dbConn.query(query, function (error, results, fields) {
-      if (error) {
-          return res.status(500).send({ error: true, message: 'Database query failed', details: error });
-      }
-      return res.send(results);
-  });
+    const query = `
+        SELECT pets.pet_id, pets.user_id, pets.pet_name, pets.pet_age, pets.pet_breed,
+        pets.pet_weight, pets.pet_gender, pets.additional_info, pet_type.pet_name_type, pets.deleted_at
+        FROM pets
+        INNER JOIN pet_type ON pets.pet_type_id = pet_type.pet_type_id
+        WHERE pets.deleted_at IS NULL;
+    `; //WHERE pets.User_id = ?
+    dbConn.query(query, function (error, results, fields) {
+        if (error) {
+            return res.status(500).send({ error: true, message: 'Database query failed', details: error });
+        }
+        return res.send(results);
+    });
 });
+
+
+app.get('/mypet/:id', function (req, res) {
+    let user_id = req.params.id;
+    const query = `
+        SELECT pets.pet_id, pets.user_id, pets.pet_name, pets.pet_age, pets.pet_breed,
+        pets.pet_weight, pets.pet_gender, pets.additional_info, pet_type.pet_name_type, pets.deleted_at
+        FROM pets
+        INNER JOIN pet_type ON pets.pet_type_id = pet_type.pet_type_id
+        WHERE pets.deleted_at IS NULL AND  pets.user_id = ?;
+    `; //WHERE pets.User_id = ?
+    dbConn.query(query,[user_id] , function (error, results, fields) {
+        if (error) {
+            return res.status(500).send({ error: true, message: 'Database query failed', details: error });
+        }
+        return res.send(results);
+    });
+});
+
+app.put('/updatePet/:id', (req, res) => {
+    console.log("Received Data from Android:", req.body);
+    const petID = req.params.id;
+
+    // แก้ไขการดึงค่าจาก req.body ให้ตรงกับที่ Android ส่งมา
+    const petName = req.body.pet_name;
+    const petGender = req.body.pet_gender;
+    const petBreed = req.body.pet_breed;
+    const petAge = req.body.pet_age;
+    const petWeight = req.body.pet_weight;
+    const additionalInfo = req.body.additional_info;
+    const petTypeId = req.body.pet_type_id;
+
+    // Check for missing data
+    if (!petID || !petName || !petGender || !petBreed || !petAge || !petWeight || !additionalInfo || !petTypeId) {
+        console.log("❌ Missing Data:", {
+            petID,
+            petName,
+            petGender,
+            petBreed,
+            petAge,
+            petWeight,
+            additionalInfo,
+            petTypeId
+        });
+        return res.status(400).json({
+            error: true,
+            message: "Missing required fields",
+            received: req.body
+        });
+    }
+
+    // SQL query ยังคงเหมือนเดิม
+    const query = `UPDATE pets SET
+        pet_name = ?,
+        pet_gender = ?,
+        pet_breed = ?,
+        pet_age = ?,
+        pet_weight = ?,
+        additional_info = ?,
+        pet_type_id = ?,
+        updated_at = NOW()
+        WHERE pet_id = ?`;
+
+    // Execute the query
+    dbConn.query(query, [
+        petName,
+        petGender,
+        petBreed,
+        petAge,
+        petWeight,
+        additionalInfo,
+        petTypeId,
+        petID
+    ], (error, results) => {
+        if (error) {
+            console.error("Database error:", error);
+            return res.status(500).json({
+                error: true,
+                message: "Database update failed",
+                details: error
+            });
+        }
+        if (results.affectedRows === 0) {
+            return res.status(404).json({ message: "Pet ID not found" });
+        }
+        res.json({ message: "Pet updated successfully" });
+    });
+});
+
 
 // 📌 เพิ่มข้อมูลสัตว์เลี้ยง
 app.post('/pet', function (req, res) {
-  // if (!req.session.userId) {
-  //     return res.status(401).send({ message: 'Unauthorized: Please log in' });
-  // } ตรวจสอบ req.session.userId ก่อนใช้
+    // if (!req.session.userId) {
+    //     return res.status(401).send({ message: 'Unauthorized: Please log in' });
+    // } ตรวจสอบ req.session.userId ก่อนใช้
 
-  var pets = req.body;
-  if (!pets || !pets.Pet_name || !pets.Pet_type_id) {
-      return res.status(400).send({ message: 'Please provide pet name and type' });
-  }
+    var pets = req.body;
+    if (!pets || !pets.pet_name || !pets.pet_type_id) {
+        return res.status(400).send({ message: 'Please provide pet name and type' });
+    }
 
-  //pets.User_id = req.session.userId;  // ✅ กำหนด User_id จาก session
+    //pets.User_id = req.session.userId;  // ✅ กำหนด `User_id` จาก session
 
-  dbConn.query('INSERT INTO pets SET ?', pets, function (error, results, fields) {
-      if (error) {
-          return res.status(500).send({ error: true, message: 'Failed to insert pet data', details: error });
-      }
-      return res.send({ message: 'Pet added successfully', id: results.insertId });
-  });
+    dbConn.query('INSERT INTO pets SET ?', pets, function (error, results, fields) {
+        if (error) {
+            return res.status(500).send({ error: true, message: 'Failed to insert pet data', details: error });
+        }
+        return res.send({ message: 'Pet added successfully', id: results.insertId });
+    });
 });
 
+
 app.post('/softDeletePet', function (req, res) {
-  // เปลี่ยนชื่อ deleted_at เป็น deletedAt เพื่อป้องกันการ redeclare
-  const { pet_id, deleted_at: deletedAt } = req.body;
+    const { pet_id, deleted_at } = req.body;
 
-  if (!pet_id || !deletedAt) {
-      console.error("Missing parameters:", { pet_id, deletedAt });
-      return res.status(400).send({ message: "Missing required parameters" });
-  }
+    if (!pet_id || !deleted_at) {
+        console.error("Missing parameters:", { pet_id, deleted_at });
+        return res.status(400).send({ message: "Missing required parameters" });
+    }
 
-  // ใช้เครื่องหมายอัญประกาศให้ถูกต้องใน SQL Query
-  const query = "UPDATE pets SET deleted_at = ? WHERE Pet_id = ?";
+    const query = `UPDATE pets SET deleted_at = ? WHERE pet_id = ?`;
 
-  dbConn.query(query, [deletedAt, pet_id], function (error, results) {
-      if (error) {
-          console.error("Database error:", error);
-          return res.status(500).send({ error: true, message: "Database update failed", details: error });
-      }
-      if (results.affectedRows === 0) {
-          return res.status(404).send({ message: "Pet ID not found" });
-      }
-      return res.send({ message: "Soft delete successful" });
-  });
+    dbConn.query(query, [deleted_at, pet_id], function (error, results) {
+        if (error) {
+            console.error("Database error:", error);
+            return res.status(500).send({ error: true, message: "Database update failed", details: error });
+        }
+        if (results.affectedRows === 0) {
+            return res.status(404).send({ message: "Pet ID not found" });
+        }
+        return res.send({ message: "Soft delete successful" });
+    });
 });
 
 
 app.use(express.json());
 
 app.get('/getPetTypes', function (req, res) {
-  dbConn.query('SELECT Pet_type_id, Pet_name_type FROM pet_type', function (error, results) {
-      if (error) {
-          return res.status(500).send({ error: true, message: "Database query failed", details: error });
-      }
-      return res.json(results);
-  });
+    dbConn.query('SELECT pet_type_id, pet_name_type FROM pet_type', function (error, results) {
+        if (error) {
+            return res.status(500).send({ error: true, message: "Database query failed", details: error });
+        }
+        return res.json(results);
+    });
 });
 
-app.put('/updatePet/:id', (req, res) => {
-  console.log("Received Data from Android:", req.body); // ✅ Debug log
 
-  const petID = req.params.id;
-  const { petName, petGender, petBreed, petAge, petWeight, additionalInfo, Pet_type_id } = req.body;
+app.post('/addPetType', function (req, res) {
+    const petType = {
+        pet_name_type: req.body.pet_name_type
+    };
 
-  // ตรวจสอบค่าที่ได้รับ
-  if (!petID || !petName || !petGender || !petBreed || !petAge || !petWeight || !additionalInfo || !Pet_type_id) {
-      console.log("❌ Missing Data:", { petID, petName, petGender, petBreed, petAge, petWeight, additionalInfo, Pet_type_id });
-      return res.status(400).json({ error: true, message: "Missing required fields", received: req.body });
-  }
+    // ตรวจสอบว่ามีชื่อประเภทสัตว์เลี้ยงส่งมาหรือไม่
+    if (!petType.pet_name_type) {
+        return res.status(400).send({
+            error: true,
+            message: "กรุณาระบุชื่อประเภทสัตว์เลี้ยง"
+        });
+    }
 
-  const query = `UPDATE pets SET 
-      Pet_name = ?, Pet_Gender = ?, Pet_breed = ?, Pet_age = ?, Pet_weight = ?, 
-      additional_info = ?, Pet_type_id = ?, updated_at = NOW() 
-      WHERE Pet_id = ?`;
+    // ตรวจสอบว่ามีประเภทสัตว์เลี้ยงนี้อยู่แล้วหรือไม่
+    dbConn.promise().query(
+        'SELECT * FROM pet_type WHERE pet_name_type = ? AND deleted_at IS NULL',
+        [petType.pet_name_type]
+    ).then(function ([results]) {
+        if (results.length > 0) {
+            return res.status(400).send({
+                error: true,
+                message: "มีประเภทสัตว์เลี้ยงนี้อยู่แล้ว"
+            });
+        }
 
-  dbConn.query(query, [petName, petGender, petBreed, petAge, petWeight, additionalInfo, Pet_type_id, petID], (error, results) => {
-      if (error) {
-          console.error("Database error:", error);
-          return res.status(500).json({ error: true, message: "Database update failed", details: error });
-      }
-      if (results.affectedRows === 0) {
-          return res.status(404).json({ message: "Pet ID not found" });
-      }
-      res.json({ message: "Pet updated successfully" });
-  });
+        // เพิ่มประเภทสัตว์เลี้ยงใหม่
+        dbConn.promise().query(
+            'INSERT INTO pet_type (pet_name_type) VALUES (?)',
+            [petType.pet_name_type]
+        ).then(function ([insertResult]) {
+            // ดึงข้อมูลที่เพิ่มเข้าไปใหม่
+            dbConn.promise().query(
+                'SELECT * FROM pet_type WHERE pet_type_id = ?',
+                [insertResult.insertId]
+            ).then(function ([newPetType]) {
+                return res.status(201).send({
+                    error: false,
+                    message: "เพิ่มประเภทสัตว์เลี้ยงสำเร็จ",
+                    petType: newPetType[0]
+                });
+            }).catch(function (error) {
+                return res.status(500).send({
+                    error: true,
+                    message: "เพิ่มข้อมูลสำเร็จแต่ไม่สามารถดึงข้อมูลได้",
+                    details: error
+                });
+            });
+        }).catch(function (error) {
+            return res.status(500).send({
+                error: true,
+                message: "เกิดข้อผิดพลาดในการเพิ่มประเภทสัตว์เลี้ยง",
+                details: error
+            });
+        });
+    }).catch(function (error) {
+        return res.status(500).send({
+            error: true,
+            message: "เกิดข้อผิดพลาดในการตรวจสอบประเภทสัตว์เลี้ยง",
+            details: error
+        });
+    });
+});
+
+// อัพเดทประเภทสัตว์เลี้ยง
+app.put('/updatePetType/:id', function(req, res) {
+    const petTypeId = req.params.id;
+    const updateData = {
+        pet_name_type: req.body.pet_name_type,
+        updated_at: new Date()
+    };
+
+    if (!updateData.pet_name_type) {
+        return res.status(400).send({
+            error: true,
+            message: "กรุณาระบุชื่อประเภทสัตว์เลี้ยง"
+        });
+    }
+
+    dbConn.query(
+        'UPDATE pet_type SET ? WHERE pet_type_id = ? AND deleted_at IS NULL',
+        [updateData, petTypeId],
+        function(error, results) {
+            if (error) {
+                return res.status(500).send({
+                    error: true,
+                    message: "เกิดข้อผิดพลาดในการอัพเดทประเภทสัตว์เลี้ยง",
+                    details: error
+                });
+            }
+
+            if (results.affectedRows === 0) {
+                return res.status(404).send({
+                    error: true,
+                    message: "ไม่พบประเภทสัตว์เลี้ยงที่ต้องการอัพเดท"
+                });
+            }
+
+            return res.send({
+                error: false,
+                message: "อัพเดทประเภทสัตว์เลี้ยงสำเร็จ"
+            });
+        }
+    );
+});
+
+// ลบประเภทสัตว์เลี้ยง (Soft Delete)
+app.delete('/deletePetType/:id', function(req, res) {
+    const petTypeId = req.params.id;
+    const updateData = {
+        deleted_at: new Date()
+    };
+
+    // ตรวจสอบว่ามีสัตว์เลี้ยงที่ใช้ประเภทนี้อยู่หรือไม่
+    dbConn.query(
+        'SELECT COUNT(*) as count FROM pets WHERE pet_type_id = ? AND deleted_at IS NULL',
+        [petTypeId],
+        function(error, results) {
+            if (error) {
+                return res.status(500).send({
+                    error: true,
+                    message: "เกิดข้อผิดพลาดในการตรวจสอบการใช้งานประเภทสัตว์เลี้ยง",
+                    details: error
+                });
+            }
+
+            if (results[0].count > 0) {
+                return res.status(400).send({
+                    error: true,
+                    message: "ไม่สามารถลบประเภทสัตว์เลี้ยงนี้ได้เนื่องจากมีสัตว์เลี้ยงใช้งานอยู่"
+                });
+            }
+
+            dbConn.query(
+                'UPDATE pet_type SET ? WHERE pet_type_id = ? AND deleted_at IS NULL',
+                [updateData, petTypeId],
+                function(error, results) {
+                    if (error) {
+                        return res.status(500).send({
+                            error: true,
+                            message: "เกิดข้อผิดพลาดในการลบประเภทสัตว์เลี้ยง",
+                            details: error
+                        });
+                    }
+
+                    if (results.affectedRows === 0) {
+                        return res.status(404).send({
+                            error: true,
+                            message: "ไม่พบประเภทสัตว์เลี้ยงที่ต้องการลบ"
+                        });
+                    }
+
+                    return res.send({
+                        error: false,
+                        message: "ลบประเภทสัตว์เลี้ยงสำเร็จ"
+                    });
+                }
+            );
+        }
+    );
 });
 
 app.get('/getPet/:id', (req, res) => {
-  const petID = req.params.id;
-  const query = "SELECT * FROM pets WHERE Pet_id = ?";
+    const petID = req.params.id;
+    const query = "SELECT * FROM pets WHERE pet_id = ?";
 
-  dbConn.query(query, [petID], (error, results) => {
-      if (error) {
-          return res.status(500).json({ error: true, message: "Database query failed", details: error });
-      }
-      if (results.length === 0) {
-          return res.status(404).json({ message: "Pet not found" });
-      }
-      res.json(results[0]); // ส่งข้อมูลสัตว์เลี้ยงที่เจอ
-  });
+    dbConn.query(query, [petID], (error, results) => {
+        if (error) {
+            return res.status(500).json({ error: true, message: "Database query failed", details: error });
+        }
+        if (results.length === 0) {
+            return res.status(404).json({ message: "Pet not found" });
+        }
+        res.json(results[0]); // ส่งข้อมูลสัตว์เลี้ยงที่เจอ
+    });
 });
 
 

@@ -5,7 +5,11 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.ass07.ManageRoom
+import com.example.ass07.customer.Booking
+import com.example.ass07.customer.LoginRegister.Login
+import com.example.ass07.customer.LoginRegister.ScreenLogin
+import com.example.ass07.customer.Mypet.Mypetinsert
+import com.example.ass07.customer.Screen
 import com.example.ass07.admin.booking.Booking
 import com.example.ass07.admin.booking.BookingDetail
 
@@ -17,7 +21,7 @@ fun NavGraphAdmin(navController: NavHostController) {
     ) {
 
         composable(route = ScreenAdmin.ManageRoom.route) {
-            ManageRoom()
+            ManageRoom(navController)
         }
         composable(route = ScreenAdmin.Booking.route) {
             Booking(navController)
@@ -25,6 +29,10 @@ fun NavGraphAdmin(navController: NavHostController) {
         composable(route = ScreenAdmin.PetsAdmin.route) {
             PetsAdmin()
         }
+        composable(route = ScreenAdmin.RoomInsert.route) {
+            RoomInsert(navController)
+        }
+
 
         composable("booking_detail/{id}") { backStackEntry ->
             val bookingId = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: 0

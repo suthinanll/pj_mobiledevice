@@ -1,5 +1,6 @@
 package com.example.ass07.customer.API
 
+import com.example.ass07.customer.Mypet.AddPetTypeResponse
 import com.example.ass07.customer.Mypet.PetType
 import com.example.ass07.customer.Mypet.UpdatePetRequest
 import com.example.ass07.customer.Mypet.petMember
@@ -15,24 +16,32 @@ import retrofit2.http.PUT
 import retrofit2.http.Path
 
 interface PetApi {
-    @GET("/getPetTypes")
+    @GET("getPetTypes")
     fun getPetTypes(): Call<List<PetType>>
 
     @GET("allpet")
     fun retrievepetMember(): Call<List<petMember>>
 
+
     @FormUrlEncoded
     @POST("pet")
     fun insertPet(
-        @Field("Pet_name") petName: String,
-        @Field("Pet_Gender") petGender: String,
-        @Field("Pet_breed") petBreed: String,
-        @Field("Pet_age") petAge: Int,
-        @Field("Pet_weight") petWeight: Int,
-        @Field("additional_info") additionalInfo: String,
-        @Field("Pet_type_id") Pet_type_id: Int,
-        @Field("user_id") userId: Int
+        @Field("pet_name") petName: String,
+        @Field("pet_gender") petGender: String,
+        @Field("user_id") userId: Int,
+        @Field("pet_type_id") petTypeId: Int,
+        @Field("pet_breed") petBreed: String?,
+        @Field("pet_age") petAge: Int?,
+        @Field("pet_weight") petWeight: Double?,
+        @Field("additional_info") additionalInfo: String?
     ): Call<petMember>
+
+    @FormUrlEncoded
+    @POST("addPetType") //
+    fun addPetType(@Field("pet_name_type") petTypeName: String): Call<AddPetTypeResponse> // Use the new data class
+
+    @GET("getPet/{id}")
+    fun getPet(@Path("id") petID: Int): Call<petMember>
 
     @FormUrlEncoded
     @POST("softDeletePet")
@@ -43,12 +52,10 @@ interface PetApi {
 
     @PUT("updatePet/{id}")
     fun updatePet(
-        @Path("id") petID: Int,
+        @Path("id") id: Int,
         @Body petData: UpdatePetRequest
     ): Call<petMember>
 
-    @GET("getPet/{id}")
-    fun getPet(@Path("id") petID: Int): Call<petMember>
 
     companion object {
         fun create(): PetApi {

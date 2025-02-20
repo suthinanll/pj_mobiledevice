@@ -1,9 +1,11 @@
 package com.example.ass07.admin
 
 
+import com.example.ass07.customer.Mypet.PetType
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.Body
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
@@ -11,20 +13,34 @@ import retrofit2.http.POST
 
 
 interface RoomAPI {
+    @GET("getPetTypes")
+    fun getPetTypes(): Call<List<PetType>>
 
-    @GET("room_types") //  <--- ADD THIS!  Endpoint to get room types.  ADJUST AS NEEDED.
+
+    @GET("getRoomTypes")
     fun getRoomTypes(): Call<List<RoomType>>
 
-    @GET("/getroom")
+    @GET("getroom")
     fun retrieveAllRooms(): Call<List<Room>>
 
-    // เพิ่มห้องใหม่
     @FormUrlEncoded
-    @POST("/addroom")
+    @POST("addroom")
     fun insertRoom(
-        @Field("type_type_id") typeTypeId: Int,
-        @Field("status") status: Int,
+        @Field("room_type_id") roomTypeId: Any,
+        @Field("room_status") roomStatus: Int
     ): Call<Room>
+
+
+
+    @FormUrlEncoded
+    @POST("addRoomType")
+    fun addRoomType(
+        @Field("name_type") name_type: String,
+        @Field("price_per_day") price_per_day: Double,
+        @Field("pet_type") pet_type: String
+    ): Call<RoomTypeResponse>
+
+
 
     companion object {
         fun create(): RoomAPI {
