@@ -489,6 +489,22 @@ app.delete("/bookings/:id", function (req, res) {
   );
 });
 
+
+//โปรไฟล์
+app.get("/profile/:id", function (req, res) {
+  const userId = req.params.id;
+  const query = `SELECT * FROM users WHERE name = ?`;
+  
+  dbConn.query(query, [userId], function (error, results) {
+    if (error) throw error;
+    if (results.length === 0) {
+      return res.status(404).send({ error: true, message: "user data not found" });
+    }
+    console.log("User data "+userId+" get successfully")
+    return res.send(results[0]);
+  });
+});
+
 app.listen(3000, function () {
   console.log("Node app is running on port 3000");
 });

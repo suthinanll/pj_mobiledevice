@@ -1,4 +1,4 @@
-package com.example.ass07.admin
+package com.example.ass07.admin.booking
 
 import retrofit2.Call
 import retrofit2.Retrofit

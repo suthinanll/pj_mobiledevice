@@ -1,12 +1,15 @@
 package com.example.ass07.customer.API
 
 import com.example.ass07.customer.LoginRegister.LoginClass
+import com.example.ass07.customer.User
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
+import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Path
 
 interface projectApi {
     @FormUrlEncoded
@@ -29,6 +32,10 @@ interface projectApi {
         @Field("tell_number") tell_number: String,
         @Field("email") email: String
     ): Call<LoginClass>
+
+
+    @GET("profile/{id}")
+    fun getProfileByID(@Path("id") userID: String): Call<User>
 
     companion object{
         fun create() : projectApi {

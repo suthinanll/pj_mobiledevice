@@ -12,6 +12,8 @@ import androidx.navigation.compose.composable
 import com.example.ass07.ManageRoom
 import com.example.ass07.admin.PetsAdmin
 import com.example.ass07.admin.ScreenAdmin
+import com.example.ass07.admin.booking.Booking
+import com.example.ass07.admin.booking.BookingDetail
 import com.example.ass07.customer.LoginRegister.Login
 import com.example.ass07.customer.LoginRegister.Register
 import com.example.ass07.customer.LoginRegister.ScreenLogin
@@ -51,7 +53,7 @@ fun NavGraph(navController: NavHostController) {
             ManageRoom()
         }
         composable(route = ScreenAdmin.Booking.route) {
-            Booking()
+            Booking(navController)
         }
         composable(route = ScreenAdmin.PetsAdmin.route) {
             PetsAdmin()
@@ -67,5 +69,15 @@ fun NavGraph(navController: NavHostController) {
 
             pet?.let { Mypetedit(navController, it) }
         }
+
+        composable(route = ScreenAdmin.BookingDetail.route+"/{id}") { backStackEntry ->
+            val bookingId = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: 0
+            BookingDetail(bookingId)
+        }
+
+        composable(route = Screen.EditProfile.route){
+            EditProfile(navController)
+        }
+
     }
 }

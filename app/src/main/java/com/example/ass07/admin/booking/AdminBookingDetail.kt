@@ -1,6 +1,5 @@
-package com.example.ass07.admin
+package com.example.ass07.admin.booking
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,9 +16,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.ShoppingCart
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -49,10 +50,7 @@ import retrofit2.Response
 
 @Composable
 fun BookingDetail(bookingId: Int) {
-    //val context = LocalContext.current
     val bookingApi = BookingAPI.create()
-    //val coroutineScope = rememberCoroutineScope()
-
     var booking by remember { mutableStateOf<Booking?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     var totalDays by remember { mutableIntStateOf(0) }
@@ -64,21 +62,18 @@ fun BookingDetail(bookingId: Int) {
                 if (response.isSuccessful) {
                     booking = response.body()
                     booking?.let {
-                        totalPrice = it.pay + (it.adjust ?: 0) // รวมค่า adjust ในราคารวม
-                        totalDays = if (it.pay != null && it.pricePerDay > 0) {
+                        totalPrice = it.pay + (it.adjust ?: 0)
+                        totalDays = if (it.pay != 0 && it.pricePerDay > 0) {
                             it.pay / it.pricePerDay
                         } else {
                             0
                         }
                     }
-                } else {
-                    Log.e("BookingDetail", "Error: ${response.message()}")
                 }
                 isLoading = false
             }
 
             override fun onFailure(call: Call<Booking>, t: Throwable) {
-                Log.e("BookingDetail", "API call failed: ${t.message}")
                 isLoading = false
             }
         })
@@ -96,33 +91,24 @@ fun BookingDetail(bookingId: Int) {
                 CircularProgressIndicator()
             }
         } else {
-            booking?.let {
+            booking?.let { bookingData ->
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(16.dp)
                         .verticalScroll(rememberScrollState())
                 ) {
-                    HeaderSection(it.bookingId)
+                    HeaderSection(bookingData.bookingId)
                     Spacer(modifier = Modifier.height(16.dp))
-                    StatusCard(it.status)
+                    StatusCard(bookingData.status)
                     Spacer(modifier = Modifier.height(16.dp))
 
                     InfoCard(
                         title = "ข้อมูลการจอง",
                         content = {
-                            InfoRow(
-                                icon = Icons.Default.Person,
-                                label = "เจ้าของ",
-                                value = "${it.name} (${it.tellNumber})"
-                            )
-
+                            InfoRow(Icons.Default.Person, "เจ้าของ", "ชื่อ: ${bookingData.name} \nเบอร์โทรศัพท์: ${bookingData.tellNumber} \nอีเมล: ${bookingData.email}")
                             Divider(modifier = Modifier.padding(vertical = 8.dp))
-                            InfoRow(
-                                icon = Icons.Outlined.ShoppingCart,
-                                label = "สัตว์เลี้ยง",
-                                value = "${it.petName} (${it.petBreed}, ${it.petAge} ปี)"
-                            )
+                            InfoRow(Icons.Default.Info, "สัตว์เลี้ยง", "ชื่อ: ${bookingData.petName}\nประเภท: ${bookingData.petNameType} \nสายพันธุ์: ${bookingData.petBreed} \nอายุ: ${bookingData.petAge} ปี")
                         }
                     )
 
@@ -131,47 +117,47 @@ fun BookingDetail(bookingId: Int) {
                     InfoCard(
                         title = "รายละเอียดการเข้าพัก",
                         content = {
-                            InfoRow(
-                                icon = Icons.Default.DateRange,
-                                label = "วันเช็คอิน",
-                                value = it.checkIn
-                            )
+                            InfoRow(Icons.Default.DateRange, "วันเช็คอิน", bookingData.checkIn)
                             Divider(modifier = Modifier.padding(vertical = 8.dp))
-                            InfoRow(
-                                icon = Icons.Default.DateRange,
-                                label = "วันเช็คเอาท์",
-                                value = it.checkOut
-                            )
+                            InfoRow(Icons.Default.DateRange, "วันเช็คเอาท์", bookingData.checkOut)
                             Divider(modifier = Modifier.padding(vertical = 8.dp))
-                            InfoRow(
-                                icon = Icons.Default.Home,
-                                label = "ประเภทห้อง",
-                                value = it.roomType
-                            )
-                            Divider(modifier = Modifier.padding(vertical = 8.dp))
-                            InfoRow(
-                                icon = Icons.Outlined.ShoppingCart,
-                                label = "วิธีการชำระเงิน",
-                                value = it.methodName ?: "-"
-                            )
-                            Divider(modifier = Modifier.padding(vertical = 8.dp))
-                            InfoRow(
-                                icon = Icons.Outlined.Info,
-                                label = "ข้อมูลเพิ่มเติม",
-                                value = it.additionalInfo ?: "-"
-                            )
+                            InfoRow(Icons.Default.Home, "ประเภทห้อง", bookingData.roomType)
                         }
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
                     PriceCard(
-                        roomType = it.roomType,
-                        pricePerDay = it.pricePerDay,
+                        roomType = bookingData.roomType,
+                        pricePerDay = bookingData.pricePerDay,
                         totalDays = totalDays,
                         totalPrice = totalPrice,
-                        adjust = it.adjust ?: 0
+                        adjust = bookingData.adjust ?: 0
                     )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // ปุ่มสำหรับ เช็คเอาท์ และ ขยายเวลา
+                    if (bookingData.status == 1) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            Button(
+                                onClick = { /* TODO: เช็คเอาท์ */ },
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.Red, contentColor = Color.White)
+                            ) {
+                                Text(text = "เช็คเอาท์")
+                            }
+
+                            Button(
+                                onClick = { /* TODO: ขยายเวลา */ },
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.Blue, contentColor = Color.White)
+                            ) {
+                                Text(text = "ขยายเวลา")
+                            }
+                        }
+                    }
                 }
             } ?: Box(
                 contentAlignment = Alignment.Center,
@@ -182,22 +168,19 @@ fun BookingDetail(bookingId: Int) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Icon(
-                        Icons.Outlined.Info,
+                    Icon(Icons.Outlined.Info,
                         contentDescription = "Not Found",
                         tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                    Text(
-                        "ไม่พบข้อมูลการจอง",
+                        modifier = Modifier.padding(bottom = 8.dp))
+                    Text("ไม่พบข้อมูลการจอง",
                         fontSize = 18.sp,
-                        color = MaterialTheme.colorScheme.error
-                    )
+                        color = MaterialTheme.colorScheme.error)
                 }
             }
         }
     }
 }
+
 
 @Composable
 fun HeaderSection(bookingId: Int) {

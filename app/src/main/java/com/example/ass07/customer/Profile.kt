@@ -1,9 +1,8 @@
 package com.example.ass07.customer
 
-import android.net.Uri
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,33 +14,35 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -50,37 +51,58 @@ import androidx.navigation.NavHostController
 import com.example.ass07.customer.API.projectApi
 import com.example.ass07.customer.LoginRegister.ScreenLogin
 import com.example.ass07.customer.LoginRegister.SharePreferencesManager
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 @Composable
-fun Profile(navController : NavHostController){
-    lateinit var sharePreferences : SharePreferencesManager
+fun Profile(navController: NavHostController) {
+    lateinit var sharePreferences: SharePreferencesManager
     val contextForToast = LocalContext.current.applicationContext
     sharePreferences = SharePreferencesManager(contextForToast)
 
     val userId = sharePreferences.userId ?: ""
-    val studentClient = projectApi.create()
+    val userClient = projectApi.create()
 
-    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
-    val lifecycleState by lifecycleOwner.lifecycle.currentStateFlow.collectAsState()
-    var remember_id by remember { mutableStateOf(false) }
+    var id by remember { mutableIntStateOf(0) }
+    var avatarNumber by rememberSaveable { mutableStateOf<String>("") }
+    var username by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var tel by remember { mutableStateOf("") }
+    var usertype by remember { mutableIntStateOf(0) }
+
+    // สถานะของ AlertDialog
     var alertDialog by remember { mutableStateOf(false) }
-    val context = LocalContext.current
-    var imageUri by remember { mutableStateOf<Uri?>(null) }
-    var fullName by remember { mutableStateOf("Chill guy") }
-    var username by remember { mutableStateOf("chill") }
-    var email by remember { mutableStateOf("chillguy@gmail.com") }
-    var password by remember { mutableStateOf("************") }
+    var rememberId by remember { mutableStateOf(false) }  // สำหรับเช็คว่าจำรหัสนักศึกษาหรือไม่
 
+    // ฟังก์ชันเรียกข้อมูลโปรไฟล์
+    LaunchedEffect(userId) {
+        if (userId.isNotEmpty()) {
+            userClient.getProfileByID(userId).enqueue(object : Callback<User> {
+                override fun onResponse(call: Call<User>, response: Response<User>) {
+                    if (response.isSuccessful) {
+                        val user = response.body()
+                        user?.let {
+                            id = it.userId
+                            username = it.name
+                            email = it.email
+                            tel = it.tellNumber
+                            avatarNumber = it.avatar.toString()
+                            usertype = it.userType
+                        }
+                    } else {
+                        Toast.makeText(contextForToast, "Failed to load profile", Toast.LENGTH_SHORT).show()
+                    }
+                }
 
-    // State สำหรับควบคุมโหมดแก้ไขของแต่ละช่อง
-    val editState = remember { mutableStateMapOf("fullName" to false, "username" to false, "email" to false, "password" to false) }
-
-    var isEditing by remember { mutableStateOf(false) } // ตรวจสอบว่ามีการแก้ไขหรือไม่
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        imageUri = uri
-        isEditing = true
+                override fun onFailure(call: Call<User>, t: Throwable) {
+                    Toast.makeText(contextForToast, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+                }
+            })
+        }
     }
 
+    // UI ส่วนแสดงโปรไฟล์
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -98,83 +120,62 @@ fun Profile(navController : NavHostController){
                 modifier = Modifier.padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // รูปโปรไฟล์
-//                Box(modifier = Modifier.clickable { launcher.launch("image/*") }) {
-//                    Image(
-//                        painter = if (imageUri != null) rememberAsyncImagePainter(imageUri)
-//                        else painterResource(id = R.drawable.chillguy),
-//                        contentDescription = "Profile Picture",
-//                        modifier = Modifier
-//                            .size(80.dp)
-//                            .clip(CircleShape)
-//                            .border(2.dp, Color.Gray, CircleShape)
-//                    )
-//                }
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "แตะเพื่อเปลี่ยนรูป", fontSize = 14.sp, color = Color.Gray)
+                Text(text = "ภาพโปรไฟล์ของคุณ", fontSize = 14.sp, color = Color.Gray)
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // ฟอร์มข้อมูล (แต่ละช่องต้องกดดินสอก่อนถึงจะแก้ไขได้)
-                ProfileTextField("ชื่อ-นามสกุล", fullName, editState["fullName"] ?: false, { fullName = it }) {
-                    editState["fullName"] = true
-                    isEditing = true
-                }
-                ProfileTextField("ตั้งค่าชื่อผู้ใช้", username, editState["username"] ?: false, { username = it }) {
-                    editState["username"] = true
-                    isEditing = true
-                }
-                ProfileTextField("อีเมล", email, editState["email"] ?: false, { email = it }) {
-                    editState["email"] = true
-                    isEditing = true
-                }
-                ProfileTextField("รหัสผ่าน", password, editState["password"] ?: false, { password = it }, isPassword = true) {
-                    editState["password"] = true
-                    isEditing = true
+                // แสดง avatar ที่เลือก
+                val selectedAvatarResId = contextForToast.resources.getIdentifier("avatar_$avatarNumber", "drawable", contextForToast.packageName)
+                if (selectedAvatarResId != 0) {
+                    Image(
+                        painter = painterResource(id = selectedAvatarResId),
+                        contentDescription = "Selected Avatar",
+                        modifier = Modifier
+                            .size(100.dp)  // ขนาดของภาพ
+                            .clip(CircleShape)  // ทำให้เป็นวงกลม
+                            .border(2.dp, Color.Gray, CircleShape)  // กรอบวงกลมสีเทา ขนาด 2 dp
+                    )
+
                 }
 
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // แสดงข้อมูลโปรไฟล์
+                ProfileTextField("ชื่อผู้ใช้", username, { username = it }, isPassword = false)
+                ProfileTextField("อีเมล", email, { email = it }, isPassword = false)
+                ProfileTextField("เบอร์โทรศัพท์",tel,{ tel = it},isPassword = false)
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // แสดงปุ่ม "บันทึก" และ "ยกเลิก" เฉพาะเมื่อมีการแก้ไข
-                if (isEditing) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        // ปุ่มยกเลิก
-                        Button(
-                            onClick = {
-                                // รีเซ็ตข้อมูล และปิดโหมดแก้ไข
-                                editState.keys.forEach { key -> editState[key] = false }
-                                isEditing = false
-                            },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.Gray),
-                            modifier = Modifier.weight(1f).padding(end = 8.dp)
-                        ) {
-                            Text(text = "ยกเลิก", color = Color.White)
-                        }
-
-                        // ปุ่มบันทึก
-                        Button(
-                            onClick = {
-                                editState.keys.forEach { key -> editState[key] = false } // ปิดโหมดแก้ไข
-                                isEditing = false
-                                Toast.makeText(context, "บันทึกข้อมูลสำเร็จ", Toast.LENGTH_SHORT).show()
-                            },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFCC33)),
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text(text = "บันทึก", color = Color.White)
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
-
-                // ปุ่มออกจากระบบ
+                // ปุ่มแก้ไขโปรไฟล์
                 Button(
                     onClick = {
-                        alertDialog = true
+                        // ส่งข้อมูลไปยังหน้า EditProfile
+                        navController.currentBackStackEntry?.savedStateHandle?.set("user", User(
+                            userId = id,
+                            name = username,
+                            tellNumber = tel,
+                            email = email,
+                            userType = usertype,
+                            password = "",
+                            avatar = avatarNumber.toInt()  // แก้ไขตรงนี้
+                        ))
+                        navController.navigate(route = Screen.EditProfile.route)  // ไปหน้า EditProfile
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
+                ) {
+                    Text(text = "แก้ไขโปรไฟล์", color = Color.White)
+                }
+
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // ปุ่ม Logout
+                Button(
+                    onClick = {
+                        alertDialog = true  // เปิด AlertDialog
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -189,61 +190,54 @@ fun Profile(navController : NavHostController){
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(text = "ออกจากระบบ", color = Color.White)
                 }
-
             }
         }
     }
 
-    if(alertDialog){
+    // แสดง AlertDialog เมื่อคลิก Logout
+    if (alertDialog) {
         AlertDialog(
-            onDismissRequest = {alertDialog = false},
+            onDismissRequest = { alertDialog = false },
             title = { Text("Logout") },
             text = {
-                Column (
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(10.dp)
-                ){
+                ) {
                     Text("Do you want to logout?")
-                    Row (
+                    Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Start
-                    ){
+                    ) {
                         Checkbox(
-                            checked = remember_id,
-                            onCheckedChange = {
-                                remember_id = !remember_id
-                            },
+                            checked = rememberId,
+                            onCheckedChange = { rememberId = !rememberId },
                             modifier = Modifier.padding(end = 10.dp)
                         )
-
                         Text("Remember my student id")
                     }
                 }
             },
-            confirmButton ={
+            confirmButton = {
                 TextButton(
                     onClick = {
-                        if(remember_id){
-                            navController.currentBackStackEntry?.savedStateHandle?.set(
-                                "name",sharePreferences.userId
-                            )
+                        // ถ้าจำรหัสนักศึกษาจะบันทึก userId ใน savedStateHandle
+                        if (rememberId) {
+                            navController.currentBackStackEntry?.savedStateHandle?.set("name", sharePreferences.userId)
                         }
+                        // ล้างข้อมูลการเข้าสู่ระบบ
                         sharePreferences.isLoggedIn = false
                         sharePreferences.userId = ""
-                        navController.navigate(ScreenLogin.Login.route)
+                        navController.navigate(ScreenLogin.Login.route)  // ไปหน้าล็อกอิน
                     }
                 ) {
                     Text("Yes")
                 }
             },
             dismissButton = {
-                TextButton(
-                    onClick = {
-                        alertDialog = false
-                    }
-                ) {
+                TextButton(onClick = { alertDialog = false }) {
                     Text("No")
                 }
             }
@@ -251,30 +245,24 @@ fun Profile(navController : NavHostController){
     }
 }
 
-// ฟังก์ชันสร้างช่องกรอกข้อมูล ไอคอนดินสอ
+// ฟังก์ชันสร้างช่องกรอกข้อมูล
 @Composable
 fun ProfileTextField(
     label: String,
     value: String,
-    isEditable: Boolean,
     onValueChange: (String) -> Unit,
-    isPassword: Boolean = false,
-    onEditClick: () -> Unit
+    isPassword: Boolean = false
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text(text = label, fontSize = 14.sp, color = Color.Gray)
+        Text(text = label, fontSize = 14.sp, color = Color.Black,fontWeight = FontWeight.Bold)
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            enabled = isEditable, // ปิดการแก้ไขหากยังไม่กดปุ่มดินสอ
             modifier = Modifier.fillMaxWidth(),
-            trailingIcon = {
-                IconButton(onClick = { onEditClick() }) { // กดเพื่อเปิดโหมดแก้ไข
-                    Icon(Icons.Default.Edit, contentDescription = "Edit")
-                }
-            },
-            visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None
+            visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
+            enabled = false // ปิดการแก้ไข
         )
     }
 }
+
 

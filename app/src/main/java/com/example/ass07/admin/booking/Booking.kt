@@ -1,4 +1,4 @@
-package com.example.ass07.admin
+package com.example.ass07.admin.booking
 
 import android.os.Parcelable
 import com.google.gson.annotations.Expose

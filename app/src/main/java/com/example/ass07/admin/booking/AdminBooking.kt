@@ -1,4 +1,4 @@
-package com.example.ass07.admin
+package com.example.ass07.admin.booking
 import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -12,13 +12,17 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -29,8 +33,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -83,8 +90,12 @@ fun Booking(navController: NavController) {
             value = searchQuery,
             onValueChange = { searchQuery = it },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text(" ค้นหาการจอง... (ชื่อสัตว์เลี้ยง / เจ้าของ / ประเภทห้อง)") },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") }
+            placeholder = { Text(" ค้นหาการจอง... (ชื่อสัตว์เลี้ยง / เจ้าของ / ประเภทห้อง)", fontSize = 12.sp) },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
+            keyboardOptions = KeyboardOptions.Default.copy(
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Search
+            )
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -160,7 +171,7 @@ fun fetchBookings(bookingService: BookingAPI, onResult: (List<Booking>) -> Unit)
 @Composable
 fun BookingItem(booking: Booking, navController: NavController, bookingService: BookingAPI) {
     // คำนวณจำนวนวันจาก pricePerDay และ totalPay
-    val numOfDays = if (booking.pricePerDay != null && booking.pay != null && booking.pricePerDay > 0) {
+    val numOfDays = if (booking.pricePerDay != 0 && booking.pay != 0 && booking.pricePerDay > 0) {
         booking.pay / booking.pricePerDay
     } else {
         0
@@ -173,42 +184,50 @@ fun BookingItem(booking: Booking, navController: NavController, bookingService: 
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .clickable {
-                navController.navigate("booking_detail/${booking.bookingId}")
+            .let { baseModifier ->
+                if (booking.status != 0 ) {
+                    baseModifier.clickable {
+                        navController.navigate("booking_detail/${booking.bookingId}")
+                    }
+                } else {
+                    baseModifier
+                }
             },
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = "📌 ID: ${booking.bookingId ?: "ไม่ทราบ"}")
-            Text(text = "🐶 สัตว์เลี้ยง: ${booking.petName ?: "ไม่มีข้อมูล"} (${booking.petBreed ?: "ไม่ระบุ"}, ${booking.petAge ?: "?"} ปี)")
+            Text(text = "🐶 สัตว์เลี้ยง: ${booking.petName ?: "ไม่มีข้อมูล"} (${booking.petNameType ?: "ไม่ระบุ"} - ${booking.petBreed ?: "ไม่ระบุ"}, ${booking.petAge ?: "?"} ปี)")
             Text(text = "👤 เจ้าของ: ${booking.name ?: "ไม่ระบุ"} (${booking.tellNumber ?: "ไม่มีเบอร์"})")
             Text(text = "🏠 ห้อง: ${booking.roomType ?: "ไม่ระบุ"} (ราคา ${booking.pricePerDay ?: "?"} บาท/วัน)")
             Text(text = "📅 Check-in: ${booking.checkIn ?: "ไม่ระบุ"}")
             Text(text = "📅 Check-out: ${booking.checkOut ?: "ไม่ระบุ"}")
             Text(text = "📅 จำนวนวันที่เข้าพัก: $numOfDays วัน")
-            Text(text = "💰 ราคารวม: ${totalPrice} บาท")
-            Text(
-                text = "📌 สถานะ: ${
-                    when (booking.status) {
-                        0 -> "ยังไม่เช็คอิน"
-                        1 -> "เช็คอินแล้ว"
-                        2 -> "เช็คเอาท์แล้ว"
-                        3 -> "ยกเลิก"
-                        else -> "ไม่ระบุ"
-                    }
-                }"
-            )
+            Text(text = "💰 ราคารวม: $totalPrice บาท")
+            StatusText(booking.status) // status แบบมีสี
+
             Row(horizontalArrangement = Arrangement.End) {
                 if (booking.status == 0) {
-                    OutlinedButton(
+                    Button(
                         onClick = { onConfirmBooking(booking.bookingId) },
-                        modifier = Modifier.padding(top = 8.dp)
+                        modifier = Modifier.padding(top = 8.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Green,
+                            contentColor = Color.White
+                        )
                     ) {
                         Text(text = "เช็คอินเข้าพัก")
                     }
-                    OutlinedButton(
+
+                    Spacer(modifier = Modifier.padding(6.dp))
+
+                    Button(
                         onClick = { onCancelBooking(booking.bookingId, bookingService) },
-                        modifier = Modifier.padding(top = 8.dp)
+                        modifier = Modifier.padding(top = 8.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Red,
+                            contentColor = Color.White
+                        )
                     ) {
                         Text(text = "ยกเลิกการจอง")
                     }
@@ -219,7 +238,7 @@ fun BookingItem(booking: Booking, navController: NavController, bookingService: 
 }
 
 
-// ฟังก์ชันจัดการเมื่อปุ่ม "ยืนยัน" ถูกกด
+// onclick เช็นอิน
 fun onConfirmBooking(bookingId: Int) {
     val api = BookingAPI.create()
     val statusUpdate = mapOf("booking_status" to 1)
@@ -248,6 +267,7 @@ fun onConfirmBooking(bookingId: Int) {
     })
 }
 
+// onclick ยกเลิก
 fun onCancelBooking(bookingId: Int, bookingService: BookingAPI) {
     val statusUpdate = mapOf("booking_status" to 3)  // เปลี่ยนเป็น booking_status
 
@@ -266,6 +286,22 @@ fun onCancelBooking(bookingId: Int, bookingService: BookingAPI) {
     })
 }
 
+@Composable
+fun StatusText(status: Int) {
+    val (statusText, statusColor) = when (status) {
+        0 -> "ยังไม่เช็คอิน" to MaterialTheme.colorScheme.primary
+        1 -> "เช็คอินแล้ว" to Color(0xFF4CAF50) // สีเขียว
+        2 -> "เช็คเอาท์แล้ว" to Color(0xFF2196F3) // สีน้ำเงิน
+        3 -> "ยกเลิก" to Color(0xFFE91E63) // สีแดง
+        else -> "ไม่ระบุ" to Color.Gray
+    }
+
+    Text(
+        text = "📌 สถานะ: $statusText",
+        color = statusColor,
+        fontWeight = FontWeight.Bold
+    )
+}
 
 
 
