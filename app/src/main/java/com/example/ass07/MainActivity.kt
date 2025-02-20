@@ -7,7 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.ass07.customer.BB
+import com.example.ass07.admin.AdminNav
 import com.example.ass07.ui.theme.ASS07Theme
 
 class MainActivity : ComponentActivity() {
@@ -16,9 +16,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ASS07Theme {
-
-                BB.MyScaffoldLayout()
-                //AdminNav.MyScaffoldLayout()
+                //BB.MyScaffoldLayout()
+                AdminNav.MyScaffoldLayout()
             }
 
             }
@@ -30,8 +29,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun GreetingPreview() {
     ASS07Theme {
-        BB.MyScaffoldLayout()
-        //AdminNav.MyScaffoldLayout()
+        //BB.MyScaffoldLayout()
+        AdminNav.MyScaffoldLayout()
     }
 }
 
