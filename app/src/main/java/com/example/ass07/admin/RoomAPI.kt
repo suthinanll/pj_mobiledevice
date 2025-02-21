@@ -2,6 +2,8 @@ package com.example.ass07.admin
 
 
 import com.example.ass07.customer.Mypet.PetType
+import com.google.gson.annotations.Expose
+import com.google.gson.annotations.SerializedName
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -10,6 +12,8 @@ import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Path
 
 
 interface RoomAPI {
@@ -40,6 +44,24 @@ interface RoomAPI {
         @Field("pet_type") pet_type: String,
         @Field("image") image: String?
     ): Call<RoomTypeResponse>
+
+
+    @GET("updateroom/{room_id}")
+    fun getRoomById(
+        @Path("room_id") room_id: Int,
+    ): Call<Room>
+
+
+
+    @PUT("updateroom/{room_id}")
+    fun updateroom(
+        @Path("room_id") room_id: Int,
+        @Field("room_type_id") roomTypeId: Any,
+        @Field("room_status") roomStatus: Int,
+        @Field("pet_type") pet_type:String,
+        @Field("image") image:String
+    ): Call<Room>
+
 
 
 

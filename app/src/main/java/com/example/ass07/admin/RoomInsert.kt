@@ -137,7 +137,6 @@ fun RoomInsert(navController: NavHostController) {
                 }
 
                 RoomTypeDropdown(
-
                     roomTypes = roomTypes,
                     selectedRoomType = selectedRoomType,
                     petTypes = petTypes,
@@ -153,8 +152,6 @@ fun RoomInsert(navController: NavHostController) {
                             ).show()
                             return@RoomTypeDropdown
                         }
-
-
                         isAddingRoomType = true
                         createClient.addRoomType(
                             name_type = newTypeName,
@@ -318,6 +315,7 @@ fun RoomTypeDropdown(
         uri?.let {
             imageUri = it
             base64Image = encodeImageToBase64(context, it)
+            //Log.d("API_REQUEST", "Base64 Image: $base64String")
         }
     }
 
@@ -421,7 +419,7 @@ fun RoomTypeDropdown(
                                 }
                             }
                         }
-                        Spacer(modifier = Modifier.height(8.dp))
+
 
                         // ปุ่มเลือกภาพ
                         Button(onClick = { imagePickerLauncher.launch("image/*") }) {
@@ -493,7 +491,17 @@ fun encodeImageToBase64(context: Context, uri: Uri): String? {
         val outputStream = ByteArrayOutputStream()
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
         val byteArray = outputStream.toByteArray()
-        Base64.encodeToString(byteArray, Base64.DEFAULT)
+        val base64String = Base64.encodeToString(byteArray, Base64.DEFAULT)
+
+        // เพิ่ม log เพื่อดู Base64
+        Log.d("API_REQUEST", "Base64 Image: $base64String")
+
+        // ตรวจสอบว่า Base64 มีค่าไหม
+        if (base64String.isEmpty()) {
+            Toast.makeText(context, "Base64 image is empty", Toast.LENGTH_SHORT).show()
+        }
+
+        base64String
     } catch (e: Exception) {
         e.printStackTrace()
         null
