@@ -64,7 +64,7 @@ class MainActivity : ComponentActivity() {
             ASS07Theme {
 
                 BB.MyScaffoldLayout()
-                //AdminNav.MyScaffoldLayout()
+                AdminNav.MyScaffoldLayout()
             }
 
             }
@@ -77,7 +77,7 @@ class MainActivity : ComponentActivity() {
 fun GreetingPreview() {
     ASS07Theme {
         BB.MyScaffoldLayout()
-        //AdminNav.MyScaffoldLayout()
+        AdminNav.MyScaffoldLayout()
     }
 }
 

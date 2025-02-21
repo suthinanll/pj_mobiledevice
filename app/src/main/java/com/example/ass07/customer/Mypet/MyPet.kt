@@ -112,6 +112,7 @@ fun MyPet(navController: NavHostController) {
             itemsIndexed(petItemsList) { _, pet ->
                 PetCard(pet, onDelete = { softDeletePet(pet) },navController)
             }
+
         }
 
 

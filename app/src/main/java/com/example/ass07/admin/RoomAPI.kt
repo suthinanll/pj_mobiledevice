@@ -37,7 +37,8 @@ interface RoomAPI {
     fun addRoomType(
         @Field("name_type") name_type: String,
         @Field("price_per_day") price_per_day: Double,
-        @Field("pet_type") pet_type: String
+        @Field("pet_type") pet_type: String,
+        @Field("image") image: String?
     ): Call<RoomTypeResponse>
 
 
