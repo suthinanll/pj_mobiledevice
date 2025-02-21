@@ -105,7 +105,7 @@ app.post("/insertAccount",async function(req,res){
             VALUES('${name}','${password_hash}','${tell_number}','${email}', 2)`
           }else{
             var insertData = `INSERT INTO users (name,password,tell_number,email,user_type)  
-            VALUES('${name}','${password_hash}','${tell_number}','${email}',2)`;
+            VALUES('${name}','${password_hash}','${tell_number}','${email}', 2)`;
           }
 
           dbConn.query(insertData,function(error,results,fields){
@@ -128,13 +128,13 @@ app.post("/login",async function(req,res){
       return res.status(400).send({ error: name, message: 'Please provide name and password' })
   }
 
-  dbConn.query('SELECT * FROM users WHERE name = ? OR email = ? OR tell_number = ? ',[name, name, name],function(error,results,fields){
+  dbConn.query('SELECT * FROM users WHERE email = ? OR tell_number = ? ',[name, name],function(error,results,fields){
       if(error) throw error
       if(results[0]){
           bcrypt.compare(password,results[0].password,function(err,result){
               if(err) throw err
               if(result){
-                  return res.send({ "success": 1,"name":results[0].name,"user_type":results[0].user_type })
+                  return res.send({ "success": 1,"name":results[0].name,"user_type":results[0].user_type,"user_id":results[0].user_id, "email":results[0].email, "tell":result.tell_number })
               }else{
                   console.log("wongpass")
                   return res.send({ "success": 0 })
