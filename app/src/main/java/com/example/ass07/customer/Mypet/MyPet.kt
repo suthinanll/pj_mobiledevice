@@ -14,11 +14,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavHostController
 import com.example.ass07.customer.API.PetApi
+import com.example.ass07.customer.LoginRegister.SharePreferencesManager
 import com.example.ass07.customer.Screen
 import retrofit2.Call
 import retrofit2.Callback
@@ -31,35 +33,40 @@ import java.util.Locale
 fun MyPet(navController: NavHostController) {
     var petItemsList = remember { mutableStateListOf<petMember>() }
     val contextForToast = LocalContext.current.applicationContext
+    val context = LocalContext.current
+    val sharePreferences = remember { SharePreferencesManager(context) }
+    val user_id = sharePreferences.userId
 
 
 
 
     fun showAllData() {
         val createClient = PetApi.create()
-        createClient.retrievepetMember()
-            .enqueue(object : Callback<List<petMember>> {
-                override fun onResponse(
-                    call: Call<List<petMember>>, response: Response<List<petMember>>
-                ) {
-                    petItemsList.clear()
+        if (user_id != null) {
+            createClient.mypet(user_id.toInt())
+                .enqueue(object : Callback<List<petMember>> {
+                    override fun onResponse(
+                        call: Call<List<petMember>>, response: Response<List<petMember>>
+                    ) {
+                        petItemsList.clear()
 
-                    if (response.isSuccessful) {
-                        val pets = response.body()
-                        pets?.let {
-                            val filteredPets = it.filter { pet -> pet.deleted_at.isNullOrEmpty() }
-                            petItemsList.addAll(filteredPets)
+                        if (response.isSuccessful) {
+                            val pets = response.body()
+                            pets?.let {
+                                val filteredPets = it.filter { pet -> pet.deleted_at.isNullOrEmpty() }
+                                petItemsList.addAll(filteredPets)
 
+                            }
+                        } else {
+                            Log.e("API_ERROR", "Response failed: ${response.errorBody()?.string()}")
                         }
-                    } else {
-                        Log.e("API_ERROR", "Response failed: ${response.errorBody()?.string()}")
                     }
-                }
 
-                override fun onFailure(call: Call<List<petMember>>, t: Throwable) {
-                    Toast.makeText(contextForToast, "Error: ${t.message}", Toast.LENGTH_LONG).show()
-                }
-            })
+                    override fun onFailure(call: Call<List<petMember>>, t: Throwable) {
+                        Toast.makeText(contextForToast, "Error: ${t.message}", Toast.LENGTH_LONG).show()
+                    }
+                })
+        }
 
     }
 
@@ -137,8 +144,14 @@ fun PetCard(pet: petMember, onDelete: () -> Unit, navController: NavHostControll
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text("สัตว์เลี้ยงของฉัน", fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
+
+        Column(modifier = Modifier.padding(25.dp)) {
+            Text("สัตว์เลี้ยงของฉัน",
+                fontSize = 20.sp, fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .padding(bottom = 8.dp)
+                    .align(alignment = Alignment.CenterHorizontally),
+               )
             Text("ชื่อสัตว์เลี้ยง: ${pet.petName}", fontSize = 16.sp)
             Text("ประเภท: ${pet.petTypename}", fontSize = 16.sp)
             Text(

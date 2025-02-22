@@ -38,5 +38,18 @@ sealed class Screen(val route: String, val name: String, val icon: (@Composable 
         }
     )
 
+    object EditProfile : Screen(
+        route = "EditProfile",
+        name = "EditProfile",
+        icon = {
+            remember {
+                object : Painter() {
+                    override val intrinsicSize = Size(1f, 1f)
+                    override fun DrawScope.onDraw() { /* ไม่วาดอะไร */ }
+                }
+            }
+        }
+    )
+
 
 }

@@ -20,6 +20,7 @@ import com.example.ass07.customer.Mypet.MyPet
 import com.example.ass07.customer.Mypet.Mypetedit
 import com.example.ass07.customer.Mypet.Mypetinsert
 import com.example.ass07.customer.Mypet.PetViewModel
+import com.example.ass07.customer.Profile.Profile
 
 @Composable
 fun NavGraph(navController: NavHostController) {

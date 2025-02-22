@@ -9,7 +9,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.ass07.customer.Booking
-import com.example.ass07.customer.Mypet.petMember
 
 @Composable
 fun NavGraphAdmin(navController: NavHostController) {
@@ -31,10 +30,14 @@ fun NavGraphAdmin(navController: NavHostController) {
         }
         composable(route = ScreenAdmin.RoomEdit.route + "/{room_id}") { backStackEntry ->
             val roomId = backStackEntry.arguments?.getString("room_id")?.toIntOrNull()  // รับ room_id จาก URL
+            val roomViewModel: RoomViewModel = viewModel()  // ใช้ RoomViewModel
+            val room by roomViewModel.room.observeAsState()
 
-            roomId?.let {  // เช็คว่า room_id มีค่าหรือไม่
-                RoomEdit(navController, it)  // ส่ง room_id ไปยัง RoomEdit
+            LaunchedEffect(roomId) {
+                roomId?.let { roomViewModel.loadRoom(it) }  // โหลดข้อมูลห้องตาม roomId
             }
+
+            room?.let { RoomEdit(navController, it.room_id) }  // ส่งข้อมูลห้องไปยัง RoomEdit
         }
     }
 }
