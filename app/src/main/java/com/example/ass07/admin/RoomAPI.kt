@@ -53,13 +53,21 @@ interface RoomAPI {
 
 
 
+//    @PUT("updateroom/{room_id}")
+//    fun updateroom(
+//        @Path("room_id") room_id: Int,
+//        @Field("room_type_id") roomTypeId: Any,
+//        @Field("room_status") roomStatus: Int,
+//        @Field("pet_type") pet_type:String,
+//        @Field("image") image:String
+//    ): Call<Room>
+
+    @FormUrlEncoded
     @PUT("updateroom/{room_id}")
     fun updateroom(
         @Path("room_id") room_id: Int,
-        @Field("room_type_id") roomTypeId: Any,
-        @Field("room_status") roomStatus: Int,
-        @Field("pet_type") pet_type:String,
-        @Field("image") image:String
+        @Field("room_type_id") roomTypeId: Int,
+        @Field("room_status") roomStatus: Int
     ): Call<Room>
 
 
