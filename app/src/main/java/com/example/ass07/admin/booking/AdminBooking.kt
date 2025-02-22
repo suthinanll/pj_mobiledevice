@@ -41,9 +41,15 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.ass07.admin.ScreenAdmin
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 
 @Composable
@@ -109,7 +115,9 @@ fun Booking(navController: NavController) {
 
         LazyColumn {
             items(filteredBookings) { booking ->
-                BookingItem(booking, navController, bookingService)
+                BookingItem(booking, navController, bookingService, onResult = { bookings ->
+                    bookingList = bookings
+                })
             }
         }
     }
@@ -169,13 +177,10 @@ fun fetchBookings(bookingService: BookingAPI, onResult: (List<Booking>) -> Unit)
 
 // แสดงรายการการจองแต่ละรายการ
 @Composable
-fun BookingItem(booking: Booking, navController: NavController, bookingService: BookingAPI) {
-    // คำนวณจำนวนวันจาก pricePerDay และ totalPay
-    val numOfDays = if (booking.pricePerDay != 0 && booking.pay != 0 && booking.pricePerDay > 0) {
-        booking.pay / booking.pricePerDay
-    } else {
-        0
-    }
+fun BookingItem(booking: Booking, navController: NavController,
+                bookingService: BookingAPI, onResult: (List<Booking>) -> Unit) {
+    // คำนวณจำนวนวันจาก func calculateNumOfDays()
+    val numOfDays = calculateNumOfDays(booking.checkIn, booking.checkOut)
 
     // ราคารวมที่มีอยู่แล้ว
     val totalPrice = booking.totalPay ?: 0
@@ -187,7 +192,7 @@ fun BookingItem(booking: Booking, navController: NavController, bookingService: 
             .let { baseModifier ->
                 if (booking.status != 0 ) {
                     baseModifier.clickable {
-                        navController.navigate("booking_detail/${booking.bookingId}")
+                        navController.navigate(route = ScreenAdmin.BookingDetail.route+"/${booking.bookingId}")
                     }
                 } else {
                     baseModifier
@@ -200,8 +205,8 @@ fun BookingItem(booking: Booking, navController: NavController, bookingService: 
             Text(text = "🐶 สัตว์เลี้ยง: ${booking.petName ?: "ไม่มีข้อมูล"} (${booking.petNameType ?: "ไม่ระบุ"} - ${booking.petBreed ?: "ไม่ระบุ"}, ${booking.petAge ?: "?"} ปี)")
             Text(text = "👤 เจ้าของ: ${booking.name ?: "ไม่ระบุ"} (${booking.tellNumber ?: "ไม่มีเบอร์"})")
             Text(text = "🏠 ห้อง: ${booking.roomType ?: "ไม่ระบุ"} (ราคา ${booking.pricePerDay ?: "?"} บาท/วัน)")
-            Text(text = "📅 Check-in: ${booking.checkIn ?: "ไม่ระบุ"}")
-            Text(text = "📅 Check-out: ${booking.checkOut ?: "ไม่ระบุ"}")
+            Text(text = "📅 Check-in: ${formatDateTime(booking.checkIn)} น.")
+            Text(text = "📅 Check-out: ${formatDateTime(booking.checkOut)} น.")
             Text(text = "📅 จำนวนวันที่เข้าพัก: $numOfDays วัน")
             Text(text = "💰 ราคารวม: $totalPrice บาท")
             StatusText(booking.status) // status แบบมีสี
@@ -209,7 +214,7 @@ fun BookingItem(booking: Booking, navController: NavController, bookingService: 
             Row(horizontalArrangement = Arrangement.End) {
                 if (booking.status == 0) {
                     Button(
-                        onClick = { onConfirmBooking(booking.bookingId) },
+                        onClick = { onConfirmBooking(booking.bookingId, bookingService, onResult) },
                         modifier = Modifier.padding(top = 8.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color.Green,
@@ -222,7 +227,7 @@ fun BookingItem(booking: Booking, navController: NavController, bookingService: 
                     Spacer(modifier = Modifier.padding(6.dp))
 
                     Button(
-                        onClick = { onCancelBooking(booking.bookingId, bookingService) },
+                        onClick = { onCancelBooking(booking.bookingId, bookingService, onResult) },
                         modifier = Modifier.padding(top = 8.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color.Red,
@@ -238,26 +243,18 @@ fun BookingItem(booking: Booking, navController: NavController, bookingService: 
 }
 
 
-// onclick เช็นอิน
-fun onConfirmBooking(bookingId: Int) {
-    val api = BookingAPI.create()
+// onclick เช็คอิน
+fun onConfirmBooking(bookingId: Int, bookingService: BookingAPI, onResult: (List<Booking>) -> Unit) {
     val statusUpdate = mapOf("booking_status" to 1)
 
-    // เพิ่ม log เพื่อดูข้อมูลที่จะส่ง
-    Log.d("BookingDetail", "Sending status update: $statusUpdate for booking $bookingId")
-
-    api.updateBooking(bookingId, statusUpdate).enqueue(object : Callback<Map<String, String>> {
+    bookingService.updateBooking(bookingId, statusUpdate).enqueue(object : Callback<Map<String, String>> {
         override fun onResponse(call: Call<Map<String, String>>, response: Response<Map<String, String>>) {
-            // เพิ่ม log เพื่อดู response code และ body
-            Log.d("BookingDetail", "Response code: ${response.code()}")
-            Log.d("BookingDetail", "Response body: ${response.body()}")
-
             if (response.isSuccessful) {
                 Log.d("BookingDetail", "อัปเดตสถานะสำเร็จ: ${response.body()?.get("message")}")
+                // รีเฟรชข้อมูล
+                fetchBookings(bookingService, onResult)
             } else {
                 Log.e("BookingDetail", "อัปเดตสถานะล้มเหลว: ${response.message()}")
-                // เพิ่ม log เพื่อดู error body
-                Log.e("BookingDetail", "Error body: ${response.errorBody()?.string()}")
             }
         }
 
@@ -268,13 +265,15 @@ fun onConfirmBooking(bookingId: Int) {
 }
 
 // onclick ยกเลิก
-fun onCancelBooking(bookingId: Int, bookingService: BookingAPI) {
-    val statusUpdate = mapOf("booking_status" to 3)  // เปลี่ยนเป็น booking_status
+fun onCancelBooking(bookingId: Int, bookingService: BookingAPI, onResult: (List<Booking>) -> Unit) {
+    val statusUpdate = mapOf("booking_status" to 3)
 
     bookingService.updateBooking(bookingId, statusUpdate).enqueue(object : Callback<Map<String, String>> {
         override fun onResponse(call: Call<Map<String, String>>, response: Response<Map<String, String>>) {
             if (response.isSuccessful) {
                 Log.d("Booking", "สถานะการจองยกเลิกสำเร็จ: ${response.body()?.get("message")}")
+                // รีเฟรชข้อมูล
+                fetchBookings(bookingService, onResult)
             } else {
                 Log.e("Booking", "การยกเลิกสถานะล้มเหลว: ${response.message()}")
             }
@@ -303,5 +302,34 @@ fun StatusText(status: Int) {
     )
 }
 
+//format เวลา
+fun formatDateTime(isoDate: String?): String {
+    return try {
+        isoDate?.let {
+            val instant = Instant.parse(it)
+            val formatter = DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm")
+                .withZone(ZoneId.systemDefault()) // กำหนดโซนเวลาตามเครื่อง
+            formatter.format(instant)
+        } ?: "ไม่ระบุ"
+    } catch (e: Exception) {
+        "ไม่ระบุ"
+    }
+}
+
+//คำนวณเวลา
 
 
+fun calculateNumOfDays(checkIn: String?, checkOut: String?): Long {
+    return try {
+        if (!checkIn.isNullOrEmpty() && !checkOut.isNullOrEmpty()) {
+            val formatter = DateTimeFormatter.ISO_DATE_TIME // ใช้ฟอร์แมต ISO 8601
+            val checkInDate = LocalDate.parse(checkIn, formatter)
+            val checkOutDate = LocalDate.parse(checkOut, formatter)
+            ChronoUnit.DAYS.between(checkInDate, checkOutDate)
+        } else {
+            0
+        }
+    } catch (e: Exception) {
+        0
+    }
+}

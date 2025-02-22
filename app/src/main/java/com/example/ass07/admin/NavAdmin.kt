@@ -27,8 +27,7 @@ fun NavGraphAdmin(navController: NavHostController) {
         composable(route = ScreenAdmin.RoomInsert.route) {
             RoomInsert(navController)
         }
-
-        composable("booking_detail/{id}") { backStackEntry ->
+        composable(route = ScreenAdmin.BookingDetail.route+"/{id}") { backStackEntry ->
             val bookingId = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: 0
             BookingDetail(bookingId)
         }

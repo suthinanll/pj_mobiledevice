@@ -32,6 +32,12 @@ interface BookingAPI {
         @Body bookingData: Booking
     ): Call<Map<String, String>> // ใช้ Map รับ message กลับมา
 
+    @PUT("bookings/extend/{id}")
+    fun extendBooking(
+        @Path("id") bookingId: Int,
+        @Body request: ExtendBookingRequest
+    ): Call<ExtendBookingResponse>
+
     // ยกเลิก
     @DELETE("bookings/{id}")
     fun deleteBooking(
