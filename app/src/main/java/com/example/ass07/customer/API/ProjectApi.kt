@@ -1,14 +1,18 @@
 package com.example.ass07.customer.API
 
 import com.example.ass07.customer.LoginRegister.LoginClass
-import com.example.ass07.customer.User
+import com.example.ass07.customer.Profile.UpdateProfileRequest
+import com.example.ass07.customer.Profile.UpdateProfileResponse
+import com.example.ass07.customer.Profile.User
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.Body
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 
 interface projectApi {
@@ -35,7 +39,14 @@ interface projectApi {
 
 
     @GET("profile/{id}")
-    fun getProfileByID(@Path("id") userID: String): Call<User>
+    fun getProfileByID(@Path("id") userID: Int): Call<User>
+
+    @PUT("profile/edit/{id}")
+    fun updateProfile(
+        @Path("id") userId: Int,
+        @Body request: UpdateProfileRequest
+    ): Call<UpdateProfileResponse>
+
 
     companion object{
         fun create() : projectApi {

@@ -22,6 +22,10 @@ interface PetApi {
     @GET("allpet")
     fun retrievepetMember(): Call<List<petMember>>
 
+    @GET("mypet/{user_id}")
+    fun mypet(
+        @Path("user_id") user_id: Int,
+    ): Call<List<petMember>>
 
     @FormUrlEncoded
     @POST("pet")

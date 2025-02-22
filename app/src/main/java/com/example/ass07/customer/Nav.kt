@@ -9,11 +9,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.ass07.admin.ManageRoom
-import com.example.ass07.admin.PetsAdmin
-import com.example.ass07.admin.ScreenAdmin
-import com.example.ass07.admin.booking.Booking
-import com.example.ass07.admin.booking.BookingDetail
 import com.example.ass07.customer.LoginRegister.Login
 import com.example.ass07.customer.LoginRegister.Register
 import com.example.ass07.customer.LoginRegister.ScreenLogin
@@ -21,6 +16,8 @@ import com.example.ass07.customer.Mypet.MyPet
 import com.example.ass07.customer.Mypet.Mypetedit
 import com.example.ass07.customer.Mypet.Mypetinsert
 import com.example.ass07.customer.Mypet.PetViewModel
+import com.example.ass07.customer.Profile.EditProfile
+import com.example.ass07.customer.Profile.Profile
 
 @Composable
 fun NavGraph(navController: NavHostController) {
@@ -65,6 +62,7 @@ fun NavGraph(navController: NavHostController) {
         composable(route = Screen.EditProfile.route){
             EditProfile(navController)
         }
+
 
     }
 }

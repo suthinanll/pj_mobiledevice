@@ -1,5 +1,6 @@
 package com.example.ass07.admin
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -22,11 +24,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -46,6 +53,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.example.ass07.R
 import retrofit2.Call
 import retrofit2.Response
@@ -157,7 +165,7 @@ fun ManageRoom(navController: NavController) {
                 }
             } else {
                 items(rooms) { room ->
-                    RoomCard(room = room)
+                    RoomCard(room = room,navController)
                 }
 
                 item {
@@ -240,7 +248,7 @@ fun AddRoomButton(navController: NavController) {
 }
 
 @Composable
-fun RoomCard(room: Room) {
+fun RoomCard(room: Room,navController: NavController) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -298,14 +306,38 @@ fun RoomCard(room: Room) {
                     color = Color(0xFFD97706) // amber-600
                 )
             }
-
-            // More options (เพิ่มเติม)
-            IconButton(onClick = { /* Handle more options */ }) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = "More options",
-                    tint = Color(0xFF9CA3AF) // gray-400
+            val contextForToast = LocalContext.current
+            var expanded by remember { mutableStateOf(false) }
+            IconButton(onClick = { expanded = true }) {
+                Icon(Icons.Default.MoreVert, contentDescription = "Open Menu")
+            }
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                DropdownMenuItem(
+                    text = { Text("แก้ไข") },
+                    onClick = {
+                        Toast.makeText(contextForToast, "แก้ไข", Toast.LENGTH_SHORT).show()
+                        navController.navigate(ScreenAdmin.RoomEdit.route + "/${room.room_id}")
+                        expanded = false
+                    },
+                    leadingIcon = {
+                        Icon(Icons.Outlined.Settings, contentDescription = null)
+                    }
                 )
+                DropdownMenuItem(
+                    text = { Text("ลบ") },
+                    onClick = {
+                        Toast.makeText(contextForToast, "ลบ", Toast.LENGTH_SHORT).show()
+                        expanded = false
+                    },
+                    leadingIcon = {
+                        Icon(Icons.Outlined.Settings, contentDescription = null)
+                    }
+
+                )
+
             }
         }
     }
@@ -323,3 +355,5 @@ fun FilterOption(text: String, onClick: () -> Unit) {
         Text(text)
     }
 }
+
+

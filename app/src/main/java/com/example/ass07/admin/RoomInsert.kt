@@ -1,10 +1,20 @@
 package com.example.ass07.admin
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
+import android.net.Uri
+import android.provider.MediaStore
+import android.util.Base64
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.content.MediaType.Companion.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -22,10 +32,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextAlign
+import coil.compose.rememberAsyncImagePainter
 import com.example.ass07.customer.Mypet.PetType
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.io.ByteArrayOutputStream
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,9 +48,12 @@ fun RoomInsert(navController: NavHostController) {
     var isAddingRoomType by remember { mutableStateOf(false) }
     var petTypes by remember { mutableStateOf<List<PetType>>(emptyList()) }
     var selectedPetType by remember { mutableStateOf<PetType?>(null) }
+    var base64Image by remember { mutableStateOf<String?>(null) }
 
     val createClient = RoomAPI.create()
     val contextForToast = LocalContext.current
+
+
 
     LaunchedEffect(Unit) {
         createClient.getPetTypes().enqueue(object : Callback<List<PetType>> {
@@ -137,12 +152,12 @@ fun RoomInsert(navController: NavHostController) {
                             ).show()
                             return@RoomTypeDropdown
                         }
-
                         isAddingRoomType = true
                         createClient.addRoomType(
                             name_type = newTypeName,
                             price_per_day = pricePerDay,
-                            pet_type = selectedPetType!!.Pet_type_id.toString()
+                            pet_type = selectedPetType!!.Pet_type_id.toString() ,
+                            image = base64Image // ส่ง Base64 ไปที่ API
                         ).enqueue(object : Callback<RoomTypeResponse> {
                             override fun onResponse(
                                 call: Call<RoomTypeResponse>,
@@ -198,6 +213,7 @@ fun RoomInsert(navController: NavHostController) {
                     options = listOf("ว่าง", "ไม่ว่าง")
                 )
 
+
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Button(
@@ -205,44 +221,26 @@ fun RoomInsert(navController: NavHostController) {
                         if (selectedRoomType != null) {
                             val roomTypeId = selectedRoomType?.type_id ?: 0
                             Log.d("API_REQUEST", "roomTypeId: $roomTypeId, roomStatus: $roomStatus")
+
                             createClient.insertRoom(
-                                roomTypeId = selectedRoomType?.type_id ?: 0,
-                                roomStatus = roomStatus
+                                roomTypeId = roomTypeId,
+                                roomStatus = roomStatus,
                             ).enqueue(object : Callback<Room> {
-                                override fun onResponse(
-                                    call: Call<Room>,
-                                    response: Response<Room>
-                                ) {
+                                override fun onResponse(call: Call<Room>, response: Response<Room>) {
                                     if (response.isSuccessful) {
-                                        Toast.makeText(
-                                            contextForToast,
-                                            "บันทึกสำเร็จ",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
+                                        Toast.makeText(contextForToast, "บันทึกสำเร็จ", Toast.LENGTH_SHORT).show()
                                         navController.navigate(ScreenAdmin.ManageRoom.route)
                                     } else {
-                                        Toast.makeText(
-                                            contextForToast,
-                                            "บันทึกไม่สำเร็จ: ${response.message()}",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
+                                        Toast.makeText(contextForToast, "บันทึกไม่สำเร็จ: ${response.message()}", Toast.LENGTH_SHORT).show()
                                     }
                                 }
 
                                 override fun onFailure(call: Call<Room>, t: Throwable) {
-                                    Toast.makeText(
-                                        contextForToast,
-                                        "เกิดข้อผิดพลาด: ${t.message}",
-                                        Toast.LENGTH_LONG
-                                    ).show()
+                                    Toast.makeText(contextForToast, "เกิดข้อผิดพลาด: ${t.message}", Toast.LENGTH_LONG).show()
                                 }
                             })
                         } else {
-                            Toast.makeText(
-                                contextForToast,
-                                "กรุณาเลือกประเภทห้อง",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            Toast.makeText(contextForToast, "กรุณาเลือกประเภทห้อง", Toast.LENGTH_SHORT).show()
                         }
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD966)),
@@ -307,6 +305,19 @@ fun RoomTypeDropdown(
     var selectedPet by remember { mutableStateOf<PetType?>(null) }
 
     val contextForToast = LocalContext.current
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
+    var base64Image by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            imageUri = it
+            base64Image = encodeImageToBase64(context, it)
+            //Log.d("API_REQUEST", "Base64 Image: $base64String")
+        }
+    }
 
     Column {
         ExposedDropdownMenuBox(
@@ -371,6 +382,7 @@ fun RoomTypeDropdown(
                             keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
                         )
 
+                        // เลือกประเภทสัตว์เลี้ยง
                         ExposedDropdownMenuBox(
                             expanded = petExpanded,
                             onExpandedChange = { petExpanded = it }
@@ -384,7 +396,7 @@ fun RoomTypeDropdown(
                                     .fillMaxWidth()
                                     .clickable { petExpanded = true },
                                 label = { Text("ประเภทสัตว์เลี้ยง") },
-                                trailingIcon = {  // Corrected parameter name
+                                trailingIcon = {
                                     Icon(
                                         Icons.Default.ArrowDropDown,
                                         contentDescription = "Dropdown"
@@ -406,6 +418,23 @@ fun RoomTypeDropdown(
                                     )
                                 }
                             }
+                        }
+
+
+                        // ปุ่มเลือกภาพ
+                        Button(onClick = { imagePickerLauncher.launch("image/*") }) {
+                            Text("เลือกภาพประเภทห้อง")
+                        }
+
+                        // แสดงตัวอย่างภาพที่เลือก
+                        imageUri?.let {
+                            Image(
+                                painter = rememberAsyncImagePainter(it),
+                                contentDescription = "Room Type Image",
+                                modifier = Modifier
+                                    .size(150.dp)
+                                    .padding(8.dp)
+                            )
                         }
                     }
                 },
@@ -448,5 +477,33 @@ fun RoomTypeDropdown(
                 }
             )
         }
+    }
+}
+fun encodeImageToBase64(context: Context, uri: Uri): String? {
+    return try {
+        val bitmap = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+            val source = ImageDecoder.createSource(context.contentResolver, uri)
+            ImageDecoder.decodeBitmap(source)
+        } else {
+            MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
+        }
+
+        val outputStream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+        val byteArray = outputStream.toByteArray()
+        val base64String = Base64.encodeToString(byteArray, Base64.DEFAULT)
+
+        // เพิ่ม log เพื่อดู Base64
+        Log.d("API_REQUEST", "Base64 Image: $base64String")
+
+        // ตรวจสอบว่า Base64 มีค่าไหม
+        if (base64String.isEmpty()) {
+            Toast.makeText(context, "Base64 image is empty", Toast.LENGTH_SHORT).show()
+        }
+
+        base64String
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
     }
 }
