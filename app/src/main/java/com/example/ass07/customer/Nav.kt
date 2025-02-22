@@ -62,5 +62,9 @@ fun NavGraph(navController: NavHostController) {
             pet?.let { Mypetedit(navController, it) }
         }
 
+        composable(route = Screen.Showroom.route +"/{time}"){
+
+        }
+
     }
 }

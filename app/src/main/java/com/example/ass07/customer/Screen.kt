@@ -13,6 +13,7 @@ sealed class Screen(val route: String, val name: String, val icon: (@Composable 
     object History : Screen(route = "History", name = "History", icon = { painterResource(id = R.drawable.history) })
     object MyPet : Screen(route = "MyPet", name = "MyPet", icon = { painterResource(id = R.drawable.mypet) })
     object Profile : Screen(route = "Profile", name = "Profile", icon = { painterResource(id = R.drawable.user) })
+
     object Mypetinsert : Screen(
         route = "Mypetinsert",
         name = "Mypetinsert",
@@ -33,6 +34,32 @@ sealed class Screen(val route: String, val name: String, val icon: (@Composable 
                 object : Painter() {
                     override val intrinsicSize = Size(1f, 1f)
                     override fun DrawScope.onDraw() { /* ไม่วาดอะไร */ }
+                }
+            }
+        }
+    )
+
+    object Booking : Screen(
+        route = "Booking",
+        name = "Booking",
+        icon = {
+            remember {
+                object : Painter() {
+                    override val intrinsicSize = Size(1f, 1f)
+                    override fun DrawScope.onDraw() {  }
+                }
+            }
+        }
+    )
+
+    object Showroom : Screen(
+        route = "Showroom",
+        name = "Showroom",
+        icon = {
+            remember {
+                object : Painter() {
+                    override val intrinsicSize = Size(1f, 1f)
+                    override fun DrawScope.onDraw() {  }
                 }
             }
         }

@@ -124,7 +124,9 @@ fun Home() {
 
                 Spacer(modifier = Modifier.height(10.dp))
                 Button(
-                    onClick = {},
+                    onClick = {
+
+                    },
                     modifier = Modifier
                         .fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(Color(0xFFFFBC2B)),
