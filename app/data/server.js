@@ -609,7 +609,7 @@ app.post('/addroom', async (req, res) => {
 });
 
 
-const bcrypt = require('bcryptjs');
+//const bcrypt = require('bcryptjs');
 
 
 // Soft delete a room
@@ -654,14 +654,14 @@ app.post('/addRoomType', function (req, res) {
         image: req.body.image
     };
 
-    // ตรวจสอบว่ามีชื่อประเภทห้องพักส่งมาหรือไม่  
+    // ตรวจสอบว่ามีชื่อประเภทห้องพักส่งมาหรือไม่
     if (!roomType.name_type || !roomType.price_per_day || !roomType.pet_type) {
         return res.status(400).send({
             error: true,
             message: "กรุณาระบุชื่อประเภทห้องพัก ราคาต่อวัน และประเภทสัตว์เลี้ยง"
         });
     }
-    
+
 
     // ตรวจสอบว่ามีประเภทห้องพักนี้อยู่แล้วหรือไม่
     dbConn.promise().query(
@@ -720,13 +720,13 @@ app.post('/addRoomType', function (req, res) {
         name_type: req.body.name_type,
         price_per_day: req.body.price_per_day,
         pet_type: req.body.pet_type,
-        image: req.body.image // ค่าภาพที่ส่งมาใน Base64  
+        image: req.body.image // ค่าภาพที่ส่งมาใน Base64
     };
 
     // เช็คค่า Base64 ที่ได้รับจาก Client
     console.log("Received Base64 Image:", req.body.image);
 
-    // ตรวจสอบว่ามีชื่อประเภทห้องพักส่งมาหรือไม่  
+    // ตรวจสอบว่ามีชื่อประเภทห้องพักส่งมาหรือไม่
     if (!roomType.name_type || !roomType.price_per_day || !roomType.pet_type) {
         return res.status(400).send({
             error: true,
@@ -752,8 +752,8 @@ app.post('/addRoomType', function (req, res) {
             const base64Data = roomType.image.replace(/^data:image\/\w+;base64,/, ""); // ลบ header
             const buffer = Buffer.from(base64Data, 'base64');
             imagePath = path.join(__dirname, 'uploads', `room_${Date.now()}.jpg`);
-            console.log("Base64 Image: ", roomType.image); 
-            
+            console.log("Base64 Image: ", roomType.image);
+
 
             // บันทึกภาพลงในโฟลเดอร์ uploads
             fs.writeFile(imagePath, buffer, function (err) {
@@ -829,13 +829,13 @@ app.put('/updateRoomType/:roomId', function (req, res) {
         name_type: req.body.name_type,
         price_per_day: req.body.price_per_day,
         pet_type: req.body.pet_type,
-        image: req.body.image // ค่าภาพที่ส่งมาใน Base64  
+        image: req.body.image // ค่าภาพที่ส่งมาใน Base64
     };
 
     // เช็คค่า Base64 ที่ได้รับจาก Client
     console.log("Received Base64 Image:", req.body.image);
 
-    // ตรวจสอบว่ามีชื่อประเภทห้องพักส่งมาหรือไม่  
+    // ตรวจสอบว่ามีชื่อประเภทห้องพักส่งมาหรือไม่
     if (!roomType.name_type || !roomType.price_per_day || !roomType.pet_type) {
         return res.status(400).send({
             error: true,
@@ -1013,7 +1013,306 @@ app.put('/updateroom/:room_id', async (req, res) => {
     }
 });
 
+//การจอง Admin
 
+// ดึงข้อมูลการจองทั้งหมด พร้อมข้อมูลสัตว์เลี้ยงและเจ้าของ
+app.get("/bookings", function (req, res) {
+  const query = `
+    SELECT
+      bookings.*,
+      pets.pet_name, pets.pet_gender, pets.pet_breed, pets.pet_age, pets.pet_height, pets.pet_weight,
+      users.name , users.tell_number, users.email,
+      rooms.room_id , rooms.type_type_id ,rooms.status,
+      room_type.name_type, room_type.price_per_day , room_type.image, room_type.pet_type,
+      pet_type.pet_name_type,
+      payment_methods.method_name
+    FROM bookings
+    JOIN pets ON bookings.pet_id = pets.pet_id
+    JOIN users ON pets.user_id = users.user_id
+    JOIN rooms ON bookings.room_id = rooms.room_id
+    JOIN room_type ON rooms.type_type_id = room_type.type_id
+    JOIN pet_type ON room_type.pet_type = pet_type.pet_type_id
+    JOIN payment_methods ON bookings.payment_method = payment_methods.method_id
+    ORDER BY bookings.booking_id ASC`;
+    // WHERE bookings.deleted_at IS NULL
+
+
+  dbConn.query(query, function (error, results) {
+    if (error) throw error;
+    console.log("Sent all Booking data successfully");
+    return res.send(results);
+  });
+});
+
+// ดึงข้อมูลการจองตาม ID พร้อมข้อมูลสัตว์เลี้ยงและเจ้าของ
+app.get("/bookings/:id", function (req, res) {
+  const bookingId = req.params.id;
+
+  const query = `
+    SELECT
+      bookings.*,
+      pets.pet_name, pets.pet_gender, pets.pet_breed, pets.pet_age, pets.pet_height, pets.pet_weight,
+      users.name , users.tell_number, users.email,
+      rooms.room_id , rooms.type_type_id ,rooms.status,
+      room_type.name_type, room_type.price_per_day , room_type.image, room_type.pet_type,
+      pet_type.pet_name_type,
+      payment_methods.method_name
+    FROM bookings
+    JOIN pets ON bookings.pet_id = pets.pet_id
+    JOIN users ON pets.user_id = users.user_id
+    JOIN rooms ON bookings.room_id = rooms.room_id
+    JOIN room_type ON rooms.type_type_id = room_type.type_id
+    JOIN pet_type ON room_type.pet_type = pet_type.pet_type_id
+    JOIN payment_methods ON bookings.payment_method = payment_methods.method_id
+    WHERE bookings.booking_id = ? AND bookings.deleted_at IS NULL`;
+
+  dbConn.query(query, [bookingId], function (error, results) {
+    if (error) throw error;
+    if (results.length === 0) {
+      return res.status(404).send({ error: true, message: "Booking not found" });
+    }
+    return res.send(results[0]);
+  });
+});
+
+
+// อัปเดตข้อมูลการจอง(ทั้งหมด)
+app.put("/bookings/update/:id", function (req, res) {
+  var bookingData = req.body;
+  var bookingId = req.params.id;
+
+  if (!bookingData || Object.keys(bookingData).length === 0) {
+    return res.status(400).send({ error: true, message: "Please provide booking data" });
+  }
+  dbConn.query(
+    "UPDATE bookings SET ? WHERE booking_id = ? AND deleted_at IS NULL",
+    [bookingData, bookingId],
+    function (error, results) {
+      if (error) throw error;
+      if (results.affectedRows === 0) {
+        return res.status(404).send({ error: true, message: "Booking not found or already deleted" });
+      }
+      return res.send({ message: "Booking updated successfully" });
+    }
+  );
+});
+
+// การจอง Update status booking, rooms
+app.put("/bookings/status/:id", function (req, res) {
+    const bookingId = req.params.id;
+    const booking_status = req.body.booking_status;
+
+    if (booking_status === undefined) {
+        return res.status(400).json({
+        error: true,
+        message: "Please provide booking status",
+        receivedBody: req.body,
+        });
+    }
+
+    // เริ่มต้นการทำงานใน callback
+    dbConn.query(
+        "UPDATE bookings SET booking_status = ? WHERE booking_id = ? AND deleted_at IS NULL",
+        [booking_status, bookingId],
+        function (err, bookingUpdateResult) {
+            if (err) {
+                console.error("Database error:", err);
+                return res.status(500).json({ error: true, message: err.message });
+            }
+
+            if (bookingUpdateResult.affectedRows === 0) {
+                return res.status(404).json({ error: true, message: "Booking not found or already deleted" });
+            }
+
+            // ดึง room_id ของการจองนี้
+            dbConn.query(
+                "SELECT room_id FROM bookings WHERE booking_id = ?",
+                [bookingId],
+                function (err, roomResult) {
+                    if (err) {
+                        console.error("Database error:", err);
+                        return res.status(500).json({ error: true, message: err.message });
+                    }
+
+                    if (roomResult.length === 0) {
+                        return res.status(404).json({ error: true, message: "Room not found for this booking" });
+                    }
+
+                    const roomId = roomResult[0].room_id;
+                    let room_status = null;
+
+                    // กำหนดค่า room_status ตาม booking_status
+                    if (booking_status == 0) {
+                        room_status = 0; // ยังไม่เช็คอิน -> ไม่ว่าง
+                    } else if (booking_status == 1) {
+                        room_status = 0; // เช็คอินแล้ว -> ไม่ว่าง
+                    } else if (booking_status == 2) {
+                        room_status = 2; // เช็คเอาท์แล้ว -> ทำความสะอาด
+                    } else if (booking_status == 3) {
+                        room_status = 1; // ยกเลิก -> ว่าง
+                    }
+
+                    if (room_status !== null) {
+                        dbConn.query(
+                            "UPDATE rooms SET status = ? WHERE room_id = ?",
+                            [room_status, roomId],
+                            function (err) {
+                                if (err) {
+                                    console.error("Database error:", err);
+                                    return res.status(500).json({ error: true, message: err.message });
+                                }
+
+                                return res.json({ message: "Booking status and Room status updated successfully" });
+                            }
+                        );
+                    } else {
+                        return res.json({ message: "Booking status updated successfully, but no room status changed" });
+                    }
+                }
+            );
+        }
+    );
+});
+
+
+// API สำหรับขยายเวลาการเข้าพัก
+app.put("/bookings/extend/:id", function (req, res) {
+    const bookingId = req.params.id;
+    const { days, additionalCost } = req.body;
+
+    // ตรวจสอบข้อมูลที่จำเป็น
+    if (days === undefined || additionalCost === undefined) {
+        return res.status(400).json({
+            error: true,
+            message: "Please provide days and additional cost",
+            receivedBody: req.body,
+        });
+    }
+
+    // ดึงข้อมูลการจองปัจจุบัน
+    dbConn.query(
+        "SELECT check_out, adjust, total_pay FROM bookings WHERE booking_id = ? AND deleted_at IS NULL",
+        [bookingId],
+        function (err, results) {
+            if (err) {
+                console.error("Database error:", err);
+                return res.status(500).json({ error: true, message: err.message });
+            }
+
+            if (results.length === 0) {
+                return res.status(404).json({
+                    error: true,
+                    message: "Booking not found or already deleted"
+                });
+            }
+
+            const currentBooking = results[0];
+
+            // คำนวณวันที่ check_out ใหม่
+            const currentCheckOut = new Date(currentBooking.check_out);
+            const newCheckOut = new Date(currentCheckOut.setDate(currentCheckOut.getDate() + parseInt(days)));
+
+            // คำนวณค่าใช้จ่ายรวมใหม่
+            const newAdjust = (currentBooking.adjust || 0) + parseInt(additionalCost);
+            const newTotalPay = (currentBooking.total_pay || 0) + parseInt(additionalCost);
+
+            // อัพเดทข้อมูลในฐานข้อมูล
+            dbConn.query(
+                "UPDATE bookings SET check_out = ?, adjust = ?, total_pay = ? WHERE booking_id = ? AND deleted_at IS NULL",
+                [newCheckOut, newAdjust, newTotalPay, bookingId],
+                function (err, updateResult) {
+                    if (err) {
+                        console.error("Database error:", err);
+                        return res.status(500).json({ error: true, message: err.message });
+                    }
+
+                    if (updateResult.affectedRows === 0) {
+                        return res.status(404).json({
+                            error: true,
+                            message: "Failed to update booking"
+                        });
+                    }
+
+                    // ส่งข้อมูลที่อัพเดทกลับไป
+                    return res.json({
+                        message: "Booking extended successfully",
+                        data: {
+                            bookingId,
+                            newCheckOut,
+                            additionalCost,
+                            newTotalPay
+                        }
+                    });
+                }
+            );
+        }
+    );
+});
+
+// Soft Delete การจอง
+app.delete("/bookings/:id", function (req, res) {
+  const bookingId = req.params.id;
+  const deletedAt = new Date().toISOString().slice(0, 19).replace("T", " "); // เวลาปัจจุบัน
+
+  dbConn.query(
+    `UPDATE bookings SET deleted_at = ?
+    WHERE booking_id = ? AND deleted_at IS NULL`,
+    [deletedAt, bookingId],
+        function (error, results) {
+        if (error) throw error;
+                return res.send({ message: "Booking soft deleted successfully" });
+        }
+    );
+});
+
+
+//โปรไฟล์ Backend
+app.get("/profile/:id", function (req, res) {
+  const userId = req.params.id;
+  const query = `SELECT * FROM users WHERE user_id = ?`;
+
+  dbConn.query(query, [userId], function (error, results) {
+    if (error) throw error;
+    if (results.length === 0) {
+      return res.status(404).send({ error: true, message: "user data not found" });
+    }
+    console.log("User data "+userId+" get successfully")
+    return res.send(results[0]);
+  });
+});
+
+//แก้ไขโปรไฟล์
+app.put("/profile/edit/:id", function (req, res) {
+    const userId = req.params.id;
+    const { name, email, tell_number, avatar } = req.body;
+  
+    // ตรวจสอบค่าที่จำเป็น
+    if (!name || !email || !tell_number || avatar === undefined) {
+      return res.status(400).json({
+        error: true,
+        message: "Please provide name, email, tell_number, and avatar",
+      });
+    }
+  
+    const query = `UPDATE users 
+                   SET name = ?, email = ?, tell_number = ?, avatar = ?
+                   WHERE user_id = ? AND deleted_at IS NULL`;
+  
+    dbConn.query(query, [name, email, tell_number, avatar, userId], function (error, results) {
+      if (error) {
+        console.error("Database error:", error);
+        return res.status(500).json({ error: true, message: error.message });
+      }
+  
+      if (results.affectedRows === 0) {
+        return res.status(404).json({ error: true, message: "User not found or already deleted" });
+      }
+  
+      console.log("User data " + name + " updated successfully");
+      return res.json({ message: "User profile updated successfully" });
+    });
+  });
+  
 
 app.listen(3000, function () {
   console.log("Node app is running on port 3000");

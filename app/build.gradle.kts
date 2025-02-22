@@ -51,6 +51,9 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation ("com.google.code.gson:gson:2.8.7")
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.runtime.livedata)
@@ -62,6 +65,7 @@ dependencies {
     implementation(libs.play.services.base)
     implementation(libs.play.services.base)
     implementation(libs.androidx.media3.common.ktx)
+    implementation(libs.androidx.room.ktx)
     testImplementation(libs.junit)
     implementation("io.coil-kt:coil-compose:2.0.0") // ใช้แสดงรูปภาพจาก URL หรือไฟล์
     implementation("io.coil-kt:coil-compose:2.0.0")
@@ -72,7 +76,4 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation ("com.google.code.gson:gson:2.8.7")
 }

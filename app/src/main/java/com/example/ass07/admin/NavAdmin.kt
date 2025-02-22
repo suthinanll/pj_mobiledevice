@@ -8,7 +8,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.ass07.customer.Booking
+import com.example.ass07.admin.booking.Booking
+import com.example.ass07.admin.booking.BookingDetail
 
 @Composable
 fun NavGraphAdmin(navController: NavHostController) {
@@ -20,7 +21,7 @@ fun NavGraphAdmin(navController: NavHostController) {
             ManageRoom(navController)
         }
         composable(route = ScreenAdmin.Booking.route) {
-            Booking()
+            Booking(navController)
         }
         composable(route = ScreenAdmin.PetsAdmin.route) {
             PetsAdmin()
@@ -39,5 +40,10 @@ fun NavGraphAdmin(navController: NavHostController) {
 
             room?.let { RoomEdit(navController, it.room_id) }  // ส่งข้อมูลห้องไปยัง RoomEdit
         }
+        composable(route = ScreenAdmin.BookingDetail.route+"/{id}") { backStackEntry ->
+            val bookingId = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: 0
+            BookingDetail(bookingId)
+        }
+
     }
 }
