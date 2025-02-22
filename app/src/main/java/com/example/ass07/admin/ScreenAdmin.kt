@@ -7,7 +7,6 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import com.example.ass07.R
-import com.example.ass07.customer.Screen
 
 sealed class ScreenAdmin(val route: String, val name: String, val icon: (@Composable () -> Painter)) {
     object ManageRoom : ScreenAdmin(route = "ManageRoom", name = "Manage Room", icon = { painterResource(id = R.drawable.home) })
@@ -38,5 +37,17 @@ sealed class ScreenAdmin(val route: String, val name: String, val icon: (@Compos
         }
     )
 
+    object BookingDetail : ScreenAdmin(
+        route = "BookingDetail",
+        name = "BookingDetail",
+        icon = {
+            remember {
+                object : Painter() {
+                    override val intrinsicSize = Size(1f, 1f)
+                    override fun DrawScope.onDraw() { /* ไม่วาดอะไร */ }
+                }
+            }
+        }
+    )
 
 }

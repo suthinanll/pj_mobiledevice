@@ -21,6 +21,8 @@ import com.example.ass07.customer.Mypet.MyPet
 import com.example.ass07.customer.Mypet.Mypetedit
 import com.example.ass07.customer.Mypet.Mypetinsert
 import com.example.ass07.customer.Mypet.PetViewModel
+import com.example.ass07.customer.Profile.EditProfile
+import com.example.ass07.customer.Profile.Profile
 
 @Composable
 fun NavGraph(navController: NavHostController) {
@@ -61,6 +63,11 @@ fun NavGraph(navController: NavHostController) {
 
             pet?.let { Mypetedit(navController, it) }
         }
+
+        composable(route = Screen.EditProfile.route){
+            EditProfile(navController)
+        }
+
 
         composable(route = Screen.Showroom.route +"/{time}"){
 
