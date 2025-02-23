@@ -238,10 +238,13 @@ fun RoomEdit(navController: NavHostController, room_id: Int) {
                             val roomTypeId = selectedRoomType?.type_id ?: 0
                             createClient.insertRoom(
                                 roomTypeId = roomTypeId,
-                                roomStatus = roomStatus,
+                                roomStatus = roomStatus
                             ).enqueue(object : Callback<Room> {
                                 override fun onResponse(call: Call<Room>, response: Response<Room>) {
                                     if (response.isSuccessful) {
+                                        Log.d("RoomEdit", "RoomType ID: ${selectedRoomType?.type_id}")
+                                        Log.d("RoomEdit", "RoomStatus: $roomStatus")
+                                        Log.d("RoomEdit", "room_id: $room_id")
                                         Toast.makeText(contextForToast, "บันทึกสำเร็จ", Toast.LENGTH_SHORT).show()
                                         navController.navigate(ScreenAdmin.ManageRoom.route)
                                     } else {

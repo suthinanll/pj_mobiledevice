@@ -1,5 +1,7 @@
 package com.example.ass07.admin
 
+import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -16,7 +18,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -32,8 +33,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -53,9 +52,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
 import com.example.ass07.R
 import retrofit2.Call
+import retrofit2.Callback
 import retrofit2.Response
 
 
@@ -248,7 +247,35 @@ fun AddRoomButton(navController: NavController) {
 }
 
 @Composable
-fun RoomCard(room: Room,navController: NavController) {
+fun RoomCard(room: Room, navController: NavController) {
+    val contextForToast = LocalContext.current
+    var expanded by remember { mutableStateOf(false) }
+
+
+
+    // ฟังก์ชันลบห้อง (soft delete)
+    fun softDeleteRoom(room_id: Int, contextForToast: Context) {
+        val createClient = RoomAPI.create()
+
+        createClient.softDeleteRoom(room_id).enqueue(object : Callback<Void> {
+            override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                Log.d("SoftDelete", "Response code: ${room_id}") // ✅ Debug Response Code
+                if (response.isSuccessful) {
+                    Toast.makeText(contextForToast, "ลบข้อมูลสำเร็จ", Toast.LENGTH_SHORT).show()
+
+                } else {
+                    Toast.makeText(contextForToast, "ลบข้อมูลไม่สำเร็จ", Toast.LENGTH_SHORT).show()
+                    Log.e("SoftDelete", "Error: ${response.errorBody()?.string()}") // ✅ Debug Error
+                }
+            }
+
+            override fun onFailure(call: Call<Void>, t: Throwable) {
+                Toast.makeText(contextForToast, "Error: ${t.message}", Toast.LENGTH_LONG).show()
+                Log.e("SoftDelete", "Failure: ${t.message}") // ✅ Debug Failure
+            }
+        })
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -306,19 +333,21 @@ fun RoomCard(room: Room,navController: NavController) {
                     color = Color(0xFFD97706) // amber-600
                 )
             }
-            val contextForToast = LocalContext.current
-            var expanded by remember { mutableStateOf(false) }
+
+            // เมนู Dropdown
             IconButton(onClick = { expanded = true }) {
                 Icon(Icons.Default.MoreVert, contentDescription = "Open Menu")
             }
+
             DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false }
             ) {
+                // เมนูสำหรับแก้ไขห้อง
                 DropdownMenuItem(
                     text = { Text("แก้ไข") },
                     onClick = {
-                        Toast.makeText(contextForToast, "แก้ไข", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(contextForToast, "แก้ไขห้อง", Toast.LENGTH_SHORT).show()
                         navController.navigate(ScreenAdmin.RoomEdit.route + "/${room.room_id}")
                         expanded = false
                     },
@@ -326,18 +355,19 @@ fun RoomCard(room: Room,navController: NavController) {
                         Icon(Icons.Outlined.Settings, contentDescription = null)
                     }
                 )
+
+                // เมนูสำหรับลบห้อง
                 DropdownMenuItem(
                     text = { Text("ลบ") },
                     onClick = {
                         Toast.makeText(contextForToast, "ลบ", Toast.LENGTH_SHORT).show()
-                        expanded = false
+                        expanded = false  // ปิดการแสดงเมนู dropdown
+                        softDeleteRoom(room.room_id, contextForToast)  // เรียกใช้ฟังก์ชัน softDeleteRoom
                     },
                     leadingIcon = {
                         Icon(Icons.Outlined.Settings, contentDescription = null)
                     }
-
                 )
-
             }
         }
     }
