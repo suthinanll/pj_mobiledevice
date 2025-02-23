@@ -39,6 +39,7 @@ fun NavGraphAdmin(navController: NavHostController) {
             roomId?.let {  // เช็คว่า room_id มีค่าหรือไม่
                 RoomEdit(navController, it)  // ส่ง room_id ไปยัง RoomEdit
             }
+        }
 
 
         composable(route = ScreenAdmin.BookingDetail.route+"/{id}") { backStackEntry ->
