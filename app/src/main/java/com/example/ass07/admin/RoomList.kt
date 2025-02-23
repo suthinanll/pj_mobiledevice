@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.ass07.admin.Room
 import com.example.ass07.admin.RoomAPI
 import retrofit2.Call
@@ -26,7 +27,8 @@ import retrofit2.Response
 @Composable
 fun RoomList(
     roomType: String,
-    petType: String
+    petType: String,
+    navController: NavController
 ) {
     val context = LocalContext.current
     var rooms by remember { mutableStateOf<List<Room>>(emptyList()) }
@@ -78,7 +80,7 @@ fun RoomList(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(rooms) { room ->
-                    RoomCard(room = room)
+                    RoomCard(room = room,navController= navController)
                 }
             }
         }

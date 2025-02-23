@@ -36,15 +36,12 @@ fun NavGraphAdmin(navController: NavHostController) {
             RoomInsert(navController)
         }
         composable(route = ScreenAdmin.RoomEdit.route + "/{room_id}") { backStackEntry ->
-            val roomId = backStackEntry.arguments?.getString("room_id")?.toIntOrNull()  // รับ room_id จาก URL
-            val roomViewModel: RoomViewModel = viewModel()  // ใช้ RoomViewModel
-            val room by roomViewModel.room.observeAsState()
+            val roomId = backStackEntry.arguments?.getString("room_id")
+                ?.toIntOrNull()  // รับ room_id จาก URL
 
-            LaunchedEffect(roomId) {
-                roomId?.let { roomViewModel.loadRoom(it) }  // โหลดข้อมูลห้องตาม roomId
+            roomId?.let {  // เช็คว่า room_id มีค่าหรือไม่
+                RoomEdit(navController, it)
             }
-
-            room?.let { RoomEdit(navController, it.room_id) }  // ส่งข้อมูลห้องไปยัง RoomEdit
         }
         composable(route = ScreenAdmin.BookingDetail.route+"/{id}") { backStackEntry ->
             val bookingId = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: 0
@@ -60,7 +57,7 @@ fun NavGraphAdmin(navController: NavHostController) {
             val roomType = backStackEntry.arguments?.getString("roomType") ?: "ทั้งหมด"
             val petType = backStackEntry.arguments?.getString("petType") ?: "ทั้งหมด"
 
-            RoomList(roomType = roomType, petType = petType)
+            RoomList(roomType = roomType, petType = petType,navController= navController)
         }
 
     }
