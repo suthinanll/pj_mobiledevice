@@ -9,9 +9,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.ass07.admin.ManageRoom
-import com.example.ass07.admin.PetsAdmin
-import com.example.ass07.admin.ScreenAdmin
+import com.example.ass07.customer.Home.Home
+import com.example.ass07.customer.Home.Search
 import com.example.ass07.customer.LoginRegister.Login
 import com.example.ass07.customer.LoginRegister.Register
 import com.example.ass07.customer.LoginRegister.ScreenLogin
@@ -36,7 +35,7 @@ fun NavGraph(navController: NavHostController) {
             History()
         }
         composable(route = Screen.Home.route) {
-            Home()
+            Home(navController)
         }
         composable(route = Screen.MyPet.route) {
             MyPet(navController)
@@ -58,6 +57,10 @@ fun NavGraph(navController: NavHostController) {
             }
 
             pet?.let { Mypetedit(navController, it) }
+        }
+
+        composable(route = Screen.Search.route) {
+            Search(navController)
         }
     }
 }

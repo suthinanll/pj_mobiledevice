@@ -1,4 +1,4 @@
-package com.example.ass07.customer
+package com.example.ass07.customer.Home
 
 import android.app.DatePickerDialog
 import android.icu.util.Calendar
@@ -42,13 +42,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import com.example.ass07.customer.Screen
 import java.text.SimpleDateFormat
 import java.util.Locale
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Home() {
+fun Home(navController: NavHostController) {
     var selectedPet by remember { mutableStateOf("เลือกประเภทสัตว์เลี้ยงของคุณ") }
     var checkInDate by remember { mutableStateOf("วว/ดด/ปปปป") }
     var checkOutDate by remember { mutableStateOf("วว/ดด/ปปปป") }
@@ -124,7 +126,7 @@ fun Home() {
 
                 Spacer(modifier = Modifier.height(10.dp))
                 Button(
-                    onClick = {},
+                    onClick = { navController.navigate(Screen.Search.route)},
                     modifier = Modifier
                         .fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(Color(0xFFFFBC2B)),
@@ -145,7 +147,7 @@ fun PetDropdownMenu(
     onPetSelected: (String) -> Unit
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
-    val petsList = listOf("สุนัข", "แมว", "กระต่าย")
+    val petsList = listOf("สุนัข", "แมว", "นก")
     var expanded by remember { mutableStateOf(false) }
 
     ExposedDropdownMenuBox(
