@@ -157,7 +157,7 @@ fun RoomInsert(navController: NavHostController) {
                             name_type = newTypeName,
                             price_per_day = pricePerDay,
                             pet_type = selectedPetType!!.Pet_type_id.toString() ,
-                            image = base64Image // ส่ง Base64 ไปที่ API
+                            image = base64Image
                         ).enqueue(object : Callback<RoomTypeResponse> {
                             override fun onResponse(
                                 call: Call<RoomTypeResponse>,
