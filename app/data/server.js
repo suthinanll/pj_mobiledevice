@@ -77,7 +77,7 @@ dbConn.connect();
 //   });
 // });
 
-const bcrypt = require('bcryptjs');
+
 
 
 app.post("/insertAccount", async function (req, res) {
