@@ -48,7 +48,7 @@ fun NavGraph(navController: NavHostController) {
            Mypetinsert(navController)
         }
         composable(route = ScreenAdmin.ManageRoom.route) {
-            ManageRoom()
+            ManageRoom(navController)
         }
         composable(route = ScreenAdmin.Booking.route) {
             Booking()

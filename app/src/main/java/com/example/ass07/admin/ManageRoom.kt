@@ -1,5 +1,6 @@
 package com.example.ass07
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -47,6 +48,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.ass07.admin.Room
 import com.example.ass07.admin.RoomAPI
 import com.example.ass07.admin.RoomGroupInfo
@@ -72,7 +74,7 @@ enum class RoomSort {
 }
 
 @Composable
-fun ManageRoom() {
+fun ManageRoom(navController: NavController) {
     val context = LocalContext.current
     var filterDialogOpen by remember { mutableStateOf(false) }
     var sortDialogOpen by remember { mutableStateOf(false) }
@@ -90,12 +92,14 @@ fun ManageRoom() {
             override fun onResponse(call: Call<List<Room>>, response: Response<List<Room>>) {
                 if (response.isSuccessful) {
                     rooms = response.body() ?: emptyList()
-                    filteredRooms = rooms // เริ่มต้นให้แสดงทุกห้อง
+                    filteredRooms = rooms
+                    Log.d("DEBUG_ROOMS", "Rooms: $rooms") // Debug ค่าห้อง
                 } else {
                     errorMessage = "Error: ${response.message()}"
                 }
                 isLoading = false
             }
+
 
             override fun onFailure(call: Call<List<Room>>, t: Throwable) {
                 errorMessage = "Error: ${t.message}"
@@ -173,7 +177,7 @@ fun ManageRoom() {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.logoapp),
+                        painter = painterResource(id = R.drawable.filter__1_),
                         contentDescription = "Filter",
                         modifier = Modifier.size(18.dp)
                     )
@@ -263,23 +267,20 @@ fun ManageRoom() {
         }
     }
 
+
+//    Button(
+//        onClick = {
+//            val roomType = selectedRoomType ?: "All"
+//            val petType = selectedPetType ?: "All"
+//            navController.navigate("room_list/$roomType/$petType")
+//        }
+//    ) {
+//        Text("ดูรายการห้อง")
+//    }
     // แสดงหน้าต่างใหม่เมื่อมีการเลือก RoomGroup
     selectedRoomGroup?.let { roomGroup ->
-        AlertDialog(
-            onDismissRequest = { selectedRoomGroup = null },
-            title = { Text("ห้องที่ตรงกับเงื่อนไข") },
-            text = {
-                ShowAllMatchingRooms(rooms = rooms, selectedRoomGroup = roomGroup)
-            },
-            confirmButton = {
-                Button(
-                    onClick = { selectedRoomGroup = null },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFBBF24))
-                ) {
-                    Text("ปิด")
-                }
-            }
-        )
+        navController.navigate("room_list/${roomGroup.roomType}/${roomGroup.petType}")
+        selectedRoomGroup = null
     }
     // Filter Dialog
     var showRoomStatusOptions by remember { mutableStateOf(false) }
@@ -543,13 +544,8 @@ fun GroupedRoomCard(roomGroup: RoomGroupInfo, onCardClick: (RoomGroupInfo) -> Un
                 }
             }
 
-            IconButton(onClick = { /* Handle more options */ }) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = "More options",
-                    tint = Color(0xFF9CA3AF)
-                )
-            }
+
+
         }
     }
 
