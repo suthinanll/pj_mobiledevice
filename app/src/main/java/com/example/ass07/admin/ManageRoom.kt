@@ -25,6 +25,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
+<<<<<<< HEAD
+=======
+import androidx.compose.material.icons.outlined.Delete
+>>>>>>> eve
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -590,10 +594,18 @@ fun AddRoomButton(navController: NavController) {
 
 @Composable
 fun RoomCard(room: Room,navController: NavController) {
+<<<<<<< HEAD
+=======
+
+>>>>>>> eve
     val contextForToast = LocalContext.current
     var expanded by remember { mutableStateOf(false) }
 
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> eve
     // ฟังก์ชันลบห้อง (soft delete)
     fun softDeleteRoom(room_id: Int, contextForToast: Context) {
         val createClient = RoomAPI.create()
@@ -617,6 +629,10 @@ fun RoomCard(room: Room,navController: NavController) {
         })
     }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> eve
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -688,7 +704,11 @@ fun RoomCard(room: Room,navController: NavController) {
                 )
             }
 
+<<<<<<< HEAD
             // More options (เพิ่มเติม)
+=======
+            // เมนู Dropdown
+>>>>>>> eve
             IconButton(onClick = { expanded = true }) {
                 Icon(Icons.Default.MoreVert, contentDescription = "Open Menu")
             }
@@ -719,7 +739,11 @@ fun RoomCard(room: Room,navController: NavController) {
                         softDeleteRoom(room.room_id, contextForToast)  // เรียกใช้ฟังก์ชัน softDeleteRoom
                     },
                     leadingIcon = {
+<<<<<<< HEAD
                         Icon(Icons.Outlined.Settings, contentDescription = null)
+=======
+                        Icon(Icons.Outlined.Delete, contentDescription = null)
+>>>>>>> eve
                     }
                 )
             }
@@ -762,7 +786,11 @@ fun ShowAllMatchingRooms(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(filteredRooms) { room ->
+<<<<<<< HEAD
             RoomCard(room = room,  navController = navController)
+=======
+            RoomCard(room = room,navController=navController)
+>>>>>>> eve
         }
     }
 }

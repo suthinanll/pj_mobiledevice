@@ -1,6 +1,5 @@
 package com.example.ass07.admin
 
-
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -22,7 +21,6 @@ fun NavGraphAdmin(navController: NavHostController) {
         navController = navController,
         startDestination = ScreenAdmin.ManageRoom.route
     ) {
-
         composable(route = ScreenAdmin.ManageRoom.route) {
             ManageRoom(navController)
         }
@@ -36,13 +34,16 @@ fun NavGraphAdmin(navController: NavHostController) {
             RoomInsert(navController)
         }
         composable(route = ScreenAdmin.RoomEdit.route + "/{room_id}") { backStackEntry ->
-            val roomId = backStackEntry.arguments?.getString("room_id")
-                ?.toIntOrNull()  // รับ room_id จาก URL
+
+            val roomId = backStackEntry.arguments?.getString("room_id")?.toIntOrNull()  // รับ room_id จาก URL
 
             roomId?.let {  // เช็คว่า room_id มีค่าหรือไม่
-                RoomEdit(navController, it)
+                RoomEdit(navController, it)  // ส่ง room_id ไปยัง RoomEdit
+
             }
         }
+
+
         composable(route = ScreenAdmin.BookingDetail.route+"/{id}") { backStackEntry ->
             val bookingId = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: 0
             BookingDetail(bookingId)
@@ -57,8 +58,10 @@ fun NavGraphAdmin(navController: NavHostController) {
             val roomType = backStackEntry.arguments?.getString("roomType") ?: "ทั้งหมด"
             val petType = backStackEntry.arguments?.getString("petType") ?: "ทั้งหมด"
 
-            RoomList(roomType = roomType, petType = petType,navController= navController)
+            RoomList(roomType = roomType, petType = petType,navController=navController)
+
         }
 
     }
-}
+
+    }

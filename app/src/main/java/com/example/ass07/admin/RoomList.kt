@@ -80,7 +80,11 @@ fun RoomList(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(rooms) { room ->
+<<<<<<< HEAD
                     RoomCard(room = room,navController= navController)
+=======
+                    RoomCard(room = room,navController=navController)
+>>>>>>> eve
                 }
             }
         }
