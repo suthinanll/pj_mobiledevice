@@ -1,15 +1,20 @@
 package com.example.ass07.admin
 
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.ass07.admin.booking.Booking
+import androidx.navigation.navArgument
+import com.example.ass07.ManageRoom
+import com.example.ass07.RoomList
 import com.example.ass07.admin.booking.BookingDetail
+import com.example.ass07.customer.Booking
 
 @Composable
 fun NavGraphAdmin(navController: NavHostController) {
@@ -17,11 +22,12 @@ fun NavGraphAdmin(navController: NavHostController) {
         navController = navController,
         startDestination = ScreenAdmin.ManageRoom.route
     ) {
+
         composable(route = ScreenAdmin.ManageRoom.route) {
             ManageRoom(navController)
         }
         composable(route = ScreenAdmin.Booking.route) {
-            Booking(navController)
+            Booking()
         }
         composable(route = ScreenAdmin.PetsAdmin.route) {
             PetsAdmin()
@@ -43,6 +49,18 @@ fun NavGraphAdmin(navController: NavHostController) {
         composable(route = ScreenAdmin.BookingDetail.route+"/{id}") { backStackEntry ->
             val bookingId = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: 0
             BookingDetail(bookingId)
+        }
+        composable(
+            route = "room_list/{roomType}/{petType}",
+            arguments = listOf(
+                navArgument("roomType") { type = NavType.StringType },
+                navArgument("petType") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val roomType = backStackEntry.arguments?.getString("roomType") ?: "ทั้งหมด"
+            val petType = backStackEntry.arguments?.getString("petType") ?: "ทั้งหมด"
+
+            RoomList(roomType = roomType, petType = petType)
         }
 
     }

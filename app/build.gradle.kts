@@ -60,20 +60,27 @@ dependencies {
     implementation(libs.firebase.firestore.ktx)
     implementation(libs.volley)
     implementation(libs.play.services.base)
-    implementation(libs.play.services.base)
-    implementation(libs.play.services.base)
-    implementation(libs.play.services.base)
-    implementation(libs.play.services.base)
+
     implementation(libs.androidx.media3.common.ktx)
     implementation(libs.androidx.room.ktx)
     testImplementation(libs.junit)
+<<<<<<< HEAD
     implementation("io.coil-kt:coil-compose:2.0.0") // ใช้แสดงรูปภาพจาก URL หรือไฟล์
     implementation("io.coil-kt:coil-compose:2.0.0")
+=======
+
+>>>>>>> boss
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+<<<<<<< HEAD
 
+=======
+    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation ("com.google.code.gson:gson:2.8.7")
+>>>>>>> boss
 }
