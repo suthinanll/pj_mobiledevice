@@ -19,11 +19,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.KeyboardType
 import com.example.ass07.customer.API.PetApi
+import com.example.ass07.customer.LoginRegister.SharePreferencesManager
 import com.example.ass07.customer.Screen
 import retrofit2.Call
 import retrofit2.Callback
@@ -48,7 +50,9 @@ fun Mypetinsert(navController: NavHostController) {
 
     val createClient = PetApi.create()
     val contextForToast = LocalContext.current
-    val userId = 3 // หรือส่งผ่าน parameter หรือดึงจาก session
+    val context = LocalContext.current
+    val sharePreferences = remember { SharePreferencesManager(context) }
+    val user_id = sharePreferences.userId
 
 
 
@@ -94,11 +98,11 @@ fun Mypetinsert(navController: NavHostController) {
                     {
                         Text(
                             text = "เพิ่มข้อมูลสัตว์เลี้ยง",
-                            fontSize = 20.sp,
+                            fontSize = 25.sp,
+                            fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center ,
                             modifier = Modifier
                                 .fillMaxWidth()
-
 
                         )
                     }
@@ -170,7 +174,7 @@ fun Mypetinsert(navController: NavHostController) {
                     selected = petGender,
                     setSelected = { petGender = it },
                     label = "เพศ",
-                    options = listOf("เพศผู้", "เพศเมีย")
+                    options = listOf("เพศผู้", "เพศเมีย", "ไม่ระบุเพศ")
                 )
 
                 OutlinedTextField(
@@ -218,7 +222,7 @@ fun Mypetinsert(navController: NavHostController) {
                         createClient.insertPet(
                             textFieldPetName,
                             genderCode,
-                            userId,
+                            user_id ?:0,
                             selectedPetType?.Pet_type_id ?: 0,
                             textFieldPetBreed,
                             textFieldPetAge.toIntOrNull() ?: 0,

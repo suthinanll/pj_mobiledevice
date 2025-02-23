@@ -89,8 +89,8 @@ fun Login(navController : NavHostController) {
                     navController.navigate(Screen.Profile.route)
                 }
 
-                if (!sharePreferences.userId.isNullOrEmpty()) {
-                    accID = sharePreferences.userId ?: "1"
+                if (!sharePreferences.email.isNullOrEmpty()) {
+                    accID = sharePreferences.email ?: ""
                 }
             }
         }
@@ -143,7 +143,7 @@ fun Login(navController : NavHostController) {
                         accID = it
                         isButtonEnabled = accID.isNotEmpty() && password.isNotEmpty()
                     },
-                    label = { Text("Name/Tell-number/E-mail") },
+                    label = { Text("Tell-number/E-mail") },
                     keyboardOptions = KeyboardOptions.Default.copy(
                         imeAction = ImeAction.Next
                     ),
@@ -203,8 +203,11 @@ fun Login(navController : NavHostController) {
                                         val loginResponse = response.body()
                                         if (loginResponse != null && loginResponse.success == 1) {
                                             sharePreferences.isLoggedIn = true
-                                            sharePreferences.userId = loginResponse.name
+                                            sharePreferences.userId = loginResponse.user_id
+                                            sharePreferences.userName = loginResponse.name
                                             sharePreferences.userRole = loginResponse.user_type.toString()  // ✅ บันทึก role ของผู้ใช้
+                                            sharePreferences.email = loginResponse.email
+                                            sharePreferences.tell_number = loginResponse.tell_number
 
                                             Toast.makeText(contextForToast, "Login Successful.", Toast.LENGTH_SHORT).show()
 
