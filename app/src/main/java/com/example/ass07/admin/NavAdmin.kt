@@ -1,6 +1,5 @@
 package com.example.ass07.admin
 
-
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -22,7 +21,6 @@ fun NavGraphAdmin(navController: NavHostController) {
         navController = navController,
         startDestination = ScreenAdmin.ManageRoom.route
     ) {
-
         composable(route = ScreenAdmin.ManageRoom.route) {
             ManageRoom(navController)
         }
@@ -42,6 +40,7 @@ fun NavGraphAdmin(navController: NavHostController) {
                 RoomEdit(navController, it)  // ส่ง room_id ไปยัง RoomEdit
             }
 
+
         composable(route = ScreenAdmin.BookingDetail.route+"/{id}") { backStackEntry ->
             val bookingId = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: 0
             BookingDetail(bookingId)
@@ -58,6 +57,8 @@ fun NavGraphAdmin(navController: NavHostController) {
 
             RoomList(roomType = roomType, petType = petType)
         }
+
+    }
 
     }
 }
