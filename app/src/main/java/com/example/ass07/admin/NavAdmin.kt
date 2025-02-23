@@ -62,4 +62,3 @@ fun NavGraphAdmin(navController: NavHostController) {
     }
 
     }
-}
