@@ -55,7 +55,7 @@ fun NavGraphAdmin(navController: NavHostController) {
             val roomType = backStackEntry.arguments?.getString("roomType") ?: "ทั้งหมด"
             val petType = backStackEntry.arguments?.getString("petType") ?: "ทั้งหมด"
 
-            RoomList(roomType = roomType, petType = petType)
+            RoomList(roomType = roomType, petType = petType,navController=navController)
         }
 
     }

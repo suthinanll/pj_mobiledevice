@@ -1,6 +1,8 @@
 package com.example.ass07
 
+import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -23,12 +25,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -52,6 +58,7 @@ import androidx.navigation.NavController
 import com.example.ass07.admin.Room
 import com.example.ass07.admin.RoomAPI
 import com.example.ass07.admin.RoomGroupInfo
+import com.example.ass07.admin.ScreenAdmin
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -593,7 +600,37 @@ fun AddRoomButton() {
 }
 
 @Composable
-fun RoomCard(room: Room) {
+fun RoomCard(room: Room,navController: NavController) {
+
+    val contextForToast = LocalContext.current
+    var expanded by remember { mutableStateOf(false) }
+
+
+
+    // ฟังก์ชันลบห้อง (soft delete)
+    fun softDeleteRoom(room_id: Int, contextForToast: Context) {
+        val createClient = RoomAPI.create()
+
+        createClient.softDeleteRoom(room_id).enqueue(object : Callback<Void> {
+            override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                Log.d("SoftDelete", "Response code: ${room_id}") // ✅ Debug Response Code
+                if (response.isSuccessful) {
+                    Toast.makeText(contextForToast, "ลบข้อมูลสำเร็จ", Toast.LENGTH_SHORT).show()
+
+                } else {
+                    Toast.makeText(contextForToast, "ลบข้อมูลไม่สำเร็จ", Toast.LENGTH_SHORT).show()
+                    Log.e("SoftDelete", "Error: ${response.errorBody()?.string()}") // ✅ Debug Error
+                }
+            }
+
+            override fun onFailure(call: Call<Void>, t: Throwable) {
+                Toast.makeText(contextForToast, "Error: ${t.message}", Toast.LENGTH_LONG).show()
+                Log.e("SoftDelete", "Failure: ${t.message}") // ✅ Debug Failure
+            }
+        })
+    }
+
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -665,12 +702,39 @@ fun RoomCard(room: Room) {
                 )
             }
 
-            // More options (เพิ่มเติม)
-            IconButton(onClick = { /* Handle more options */ }) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = "More options",
-                    tint = Color(0xFF9CA3AF) // gray-400
+            // เมนู Dropdown
+            IconButton(onClick = { expanded = true }) {
+                Icon(Icons.Default.MoreVert, contentDescription = "Open Menu")
+            }
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                // เมนูสำหรับแก้ไขห้อง
+                DropdownMenuItem(
+                    text = { Text("แก้ไข") },
+                    onClick = {
+                        Toast.makeText(contextForToast, "แก้ไขห้อง", Toast.LENGTH_SHORT).show()
+                        navController.navigate(ScreenAdmin.RoomEdit.route + "/${room.room_id}")
+                        expanded = false
+                    },
+                    leadingIcon = {
+                        Icon(Icons.Outlined.Settings, contentDescription = null)
+                    }
+                )
+
+                // เมนูสำหรับลบห้อง
+                DropdownMenuItem(
+                    text = { Text("ลบ") },
+                    onClick = {
+                        Toast.makeText(contextForToast, "ลบ", Toast.LENGTH_SHORT).show()
+                        expanded = false  // ปิดการแสดงเมนู dropdown
+                        softDeleteRoom(room.room_id, contextForToast)  // เรียกใช้ฟังก์ชัน softDeleteRoom
+                    },
+                    leadingIcon = {
+                        Icon(Icons.Outlined.Delete, contentDescription = null)
+                    }
                 )
             }
         }
@@ -695,7 +759,8 @@ fun FilterOption(text: String, onClick: () -> Unit) {
 @Composable
 fun ShowAllMatchingRooms(
     rooms: List<Room>,
-    selectedRoomGroup: RoomGroupInfo
+    selectedRoomGroup: RoomGroupInfo,
+    navController: NavController
 ) {
     val filteredRooms = remember(selectedRoomGroup) {
         rooms.filter { room ->
@@ -710,7 +775,7 @@ fun ShowAllMatchingRooms(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(filteredRooms) { room ->
-            RoomCard(room = room)
+            RoomCard(room = room,navController=navController)
         }
     }
 }
