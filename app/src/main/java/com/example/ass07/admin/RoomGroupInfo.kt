@@ -6,7 +6,7 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 data class RoomGroupInfo(
     val roomType: String,
-    val price: Int,
+    val price: Double?,
     val petType: String,
     val availableCount: Int,
     val occupiedCount: Int

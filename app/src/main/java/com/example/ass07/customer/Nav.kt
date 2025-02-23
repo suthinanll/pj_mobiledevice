@@ -9,6 +9,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.ass07.ManageRoom
+import com.example.ass07.admin.PetsAdmin
+import com.example.ass07.admin.ScreenAdmin
 import com.example.ass07.customer.LoginRegister.Login
 import com.example.ass07.customer.LoginRegister.Register
 import com.example.ass07.customer.LoginRegister.ScreenLogin
@@ -46,9 +49,6 @@ fun NavGraph(navController: NavHostController) {
         composable(route = Screen.Mypetinsert.route) {
            Mypetinsert(navController)
         }
-<<<<<<< HEAD
-
-=======
         composable(route = ScreenAdmin.ManageRoom.route) {
             ManageRoom(navController)
         }
@@ -58,7 +58,7 @@ fun NavGraph(navController: NavHostController) {
         composable(route = ScreenAdmin.PetsAdmin.route) {
             PetsAdmin()
         }
->>>>>>> boss
+
         composable(route = Screen.Mypetedit.route + "/{petId}") { backStackEntry ->
             val petId = backStackEntry.arguments?.getString("petId")?.toIntOrNull()
             val petViewModel: PetViewModel = viewModel()
