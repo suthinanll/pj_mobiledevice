@@ -24,20 +24,25 @@ fun PetsAdmin(){
         verticalArrangement = Arrangement.Center
     ) {
 
-//        Image(
-//            painter = painterResource(id = R.drawable.img_8229),
-//            contentDescription = "me",
-//            modifier = Modifier.size(300.dp)
-//        )
-
-        Text(
-            text = "Pets",
-            fontSize = 25.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        )
     }
+
+
+
+//
+////        Image(
+////            painter = painterResource(id = R.drawable.img_8229),
+////            contentDescription = "me",
+////            modifier = Modifier.size(300.dp)
+////        )
+//
+//        Text(
+//            text = "Pets",
+//            fontSize = 25.sp,
+//            fontWeight = FontWeight.Bold,
+//            textAlign = TextAlign.Center,
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(16.dp)
+//        )
+//    }
 }

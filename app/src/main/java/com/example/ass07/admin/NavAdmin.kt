@@ -1,5 +1,6 @@
 package com.example.ass07.admin
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -33,6 +34,7 @@ fun NavGraphAdmin(navController: NavHostController) {
             val roomId = backStackEntry.arguments?.getString("room_id")?.toIntOrNull()  // รับ room_id จาก URL
             val roomViewModel: RoomViewModel = viewModel()  // ใช้ RoomViewModel
             val room by roomViewModel.room.observeAsState()
+            Log.e("Sent to RoomEdit", "Inroute RoomEdit")
 
             LaunchedEffect(roomId) {
                 roomId?.let { roomViewModel.loadRoom(it) }  // โหลดข้อมูลห้องตาม roomId

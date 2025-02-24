@@ -1,5 +1,6 @@
 package com.example.ass07.admin
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -295,7 +296,7 @@ fun RoomCard(room: Room,navController: NavController) {
             // Room details (รายละเอียดห้อง)
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = room.room_type, // ชื่อห้อง
+                    text = "ID:"+room.room_id.toString() + " " + room.room_type, // ชื่อห้อง
                     style = MaterialTheme.typography.titleMedium,
                     color = Color(0xFF1F2937) // สีเทาเข้ม
                 )
@@ -311,34 +312,42 @@ fun RoomCard(room: Room,navController: NavController) {
             IconButton(onClick = { expanded = true }) {
                 Icon(Icons.Default.MoreVert, contentDescription = "Open Menu")
             }
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false }
-            ) {
-                DropdownMenuItem(
-                    text = { Text("แก้ไข") },
-                    onClick = {
-                        Toast.makeText(contextForToast, "แก้ไข", Toast.LENGTH_SHORT).show()
-                        navController.navigate(ScreenAdmin.RoomEdit.route + "/${room.room_id}")
-                        expanded = false
-                    },
-                    leadingIcon = {
-                        Icon(Icons.Outlined.Settings, contentDescription = null)
-                    }
-                )
-                DropdownMenuItem(
-                    text = { Text("ลบ") },
-                    onClick = {
-                        Toast.makeText(contextForToast, "ลบ", Toast.LENGTH_SHORT).show()
-                        expanded = false
-                    },
-                    leadingIcon = {
-                        Icon(Icons.Outlined.Settings, contentDescription = null)
-                    }
+            Box(modifier = Modifier
+                    .size(80.dp, 40.dp)
+                    .background(Color.Yellow)
+            ){
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
 
-                )
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("แก้ไข") },
+                        onClick = {
+//                        navController.navigate(ScreenAdmin.RoomEdit.route + "/${room.room_id}")
+                            navController.navigate(ScreenAdmin.RoomEdit.route +"/${room.room_id}")
+                            Log.e("Sent to RoomEdit", "room_id: ${room.room_id}")
+                            expanded = false
+                        },
+                        leadingIcon = {
+                            Icon(Icons.Outlined.Settings, contentDescription = null)
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("ลบ") },
+                        onClick = {
+                            Toast.makeText(contextForToast, "ลบ", Toast.LENGTH_SHORT).show()
+                            expanded = false
+                        },
+                        leadingIcon = {
+                            Icon(Icons.Outlined.Settings, contentDescription = null)
+                        }
 
+                    )
+
+                }
             }
+
         }
     }
 }

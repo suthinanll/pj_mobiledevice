@@ -33,9 +33,11 @@ fun RoomEdit(navController: NavHostController, room_id: Int) {
     var selectedPetType by remember { mutableStateOf<PetType?>(null) }
     var base64Image by remember { mutableStateOf<String?>(null) }
     var currentRoom by remember { mutableStateOf<Room?>(null) }
+    Log.e("RoomEdit", "Received room_id: $room_id")
 
     val createClient = RoomAPI.create()
     val contextForToast = LocalContext.current
+    Toast.makeText(contextForToast, "แก้ไข", Toast.LENGTH_SHORT).show()
 
     // Fetch the room data to edit
     LaunchedEffect(room_id) {

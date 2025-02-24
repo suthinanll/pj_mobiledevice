@@ -2,6 +2,7 @@ package com.example.ass07.customer
 
 import android.app.DatePickerDialog
 import android.icu.util.Calendar
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -29,6 +30,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,16 +44,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ass07.customer.API.PetApi
+import com.example.ass07.customer.Mypet.PetType
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.text.SimpleDateFormat
 import java.util.Locale
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Home() {
-    var selectedPet by remember { mutableStateOf("เลือกประเภทสัตว์เลี้ยงของคุณ") }
-    var checkInDate by remember { mutableStateOf("วว/ดด/ปปปป") }
-    var checkOutDate by remember { mutableStateOf("วว/ดด/ปปปป") }
+    var selectedPet by remember { mutableStateOf("") }
+    var checkInDate by remember { mutableStateOf("") }
+    var checkOutDate by remember { mutableStateOf("") }
+    var placeholder = "วว/ดด/ปปปป"
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -106,7 +113,9 @@ fun Home() {
                 )
                 DateCheckinField(
                     selectedDate = checkInDate,
-                    onDateSelected = { date -> checkInDate = date } // อัปเดตวันที่ใน State
+                    onDateSelected = { date -> checkInDate = date }, // อัปเดตวันที่ใน State
+                    placeholder
+
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -119,7 +128,8 @@ fun Home() {
                 )
                 DateCheckoutField(
                     selectedDate = checkOutDate,
-                onDateSelected = { date -> checkOutDate = date }
+                    onDateSelected = { date -> checkOutDate = date },
+                    placeholder
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -147,15 +157,50 @@ fun PetDropdownMenu(
     onPetSelected: (String) -> Unit
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
-    val petsList = listOf("สุนัข", "แมว", "กระต่าย")
+    val contextForToast = LocalContext.current
+
     var expanded by remember { mutableStateOf(false) }
+    var petTypes by remember { mutableStateOf<List<PetType>>(emptyList()) }
+    var selectedPetType by remember { mutableStateOf<PetType?>(null) }
+
+    val createClient = PetApi.create()
+
+    LaunchedEffect(Unit) {
+        createClient.getPetTypes()
+            .enqueue(object : Callback<List<PetType>> {
+                override fun onResponse(
+                    call: Call<List<PetType>>,
+                    response: Response<List<PetType>>
+                ) {
+                    if (response.isSuccessful) {
+                        petTypes = response.body() ?: emptyList()
+                        if (petTypes.isNotEmpty()) {
+                            selectedPetType = petTypes[0]
+                            onPetSelected(selectedPetType?.Pet_name_type ?: "") // Set initial selection
+                        }
+                    } else {
+                        Toast.makeText(
+                            contextForToast,
+                            "ไม่สามารถโหลดข้อมูลประเภทสัตว์เลี้ยงได้",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+
+                override fun onFailure(call: Call<List<PetType>>, t: Throwable) {
+                    Toast.makeText(
+                        contextForToast,
+                        "เกิดข้อผิดพลาด: ${t.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            })
+    }
 
     ExposedDropdownMenuBox(
         modifier = Modifier.clickable { keyboardController?.hide() },
         expanded = expanded,
-        onExpandedChange = {
-            expanded = !expanded
-        }
+        onExpandedChange = { expanded = !expanded }
     ) {
         OutlinedTextField(
             modifier = Modifier
@@ -166,7 +211,9 @@ fun PetDropdownMenu(
             readOnly = true,
             value = selectedPet,
             onValueChange = {},
-
+            placeholder = {
+                Text(text = "กรุณาเลือกประเภทสัตว์เลี้ยง")
+            },
             trailingIcon = {
                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
             },
@@ -175,19 +222,18 @@ fun PetDropdownMenu(
                 unfocusedContainerColor = Color.White
             ),
         )
+
         ExposedDropdownMenu(
             expanded = expanded,
-            onDismissRequest = {
-                expanded = false
-            }
+            onDismissRequest = { expanded = false }
         ) {
-            petsList.forEach { selectionOption ->
+            petTypes.forEach { petType ->
                 DropdownMenuItem(
-                    modifier = Modifier
-                        .background(color = Color.White),
-                    text = { Text(selectionOption) },
+                    modifier = Modifier.background(color = Color.White),
+                    text = { Text(petType.Pet_name_type) },
                     onClick = {
-                        onPetSelected(selectionOption)
+                        selectedPetType = petType
+                        onPetSelected(petType.Pet_name_type)
                         expanded = false
                     },
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
@@ -201,7 +247,8 @@ fun PetDropdownMenu(
 @Composable
 fun DateCheckinField(
     selectedDate: String,
-    onDateSelected: (String) -> Unit
+    onDateSelected: (String) -> Unit,
+    p: String
 ) {
     val context = LocalContext.current
     val mCalendar = Calendar.getInstance()
@@ -225,6 +272,7 @@ fun DateCheckinField(
         value = selectedDate,
         shape = RoundedCornerShape(corner = CornerSize(10.dp)),
         onValueChange = {},
+        placeholder = { Text(p) },
         readOnly = true,
         label = {},
         trailingIcon = {
@@ -254,7 +302,8 @@ fun DateCheckinField(
 @Composable
 fun DateCheckoutField(
     selectedDate: String,
-    onDateSelected: (String) -> Unit
+    onDateSelected: (String) -> Unit,
+    p:String
 ) {
     val context = LocalContext.current
     val mCalendar = Calendar.getInstance()
@@ -278,6 +327,7 @@ fun DateCheckoutField(
         value = selectedDate,
         shape = RoundedCornerShape(corner = CornerSize(10.dp)),
         onValueChange = {},
+        placeholder = { Text(p) },
         readOnly = true,
         label = {},
         trailingIcon = {

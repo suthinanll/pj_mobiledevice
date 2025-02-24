@@ -37,9 +37,6 @@ fun MyPet(navController: NavHostController) {
     val sharePreferences = remember { SharePreferencesManager(context) }
     val user_id = sharePreferences.userId
 
-
-
-
     fun showAllData() {
         val createClient = PetApi.create()
         if (user_id != null) {
@@ -55,7 +52,6 @@ fun MyPet(navController: NavHostController) {
                             pets?.let {
                                 val filteredPets = it.filter { pet -> pet.deleted_at.isNullOrEmpty() }
                                 petItemsList.addAll(filteredPets)
-
                             }
                         } else {
                             Log.e("API_ERROR", "Response failed: ${response.errorBody()?.string()}")
@@ -69,7 +65,6 @@ fun MyPet(navController: NavHostController) {
         }
 
     }
-
 
 
     fun softDeletePet(pet: petMember) {
@@ -113,7 +108,9 @@ fun MyPet(navController: NavHostController) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         LazyColumn(
-            modifier = Modifier.weight(1f).padding(16.dp),
+            modifier = Modifier
+                .weight(1f)
+                .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             itemsIndexed(petItemsList) { _, pet ->
@@ -164,7 +161,9 @@ fun PetCard(pet: petMember, onDelete: () -> Unit, navController: NavHostControll
             Text("คำแนะนำ / คำอธิบายเพิ่มเติม: ${pet.additionalInfo}", fontSize = 16.sp)
 
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 Button(
@@ -176,13 +175,14 @@ fun PetCard(pet: petMember, onDelete: () -> Unit, navController: NavHostControll
 
                 Button(
                     onClick = onDelete,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD966))
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xD7EE2C2C))
                 ) {
-                    Text("ลบ", color = Color.Black)
+                    Text("ลบ", color = Color.White)
                 }
             }
         }
     }
 }
+
 
 
