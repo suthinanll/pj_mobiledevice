@@ -29,7 +29,7 @@ fun AdminDashboard() {
     val context = LocalContext.current
     val roomAPI = remember { RoomAPI.create() }
     val scope = rememberCoroutineScope()
-
+    val pets = remember { mutableStateOf<List<Room>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
     var rooms by remember { mutableStateOf<List<Room>>(emptyList()) }
