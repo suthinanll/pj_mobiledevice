@@ -8,125 +8,70 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get("/", function (req, res) {
-    return res.send({ error: false, message: "Test Student Web API" });
+  return res.send({ error: false, message: "Test Student Web API" });
 });
 
 var dbConn = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_DATABASE,
-    port: process.env.DB_PORT,
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_DATABASE,
+  port: process.env.DB_PORT,
 });
 
 dbConn.connect();
 
-// app.get("/allEmp", function (req, res) {
-//   dbConn.query("SELECT * FROM employee", function (error, results, fields) {
-//     if (error) throw error;
-//     return res.send(results);
-//   });
-// });
-
-// app.post("/emp", function (req, res) {
-//   var std = req.body;
-
-//   if (!std) {
-//     return res
-//       .status(400)
-//       .send({ error: true, message: "Please provide student" });
-//   }
-
-//   dbConn.query(
-//     "INSERT INTO employee SET ? ",
-//     std,
-//     function (error, results, fields) {
-//       if (error) throw error;
-//       return res.send(results);
-//     }
-//   );
-// });
-
-// app.put("/update_emp/:emp_id", function (req, res) {
-//   var emp = req.body;
-//   var id = req.params.emp_id;
-//   if (!emp) {
-//     return res
-//       .status(400)
-//       .send({ error: std, message: "Please provide student" });
-//   }
-//   dbConn.query(
-//     "UPDATE employee SET ? WHERE emp_id = ?",
-//     [emp, id],
-//     function (error, results, fields) {
-//       if (error) throw error;
-//       return res.send(results);
-//     }
-//   );
-// })
-
-// app.delete("/delete_emp/:emp_id", function (req, res) {
-//   var id = req.params.emp_id;
-//   dbConn.query("DELETE FROM employee WHERE emp_id = ?", [id], function (
-//     error,
-//     results,
-//     fields
-//   ) {
-//     if (error) throw error;
-//     return res.send(results);
-//   });
-// });
-
 const bcrypt = require('bcryptjs');
 
 
-app.post("/insertAccount", async function (req, res) {
-    let post = req.body
-    let name = post.name
-    let tell_number = post.tell_number
-    let email = post.email
-    let password = post.password
-    let user_type = post.user_type
+app.post("/insertAccount",async function(req,res){
+  let post  = req.body
+  let name = post.name
+  let tell_number = post.tell_number
+  let email = post.email
+  let password = post.password
+  let user_type = post.user_type
 
-    const salt = await bcrypt.genSalt(10)
-    let password_hash = await bcrypt.hash(password, salt)
+  const salt = await bcrypt.genSalt(10)
+  let password_hash = await bcrypt.hash(password,salt)
 
-    if (!post) {
-        return res.status(400).send({ error: post, message: 'Please provide student data' })
-    }
+  if(!post){
+      return res.status(400).send({ error: post, message: 'Please provide student data' })
+  }
 
-    dbConn.query('SELECT * FROM users WHERE name = ? ', name, function (error, results, fields) {
-        if (error) throw error
-        if (results[0]) {
-            return res.status(400).send({ error: true, message: 'The user name already in the database.' })
-        } else {
-            if (!user_type) {
-                var insertData = `INSERT INTO users (name,password,tell_number,email,user_type)  
+  dbConn.query('SELECT * FROM users WHERE name = ? ',name,function(error,results,fields){
+      if(error) throw error
+      if(results[0]){
+          return res.status(400).send({ error: true, message: 'The user name already in the database.' })
+      }else{
+          if(!user_type){
+            var insertData = `INSERT INTO users (name,password,tell_number,email,user_type)  
             VALUES('${name}','${password_hash}','${tell_number}','${email}', 2)`
-            } else {
-                var insertData = `INSERT INTO users (name,password,tell_number,email,user_type)  
+          }else{
+            var insertData = `INSERT INTO users (name,password,tell_number,email,user_type)  
             VALUES('${name}','${password_hash}','${tell_number}','${email}', 2)`;
-            }
+          }
 
-            dbConn.query(insertData, function (error, results, fields) {
-                if (error) throw error
-                return res.send(results)
-            })
-        }
-    })
+          dbConn.query(insertData,function(error,results,fields){
+              if(error) throw error
+              return res.send(results)
+          })
+      }
+  })
 })
 
-app.post("/login", async function (req, res) {
-    let user = req.body
-    let name = user.name
-    let password = user.password
+//✨
+app.post("/login",async function(req,res){  
+  let user = req.body
+  let name = user.name
+  let password = user.password
 
-    console.log(name)
-    console.log(password)
+  console.log(name)
+  console.log(password)
 
-    if (!name || !password) {
-        return res.status(400).send({ error: name, message: 'Please provide name and password' })
-    }
+  if(!name || !password){
+      return res.status(400).send({ error: name, message: 'Please provide name and password' })
+  }
 
     dbConn.query('SELECT * FROM users WHERE email = ? OR tell_number = ? ', [name, name], function (error, results, fields) {
         if (error) throw error
@@ -147,7 +92,7 @@ app.post("/login", async function (req, res) {
 })
 
 
-
+//✨
 app.get('/allpet', function (req, res) {
     // ตรวจสอบว่ามีการล็อกอินหรือไม่
     // if (!req.session.userId) { 
@@ -171,7 +116,7 @@ app.get('/allpet', function (req, res) {
     });
 });
 
-
+//✨
 app.get('/mypet/:id', function (req, res) {
     let user_id = req.params.id;
     const query = `
@@ -189,6 +134,7 @@ app.get('/mypet/:id', function (req, res) {
     });
 });
 
+//✨
 app.put('/updatePet/:id', (req, res) => {
     console.log("Received Data from Android:", req.body);
     const petID = req.params.id;
@@ -260,6 +206,7 @@ app.put('/updatePet/:id', (req, res) => {
 });
 
 
+//✨
 // 📌 เพิ่มข้อมูลสัตว์เลี้ยง
 app.post('/pet', function (req, res) {
     // if (!req.session.userId) {
@@ -281,7 +228,7 @@ app.post('/pet', function (req, res) {
     });
 });
 
-
+//✨
 app.post('/softDeletePet', function (req, res) {
     const { pet_id, deleted_at } = req.body;
 
@@ -306,77 +253,16 @@ app.post('/softDeletePet', function (req, res) {
 
 
 app.use(express.json());
-
 app.get('/getPetTypes', function (req, res) {
     dbConn.query('SELECT pet_type_id, pet_name_type FROM pet_type', function (error, results) {
         if (error) {
             return res.status(500).send({ error: true, message: "Database query failed", details: error });
         }
         return res.json(results);
+        // return res.send(results);
     });
 });
 
-
-
-// ฟังก์ชันแปลงวันที่จาก dd/mm/yyyy เป็น yyyy-mm-dd hh:mm:ss ของ check_in
-function formatDate1(dateStr) {
-    const [day, month, year] = dateStr.split('/');  // แยกวัน, เดือน, ปี
-    return `${year}-${month}-${day} 13:00:00`;  // แปลงเป็นรูปแบบ yyyy-mm-dd hh:mm:ss
-}
-// ฟังก์ชันแปลงวันที่จาก dd/mm/yyyy เป็น yyyy-mm-dd hh:mm:ss ของ check_out
-function formatDate2(dateStr) {
-    const [day, month, year] = dateStr.split('/');  // แยกวัน, เดือน, ปี
-    return `${year}-${month}-${day} 12:00:00`;  // แปลงเป็นรูปแบบ yyyy-mm-dd hh:mm:ss
-}
-
-//ค้นหาห้องพัก
-app.get('/Showroom/:checkin/:checkout/:pettype', (req, res) => {
-    const { checkin, checkout, pettype } = req.params;
-    const check_in = formatDate1(checkin);  
-    const check_out = formatDate2(checkout);  
-    // query = `SELECT r.room_id, rt.name_type, rt.price_per_day
-    //          FROM rooms r
-    //          JOIN room_type rt ON r.type_type_id = rt.type_id
-    //          WHERE r.room_id NOT IN (
-    //             SELECT b.room_id
-    //             FROM bookings b
-    //             WHERE (
-    //                 (b.check_in BETWEEN ? AND ?)
-    //                 OR
-    //                 (b.check_out BETWEEN ? AND ?)
-    //                 OR
-    //                 (b.check_in <= ? AND b.check_out >= ?)
-    //                 )
-    //             )
-    //          AND rt.pet_type = ?`
-
-        // SQL Query
-        const query = `
-        SELECT r.room_id, rt.name_type, rt.price_per_day
-        FROM rooms r
-        JOIN room_type rt ON r.type_type_id = rt.type_id
-        WHERE r.room_id NOT IN (
-            SELECT b.room_id
-            FROM bookings b
-            WHERE (
-                (b.check_in BETWEEN ? AND ?)
-                OR
-                (b.check_out BETWEEN ? AND ?)
-                OR
-                (b.check_in <= ? AND b.check_out >= ?)
-            )
-        )
-        AND rt.pet_type = ?`;
-
-    console.log('in showroom')
-    dbConn.query(query,[check_in, check_out, check_in, check_out, check_in, check_out, pettype],(error,result)=>{
-        if(error){
-            console.log('show room error')
-            return res.status(500).send({error: true, message: "failed qurey", details: error});
-        }
-        return res.json(result);
-    })
-})
 
 app.post('/addPetType', function (req, res) {
     const petType = {
@@ -442,7 +328,7 @@ app.post('/addPetType', function (req, res) {
 });
 
 // อัพเดทประเภทสัตว์เลี้ยง
-app.put('/updatePetType/:id', function (req, res) {
+app.put('/updatePetType/:id', function(req, res) {
     const petTypeId = req.params.id;
     const updateData = {
         pet_name_type: req.body.pet_name_type,
@@ -459,7 +345,7 @@ app.put('/updatePetType/:id', function (req, res) {
     dbConn.query(
         'UPDATE pet_type SET ? WHERE pet_type_id = ? AND deleted_at IS NULL',
         [updateData, petTypeId],
-        function (error, results) {
+        function(error, results) {
             if (error) {
                 return res.status(500).send({
                     error: true,
@@ -484,7 +370,7 @@ app.put('/updatePetType/:id', function (req, res) {
 });
 
 // ลบประเภทสัตว์เลี้ยง (Soft Delete)
-app.delete('/deletePetType/:id', function (req, res) {
+app.delete('/deletePetType/:id', function(req, res) {
     const petTypeId = req.params.id;
     const updateData = {
         deleted_at: new Date()
@@ -494,7 +380,7 @@ app.delete('/deletePetType/:id', function (req, res) {
     dbConn.query(
         'SELECT COUNT(*) as count FROM pets WHERE pet_type_id = ? AND deleted_at IS NULL',
         [petTypeId],
-        function (error, results) {
+        function(error, results) {
             if (error) {
                 return res.status(500).send({
                     error: true,
@@ -513,7 +399,7 @@ app.delete('/deletePetType/:id', function (req, res) {
             dbConn.query(
                 'UPDATE pet_type SET ? WHERE pet_type_id = ? AND deleted_at IS NULL',
                 [updateData, petTypeId],
-                function (error, results) {
+                function(error, results) {
                     if (error) {
                         return res.status(500).send({
                             error: true,
@@ -551,13 +437,12 @@ app.get('/getPet/:id', (req, res) => {
             return res.status(404).json({ message: "Pet not found" });
         }
         res.json(results[0]); // ส่งข้อมูลสัตว์เลี้ยงที่เจอ
-        
     });
 });
 
 
 app.get('/getroom', (req, res) => {
-    let query = `
+  let query = `
       SELECT
           r.room_id,
           rt.name_type AS room_type,
@@ -572,13 +457,54 @@ app.get('/getroom', (req, res) => {
       AND pt.deleted_at IS NULL;
   `;
 
-    dbConn.query(query, (error, results) => {
+  dbConn.query(query, (error, results) => {
+      if (error) {
+          console.error("Database Error:", error);
+          return res.status(500).send({ error: true, message: "Internal Server Error" });
+      }
+      console.log("Sent all room data successfully");
+      return res.json(results);
+  });
+});
+
+
+// 📌 เพิ่มข้อมูลห้องพัก
+app.post('/addroom', function (req, res) {
+    const { type_type_id, status } = req.body;
+    if (!type_type_id || status === undefined) {
+        return res.status(400).send({ message: 'Please provide room type ID and status' });
+    }
+
+    dbConn.query('SELECT name_type, price_per_day, image, Pet_type_id FROM room_type WHERE type_id = ?', [type_type_id], function (error, results) {
         if (error) {
-            console.error("Database Error:", error);
-            return res.status(500).send({ error: true, message: "Internal Server Error" });
+            return res.status(500).send({ message: 'Database error', details: error });
         }
-        console.log("Sent all room data successfully");
-        return res.json(results);
+        if (results.length === 0) {
+            return res.status(400).send({ message: 'Invalid room_type ID' });
+        }
+
+        const roomType = results[0];
+
+        dbConn.query('SELECT Pet_nametype FROM pet_type WHERE Pet_type_id = ?', [roomType.pet_type], function (error, petResults) {
+            if (error) {
+                return res.status(500).send({ message: 'Database error', details: error });
+            }
+            const petType = petResults.length > 0 ? petResults[0].Pet_name_type : null;
+
+            dbConn.query('INSERT INTO rooms (type_type_id, status) VALUES (?, ?)', [type_type_id, status], function (error, results) {
+                if (error) {
+                    return res.status(500).send({ message: 'Failed to insert room data', details: error });
+                }
+                return res.send({
+                    message: 'Room added successfully',
+                    id: results.insertId,
+                    room_type: roomType.name_type,
+                    pet_type: petType,
+                    price_per_day: roomType.price_per_day,
+                    image: roomType.image
+                });
+            });
+        });
     });
 });
 
@@ -655,21 +581,20 @@ app.post('/addroom', async (req, res) => {
 });
 
 
-//const bcrypt = require('bcryptjs');
 
-
-// Soft delete a room
+// Soft delete a room using NOW() for the deleted_at timestamp
 app.post('/softDeleteRoom', function (req, res) {
-    const { room_id, deleted_at } = req.body;
+    const { room_id } = req.body;
 
-    if (!room_id || !deleted_at) {
-        console.error("Missing parameters:", { room_id, deleted_at });
-        return res.status(400).send({ message: "Missing required parameters" });
+    // Check if room_id is provided
+    if (!room_id) {
+        console.error("Missing room_id:", { room_id });
+        return res.status(400).send({ message: "Missing required room_id" });
     }
 
-    const query = `UPDATE rooms SET deleted_at = ? WHERE room_id = ?`;
+    const query = `UPDATE rooms SET deleted_at = NOW() WHERE room_id = ?`;
 
-    dbConn.query(query, [deleted_at, room_id], function (error, results) {
+    dbConn.query(query, [room_id], function (error, results) {
         if (error) {
             console.error("Database error:", error);
             return res.status(500).send({ error: true, message: "Database update failed", details: error });
@@ -680,7 +605,6 @@ app.post('/softDeleteRoom', function (req, res) {
         return res.send({ message: "Soft delete successful" });
     });
 });
-
 
 app.get('/getRoomTypes', function (req, res) {
     dbConn.query('SELECT type_id, name_type FROM room_type', function (error, results) {
@@ -868,7 +792,6 @@ app.post('/addRoomType', function (req, res) {
 const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp'); // ใช้สำหรับจัดการรูปภาพ (เช่น การย่อขนาด)
-const { error } = require("console");
 
 app.put('/updateRoomType/:roomId', function (req, res) {
     const roomId = req.params.roomId; // รับ room_id จาก URL parameter
@@ -977,7 +900,7 @@ app.put('/updateRoomType/:roomId', function (req, res) {
 
 app.put('/updateroom/:room_id', async (req, res) => {
     const { room_type_id, room_status } = req.body;
-    const room_id = req.params.room_id;  // รับ room_id จาก URL parameter
+    const room_id = req.params.room_id;
 
     // Input validation
     if (!room_type_id || room_status === undefined || !room_id) {
@@ -1028,7 +951,7 @@ app.put('/updateroom/:room_id', async (req, res) => {
         const [updateResult] = await dbConn.promise().query(
             'UPDATE rooms SET type_type_id = ?, status = ? WHERE room_id = ?',
             [room_type_id, room_status || null, room_id]
-        );
+        ); console.log("Update Result: ", updateResult)
 
         // Fetch the updated room details
         const [updatedRoomResults] = await dbConn.promise().query(
@@ -1341,7 +1264,7 @@ app.put("/profile/edit/:id", function (req, res) {
         });
     }
 
-    const query = `UPDATE users 
+    const query = `UPDATE users
                    SET name = ?, email = ?, tell_number = ?, avatar = ?
                    WHERE user_id = ? AND deleted_at IS NULL`;
 

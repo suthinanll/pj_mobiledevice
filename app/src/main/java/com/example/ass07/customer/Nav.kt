@@ -11,11 +11,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.ass07.admin.ManageRoom
 import com.example.ass07.admin.PetsAdmin
-import com.example.ass07.admin.RoomViewModel
 import com.example.ass07.admin.RoomEdit
 import com.example.ass07.admin.RoomInsert
 import com.example.ass07.admin.ScreenAdmin
 import com.example.ass07.admin.booking.BookingDetail
+import com.example.ass07.admin.PetsAdmin
+import com.example.ass07.customer.Home.Search
 import com.example.ass07.customer.LoginRegister.Login
 import com.example.ass07.customer.LoginRegister.Register
 import com.example.ass07.customer.LoginRegister.ScreenLogin
@@ -43,7 +44,7 @@ fun NavGraph(navController: NavHostController) {
             History()
         }
         composable(route = Screen.Home.route) {
-            Home()
+            Home(navController)
         }
         composable(route = Screen.MyPet.route) {
             MyPet(navController)
@@ -84,21 +85,21 @@ fun NavGraph(navController: NavHostController) {
         composable(route = ScreenAdmin.RoomInsert.route) {
             RoomInsert(navController)
         }
+
         composable(route = ScreenAdmin.RoomEdit.route + "/{room_id}") { backStackEntry ->
             val roomId = backStackEntry.arguments?.getString("room_id")?.toIntOrNull()  // รับ room_id จาก URL
-            val roomViewModel: RoomViewModel = viewModel()  // ใช้ RoomViewModel
-            val room by roomViewModel.room.observeAsState()
 
-            LaunchedEffect(roomId) {
-                roomId?.let { roomViewModel.loadRoom(it) }  // โหลดข้อมูลห้องตาม roomId
+            roomId?.let {  // เช็คว่า room_id มีค่าหรือไม่
+                RoomEdit(navController, it)  // ส่ง room_id ไปยัง RoomEdit
             }
-
-            room?.let { RoomEdit(navController, it.room_id) }  // ส่งข้อมูลห้องไปยัง RoomEdit
         }
+
         composable(route = ScreenAdmin.BookingDetail.route+"/{id}") { backStackEntry ->
             val bookingId = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: 0
             BookingDetail(bookingId)
         }
-
+        composable(route = Screen.Search.route) {
+            Search(navController)
+        }
     }
 }

@@ -4,33 +4,42 @@ import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.ass07.customer.Mypet.PetType
+import com.example.ass07.customer.Mypet.PetTypeDropdown
+import com.example.ass07.customer.Mypet.petMember
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RoomEdit(navController: NavHostController, room_id: Int) {
+    var room by remember { mutableStateOf<Room?>(null) }
+    var loading by remember { mutableStateOf(true) }
     var roomTypes by remember { mutableStateOf(listOf<RoomType>()) }
     var selectedRoomType by remember { mutableStateOf<RoomType?>(null) }
     var roomStatus by remember { mutableStateOf(0) }
     var petTypes by remember { mutableStateOf<List<PetType>>(emptyList()) }
     var selectedPetType by remember { mutableStateOf<PetType?>(null) }
+    var isAddingRoomType by remember { mutableStateOf(false) }
     var base64Image by remember { mutableStateOf<String?>(null) }
     var currentRoom by remember { mutableStateOf<Room?>(null) }
     Log.e("RoomEdit", "Received room_id: $room_id")
@@ -39,24 +48,38 @@ fun RoomEdit(navController: NavHostController, room_id: Int) {
     val contextForToast = LocalContext.current
     Toast.makeText(contextForToast, "แก้ไข", Toast.LENGTH_SHORT).show()
 
-    // Fetch the room data to edit
-    LaunchedEffect(room_id) {
+    // เรียกข้อมูลห้องและข้อมูลประเภทสัตว์เลี้ยง
+    LaunchedEffect(Unit) {
         createClient.getRoomById(room_id).enqueue(object : Callback<Room> {
             override fun onResponse(call: Call<Room>, response: Response<Room>) {
                 if (response.isSuccessful) {
-                    currentRoom = response.body()
-                    selectedRoomType = roomTypes.find { it.type_id == currentRoom?.room_type_id }
-                    selectedPetType = petTypes.find { it.Pet_type_id.toString() == currentRoom?.pet_type }
-                    roomStatus = currentRoom?.room_status ?: 0
+                    room = response.body()
+                    loading = false
                 }
             }
 
             override fun onFailure(call: Call<Room>, t: Throwable) {
-                Toast.makeText(contextForToast, "ไม่สามารถดึงข้อมูลห้องพักได้", Toast.LENGTH_SHORT).show()
+                loading = false
+                Log.e("API_ERROR", "Failed to fetch room data: ${t.message}")
             }
         })
 
-        // Fetch room types
+        createClient.getPetTypes().enqueue(object : Callback<List<PetType>> {
+            override fun onResponse(call: Call<List<PetType>>, response: Response<List<PetType>>) {
+                if (response.isSuccessful) {
+                    petTypes = response.body() ?: emptyList()
+                }
+            }
+
+            override fun onFailure(call: Call<List<PetType>>, t: Throwable) {
+                Toast.makeText(
+                    contextForToast,
+                    "โหลดข้อมูลประเภทสัตว์เลี้ยงไม่สำเร็จ",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        })
+
         createClient.getRoomTypes().enqueue(object : Callback<List<RoomType>> {
             override fun onResponse(call: Call<List<RoomType>>, response: Response<List<RoomType>>) {
                 if (response.isSuccessful) {
@@ -68,21 +91,11 @@ fun RoomEdit(navController: NavHostController, room_id: Int) {
             }
 
             override fun onFailure(call: Call<List<RoomType>>, t: Throwable) {
-                Toast.makeText(contextForToast, "โหลดประเภทห้องล้มเหลว", Toast.LENGTH_SHORT).show()
-            }
-        })
-
-        // Fetch pet types
-        createClient.getPetTypes().enqueue(object : Callback<List<PetType>> {
-            override fun onResponse(call: Call<List<PetType>>, response: Response<List<PetType>>) {
-                if (response.isSuccessful) {
-                    petTypes = response.body() ?: emptyList()
-                    selectedPetType = petTypes.firstOrNull()
-                }
-            }
-
-            override fun onFailure(call: Call<List<PetType>>, t: Throwable) {
-                Toast.makeText(contextForToast, "โหลดข้อมูลประเภทสัตว์เลี้ยงไม่สำเร็จ", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    contextForToast,
+                    "โหลดประเภทห้องล้มเหลว",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         })
     }
@@ -138,25 +151,86 @@ fun RoomEdit(navController: NavHostController, room_id: Int) {
                     selectedPetType = selectedPetType,
                     onRoomTypeSelected = { selectedRoomType = it },
                     onPetTypeSelected = { selectedPetType = it },
-                    onAddNewRoomType = { newTypeName, pricePerDay -> }
+                    onAddNewRoomType = { newTypeName, pricePerDay ->
+                        if (selectedPetType == null) {
+                            Toast.makeText(
+                                contextForToast,
+                                "กรุณาเลือกประเภทสัตว์เลี้ยง",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            return@RoomTypeDropdown
+                        }
+                        isAddingRoomType = true
+                        createClient.addRoomType(
+                            name_type = newTypeName,
+                            price_per_day = pricePerDay,
+                            pet_type = selectedPetType!!.Pet_type_id.toString() ,
+                            image = base64Image // ส่ง Base64 ไปที่ API
+                        ).enqueue(object : Callback<RoomTypeResponse> {
+                            override fun onResponse(
+                                call: Call<RoomTypeResponse>,
+                                response: Response<RoomTypeResponse>
+                            ) {
+                                isAddingRoomType = false
+                                if (response.isSuccessful) {
+                                    val newRoomType = response.body()?.roomType
+                                    if (newRoomType != null) {
+                                        if (roomTypes.none { it.name_type == newRoomType.name_type }) {
+                                            roomTypes = roomTypes.toMutableList().apply { add(newRoomType) }
+                                            selectedRoomType = newRoomType
+                                        }
+                                        Toast.makeText(
+                                            contextForToast,
+                                            "เพิ่มประเภทห้องพักสำเร็จ",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    } else {
+                                        Toast.makeText(
+                                            contextForToast,
+                                            "ไม่สามารถเพิ่มประเภทห้องพัก",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                } else {
+                                    Toast.makeText(
+                                        contextForToast,
+                                        "ไม่สามารถเพิ่มประเภทห้องพัก",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
+
+                            override fun onFailure(call: Call<RoomTypeResponse>, t: Throwable) {
+                                isAddingRoomType = false
+                                Toast.makeText(
+                                    contextForToast,
+                                    "เกิดข้อผิดพลาด: ${t.message}",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        })
+                    }
                 )
 
+
+                // เลือกสถานะห้อง
                 RadioGroupUsage(
                     selected = when (roomStatus) {
                         1 -> "ว่าง"
                         0 -> "ไม่ว่าง"
-                        else -> "ซ่อมแซม" // เพิ่มตัวเลือกซ่อมแซม
+                        3 -> "ปรับปรุง"
+                        else -> ""
                     },
                     setSelected = {
                         roomStatus = when (it) {
                             "ว่าง" -> 1
                             "ไม่ว่าง" -> 0
-                            "ซ่อมแซม" -> 2
+                            "ปรับปรุง" -> 3
                             else -> roomStatus
                         }
                     },
                     label = "สถานะห้อง",
-                    options = listOf("ว่าง", "ไม่ว่าง", "ซ่อมแซม")
+                    options = listOf("ว่าง", "ไม่ว่าง", "ปรับปรุง")
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -165,29 +239,26 @@ fun RoomEdit(navController: NavHostController, room_id: Int) {
                     onClick = {
                         if (selectedRoomType != null) {
                             val roomTypeId = selectedRoomType?.type_id ?: 0
-                            Log.d("API_REQUEST", "roomTypeId: $roomTypeId, roomStatus: $roomStatus")
-                            base64Image?.let {
-                                createClient.updateroom(
-                                    room_id = room_id,
-                                    roomTypeId = roomTypeId,
-                                    roomStatus = roomStatus,
-                                    pet_type = (selectedPetType?.Pet_type_id ?: 0).toString(),
-                                    image = it
-                                ).enqueue(object : Callback<Room> {
-                                    override fun onResponse(call: Call<Room>, response: Response<Room>) {
-                                        if (response.isSuccessful) {
-                                            Toast.makeText(contextForToast, "แก้ไขห้องสำเร็จ", Toast.LENGTH_SHORT).show()
-                                            navController.navigate(ScreenAdmin.ManageRoom.route)
-                                        } else {
-                                            Toast.makeText(contextForToast, "แก้ไขห้องไม่สำเร็จ", Toast.LENGTH_SHORT).show()
-                                        }
+                            createClient.insertRoom(
+                                roomTypeId = roomTypeId,
+                                roomStatus = roomStatus
+                            ).enqueue(object : Callback<Room> {
+                                override fun onResponse(call: Call<Room>, response: Response<Room>) {
+                                    if (response.isSuccessful) {
+                                        Log.d("RoomEdit", "RoomType ID: ${selectedRoomType?.type_id}")
+                                        Log.d("RoomEdit", "RoomStatus: $roomStatus")
+                                        Log.d("RoomEdit", "room_id: $room_id")
+                                        Toast.makeText(contextForToast, "บันทึกสำเร็จ", Toast.LENGTH_SHORT).show()
+                                        navController.navigate(ScreenAdmin.ManageRoom.route)
+                                    } else {
+                                        Toast.makeText(contextForToast, "บันทึกไม่สำเร็จ: ${response.message()}", Toast.LENGTH_SHORT).show()
                                     }
+                                }
 
-                                    override fun onFailure(call: Call<Room>, t: Throwable) {
-                                        Toast.makeText(contextForToast, "เกิดข้อผิดพลาด: ${t.message}", Toast.LENGTH_LONG).show()
-                                    }
-                                })
-                            }
+                                override fun onFailure(call: Call<Room>, t: Throwable) {
+                                    Toast.makeText(contextForToast, "เกิดข้อผิดพลาด: ${t.message}", Toast.LENGTH_LONG).show()
+                                }
+                            })
                         } else {
                             Toast.makeText(contextForToast, "กรุณาเลือกประเภทห้อง", Toast.LENGTH_SHORT).show()
                         }
@@ -195,7 +266,7 @@ fun RoomEdit(navController: NavHostController, room_id: Int) {
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD966)),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("บันทึกการแก้ไข", color = Color.Black)
+                    Text("update", color = Color.Black)
                 }
             }
         }
