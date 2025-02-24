@@ -80,7 +80,7 @@ fun NavGraph(navController: NavHostController) {
             com.example.ass07.admin.booking.Booking(navController)
         }
         composable(route = ScreenAdmin.PetsAdmin.route) {
-            PetsAdmin()
+            PetsAdmin(navController)
         }
         composable(route = ScreenAdmin.RoomInsert.route) {
             RoomInsert(navController)

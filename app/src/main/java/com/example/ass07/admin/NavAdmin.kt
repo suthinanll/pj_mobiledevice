@@ -27,7 +27,7 @@ fun NavGraphAdmin(navController: NavHostController) {
             Booking(navController)
         }
         composable(route = ScreenAdmin.PetsAdmin.route) {
-            PetsAdmin()
+            PetsAdmin(navController)
         }
         composable(route = ScreenAdmin.RoomInsert.route) {
             RoomInsert(navController)

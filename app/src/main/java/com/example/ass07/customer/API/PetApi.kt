@@ -20,7 +20,7 @@ interface PetApi {
     fun getPetTypes(): Call<List<PetType>>
 
     @GET("allpet")
-    fun retrievepetMember(): Call<List<petMember>>
+    fun allpet(): Call<List<petMember>>
 
     @GET("mypet/{user_id}")
     fun mypet(
