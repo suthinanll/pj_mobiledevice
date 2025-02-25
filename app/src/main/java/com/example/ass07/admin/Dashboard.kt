@@ -307,7 +307,7 @@ fun RoomTypeRow(
             )
             Text(
                 clean,
-                color = Color.Yellow
+                color = Color(0xFFFFC107)
             )
         }
     }
