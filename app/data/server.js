@@ -468,47 +468,6 @@ app.get('/getroom', (req, res) => {
 });
 
 
-// 📌 เพิ่มข้อมูลห้องพัก
-app.post('/addroom', function (req, res) {
-    const { type_type_id, status } = req.body;
-    if (!type_type_id || status === undefined) {
-        return res.status(400).send({ message: 'Please provide room type ID and status' });
-    }
-
-    dbConn.query('SELECT name_type, price_per_day, image, Pet_type_id FROM room_type WHERE type_id = ?', [type_type_id], function (error, results) {
-        if (error) {
-            return res.status(500).send({ message: 'Database error', details: error });
-        }
-        if (results.length === 0) {
-            return res.status(400).send({ message: 'Invalid room_type ID' });
-        }
-
-        const roomType = results[0];
-
-        dbConn.query('SELECT Pet_nametype FROM pet_type WHERE Pet_type_id = ?', [roomType.pet_type], function (error, petResults) {
-            if (error) {
-                return res.status(500).send({ message: 'Database error', details: error });
-            }
-            const petType = petResults.length > 0 ? petResults[0].Pet_name_type : null;
-
-            dbConn.query('INSERT INTO rooms (type_type_id, status) VALUES (?, ?)', [type_type_id, status], function (error, results) {
-                if (error) {
-                    return res.status(500).send({ message: 'Failed to insert room data', details: error });
-                }
-                return res.send({
-                    message: 'Room added successfully',
-                    id: results.insertId,
-                    room_type: roomType.name_type,
-                    pet_type: petType,
-                    price_per_day: roomType.price_per_day,
-                    image: roomType.image
-                });
-            });
-        });
-    });
-});
-
-
 app.post('/addroom', async (req, res) => {
     const { room_type_id, room_status } = req.body;
 
@@ -550,18 +509,15 @@ app.post('/addroom', async (req, res) => {
             [room_type_id, room_status || null]
         );
 
-        // Fetch the newly inserted room details
-        const [newRoomResults] = await dbConn.promise().query(
-            'SELECT room_id FROM rooms WHERE room_id = ?',
-            [insertResult.insertId]
-        );
+        // Directly use the insertResult.insertId without querying again
+        const roomId = insertResult.insertId;
 
         // Prepare response
         return res.status(201).json({
             error: false,
             message: 'เพิ่มห้องสำเร็จ',
             room: {
-                id: insertResult.insertId,
+                id: roomId,
                 room_type: roomType.name_type,
                 pet_type: petType,
                 price_per_day: roomType.price_per_day,
@@ -579,7 +535,6 @@ app.post('/addroom', async (req, res) => {
         });
     }
 });
-
 
 
 // Soft delete a room using NOW() for the deleted_at timestamp
