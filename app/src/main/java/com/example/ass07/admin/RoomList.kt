@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.ass07.admin.Room
 import com.example.ass07.admin.RoomAPI
+import com.example.ass07.admin.RoomCard
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -80,11 +81,9 @@ fun RoomList(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(rooms) { room ->
-<<<<<<< HEAD
+
                     RoomCard(room = room,navController= navController)
-=======
-                    RoomCard(room = room,navController=navController)
->>>>>>> eve
+
                 }
             }
         }

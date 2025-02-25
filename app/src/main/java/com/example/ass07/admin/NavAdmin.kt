@@ -10,7 +10,6 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.example.ass07.ManageRoom
 import com.example.ass07.RoomList
 import com.example.ass07.admin.booking.BookingDetail
 import com.example.ass07.customer.Booking
@@ -25,23 +24,24 @@ fun NavGraphAdmin(navController: NavHostController) {
             ManageRoom(navController)
         }
         composable(route = ScreenAdmin.Booking.route) {
-            Booking()
+            Booking(navController)
         }
         composable(route = ScreenAdmin.PetsAdmin.route) {
-            PetsAdmin()
+            PetsAdmin(navController)
         }
         composable(route = ScreenAdmin.RoomInsert.route) {
             RoomInsert(navController)
         }
-        composable(route = ScreenAdmin.RoomEdit.route + "/{room_id}") { backStackEntry ->
-
-            val roomId = backStackEntry.arguments?.getString("room_id")?.toIntOrNull()  // รับ room_id จาก URL
-
-            roomId?.let {  // เช็คว่า room_id มีค่าหรือไม่
-                RoomEdit(navController, it)  // ส่ง room_id ไปยัง RoomEdit
-
-            }
-        }
+//        composable(route = ScreenAdmin.RoomEdit.route + "/{room_id}") { backStackEntry ->
+//            val roomId = backStackEntry.arguments?.getString("room_id")?.toIntOrNull()  // รับ room_id จาก URL
+//            val roomViewModel: RoomViewModel = viewModel()  // ใช้ RoomViewModel
+//            val room by roomViewModel.room.observeAsState()
+//
+//            roomId?.let {  // เช็คว่า room_id มีค่าหรือไม่
+//                RoomEdit(navController, it)  // ส่ง room_id ไปยัง RoomEdit
+//
+//            }
+//        }
 
 
         composable(route = ScreenAdmin.BookingDetail.route+"/{id}") { backStackEntry ->
@@ -63,5 +63,4 @@ fun NavGraphAdmin(navController: NavHostController) {
         }
 
     }
-
-    }
+}

@@ -1,4 +1,4 @@
-package com.example.ass07
+package com.example.ass07.admin
 
 import android.content.Context
 import android.util.Log
@@ -25,7 +25,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
-
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.AlertDialog
@@ -36,6 +35,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -54,8 +55,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.example.ass07.R
 import com.example.ass07.admin.Room
 import com.example.ass07.admin.RoomAPI
 import com.example.ass07.admin.RoomGroupInfo
@@ -79,6 +83,14 @@ enum class RoomSort {
     PRICE_HIGH_TO_LOW,
     NAME_A_TO_Z,
     NAME_Z_TO_A
+}
+
+
+@Composable
+@Preview(showBackground =true)
+fun defult(){
+    val navController = rememberNavController()
+    ManageRoom(navController)
 }
 
 @Composable
@@ -107,7 +119,6 @@ fun ManageRoom(navController: NavController) {
                 }
                 isLoading = false
             }
-
 
             override fun onFailure(call: Call<List<Room>>, t: Throwable) {
                 errorMessage = "Error: ${t.message}"
@@ -185,18 +196,18 @@ fun ManageRoom(navController: NavController) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.filter__1_),
+                        painter = painterResource(id = R.drawable.logoapp),
                         contentDescription = "Filter",
                         modifier = Modifier.size(18.dp)
                     )
-                    Text("กรอง")
+                    Text("Filter")
                 }
             }
 
             Spacer(modifier = Modifier.width(8.dp))
 
             Button(
-                onClick = { sortDialogOpen = true },
+                onClick = { /* Handle sort */ },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.White,
                     contentColor = Color(0xFF6B7280)
@@ -213,7 +224,7 @@ fun ManageRoom(navController: NavController) {
                         contentDescription = "Sort",
                         modifier = Modifier.size(18.dp)
                     )
-                    Text("เรียงลำดับ")
+                    Text("Sort")
                 }
             }
         }
@@ -629,7 +640,6 @@ fun RoomCard(room: Room,navController: NavController) {
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
             // Status indicator (ห้องว่าง/ไม่ว่าง)
             Box(
                 modifier = Modifier
@@ -687,6 +697,8 @@ fun RoomCard(room: Room,navController: NavController) {
                 )
             }
 
+            val contextForToast = LocalContext.current
+            var expanded by remember { mutableStateOf(false) }
 
             IconButton(onClick = { expanded = true }) {
                 Icon(Icons.Default.MoreVert, contentDescription = "Open Menu")
@@ -727,7 +739,6 @@ fun RoomCard(room: Room,navController: NavController) {
     }
 }
 
-
 @Composable
 fun FilterOption(text: String, onClick: () -> Unit) {
     TextButton(
@@ -762,7 +773,6 @@ fun ShowAllMatchingRooms(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(filteredRooms) { room ->
-
             RoomCard(room = room,navController=navController)
 
         }

@@ -86,6 +86,9 @@ fun EditProfile(navController: NavHostController) {
             ) {
                 isLoading = false
                 if (response.isSuccessful) {
+                    sharePreferences.userName = username
+                    sharePreferences.email = email
+                    sharePreferences.tell_number = tel
                     Toast.makeText(context, "บันทึกการแก้ไขสำเร็จ", Toast.LENGTH_SHORT).show()
                     navController.popBackStack()
                 } else {
