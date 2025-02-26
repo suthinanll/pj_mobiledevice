@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import com.example.ass07.admin.AdminNav
+import com.example.ass07.customer.BB
 import com.example.ass07.customer.NavGraph
 import com.example.ass07.ui.theme.ASS07Theme
 
@@ -23,9 +24,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             ASS07Theme {
 
-//                BB.MyScaffoldLayout()
+                BB.MyScaffoldLayout()
                 AdminNav.MyScaffoldLayout()
-//                MyScreen()
+                MyScreen()
             }
 
             }
