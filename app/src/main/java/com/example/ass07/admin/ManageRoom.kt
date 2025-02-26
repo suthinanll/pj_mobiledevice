@@ -1,6 +1,8 @@
-package com.example.ass07
+package com.example.ass07.admin
 
+import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -23,12 +25,18 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -47,11 +55,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.example.ass07.R
 import com.example.ass07.admin.Room
 import com.example.ass07.admin.RoomAPI
 import com.example.ass07.admin.RoomGroupInfo
+import com.example.ass07.admin.ScreenAdmin
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -71,6 +83,14 @@ enum class RoomSort {
     PRICE_HIGH_TO_LOW,
     NAME_A_TO_Z,
     NAME_Z_TO_A
+}
+
+
+@Composable
+@Preview(showBackground =true)
+fun defult(){
+    val navController = rememberNavController()
+    ManageRoom(navController)
 }
 
 @Composable
@@ -99,7 +119,6 @@ fun ManageRoom(navController: NavController) {
                 }
                 isLoading = false
             }
-
 
             override fun onFailure(call: Call<List<Room>>, t: Throwable) {
                 errorMessage = "Error: ${t.message}"
@@ -177,18 +196,18 @@ fun ManageRoom(navController: NavController) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.filter__1_),
+                        painter = painterResource(id = R.drawable.logoapp),
                         contentDescription = "Filter",
                         modifier = Modifier.size(18.dp)
                     )
-                    Text("กรอง")
+                    Text("Filter")
                 }
             }
 
             Spacer(modifier = Modifier.width(8.dp))
 
             Button(
-                onClick = { sortDialogOpen = true },
+                onClick = { /* Handle sort */ },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.White,
                     contentColor = Color(0xFF6B7280)
@@ -205,7 +224,7 @@ fun ManageRoom(navController: NavController) {
                         contentDescription = "Sort",
                         modifier = Modifier.size(18.dp)
                     )
-                    Text("เรียงลำดับ")
+                    Text("Sort")
                 }
             }
         }
@@ -260,7 +279,7 @@ fun ManageRoom(navController: NavController) {
 
                 item {
                     Spacer(modifier = Modifier.height(16.dp))
-                    AddRoomButton()
+                    AddRoomButton(navController)
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
@@ -553,21 +572,10 @@ fun GroupedRoomCard(roomGroup: RoomGroupInfo, onCardClick: (RoomGroupInfo) -> Un
 
 
 @Composable
-fun AddRoomButton() {
+fun AddRoomButton(navController: NavController) {
     Button(
         onClick = {
-            // เรียก API เพิ่มห้องพัก
-//            val api = RoomAPI.create()
-//            api.insertRoom("New Room", 1, 1, "available").enqueue(object : retrofit2.Callback<Room> {
-//                override fun onResponse(call: Call<Room>, response: Response<Room>) {
-//                    if (response.isSuccessful) {
-//                        // เพิ่มห้องพักสำเร็จ
-//                    }
-//                }
-//                override fun onFailure(call: Call<Room>, t: Throwable) {
-//                    // จัดการข้อผิดพลาด
-//                }
-//            })
+            navController.navigate(ScreenAdmin.RoomInsert.route)
         },
         modifier = Modifier
             .fillMaxWidth()
@@ -593,7 +601,33 @@ fun AddRoomButton() {
 }
 
 @Composable
-fun RoomCard(room: Room) {
+fun RoomCard(room: Room,navController: NavController) {
+    val contextForToast = LocalContext.current
+    var expanded by remember { mutableStateOf(false) }
+
+    // ฟังก์ชันลบห้อง (soft delete)
+    fun softDeleteRoom(room_id: Int, contextForToast: Context) {
+        val createClient = RoomAPI.create()
+
+        createClient.softDeleteRoom(room_id).enqueue(object : Callback<Void> {
+            override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                Log.d("SoftDelete", "Response code: ${room_id}") // ✅ Debug Response Code
+                if (response.isSuccessful) {
+                    Toast.makeText(contextForToast, "ลบข้อมูลสำเร็จ", Toast.LENGTH_SHORT).show()
+
+                } else {
+                    Toast.makeText(contextForToast, "ลบข้อมูลไม่สำเร็จ", Toast.LENGTH_SHORT).show()
+                    Log.e("SoftDelete", "Error: ${response.errorBody()?.string()}") // ✅ Debug Error
+                }
+            }
+
+            override fun onFailure(call: Call<Void>, t: Throwable) {
+                Toast.makeText(contextForToast, "Error: ${t.message}", Toast.LENGTH_LONG).show()
+                Log.e("SoftDelete", "Failure: ${t.message}") // ✅ Debug Failure
+            }
+        })
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -607,7 +641,6 @@ fun RoomCard(room: Room) {
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
             // Status indicator (ห้องว่าง/ไม่ว่าง)
             Box(
                 modifier = Modifier
@@ -664,13 +697,40 @@ fun RoomCard(room: Room) {
                     color = Color(0xFFD97706) // amber-600
                 )
             }
+            val contextForToast = LocalContext.current
+            var expanded by remember { mutableStateOf(false) }
+            IconButton(onClick = { expanded = true }) {
+                Icon(Icons.Default.MoreVert, contentDescription = "Open Menu")
+            }
 
-            // More options (เพิ่มเติม)
-            IconButton(onClick = { /* Handle more options */ }) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = "More options",
-                    tint = Color(0xFF9CA3AF) // gray-400
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                // เมนูสำหรับแก้ไขห้อง
+                DropdownMenuItem(
+                    text = { Text("แก้ไข") },
+                    onClick = {
+                        Toast.makeText(contextForToast, "แก้ไขห้อง", Toast.LENGTH_SHORT).show()
+                        navController.navigate(ScreenAdmin.RoomEdit.route + "/${room.room_id}")
+                        expanded = false
+                    },
+                    leadingIcon = {
+                        Icon(Icons.Outlined.Settings, contentDescription = null)
+                    }
+                )
+
+                // เมนูสำหรับลบห้อง
+                DropdownMenuItem(
+                    text = { Text("ลบ") },
+                    onClick = {
+                        Toast.makeText(contextForToast, "ลบ", Toast.LENGTH_SHORT).show()
+                        expanded = false  // ปิดการแสดงเมนู dropdown
+                        softDeleteRoom(room.room_id, contextForToast)  // เรียกใช้ฟังก์ชัน softDeleteRoom
+                    },
+                    leadingIcon = {
+                        Icon(Icons.Outlined.Delete, contentDescription = null)
+                    }
                 )
             }
         }
@@ -695,7 +755,8 @@ fun FilterOption(text: String, onClick: () -> Unit) {
 @Composable
 fun ShowAllMatchingRooms(
     rooms: List<Room>,
-    selectedRoomGroup: RoomGroupInfo
+    selectedRoomGroup: RoomGroupInfo,
+    navController: NavController
 ) {
     val filteredRooms = remember(selectedRoomGroup) {
         rooms.filter { room ->
@@ -710,7 +771,7 @@ fun ShowAllMatchingRooms(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(filteredRooms) { room ->
-            RoomCard(room = room)
+            RoomCard(room = room,  navController = navController)
         }
     }
 }
