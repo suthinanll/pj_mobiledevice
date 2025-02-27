@@ -48,6 +48,18 @@ sealed class ScreenAdmin(val route: String, val name: String, val icon: (@Compos
             }
         }
     )
+    object RoomEditType2 : ScreenAdmin(
+        route = "RoomEditType2",
+        name = "RoomEditType2",
+        icon = {
+            remember {
+                object : Painter() {
+                    override val intrinsicSize = Size(1f, 1f)
+                    override fun DrawScope.onDraw() { /* ไม่วาดอะไร */ }
+                }
+            }
+        }
+    )
 
     object BookingDetail : ScreenAdmin(
         route = "BookingDetail",

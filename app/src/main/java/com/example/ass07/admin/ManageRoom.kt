@@ -61,6 +61,7 @@ import androidx.navigation.NavHostController
 import com.example.ass07.admin.Room
 import com.example.ass07.admin.RoomAPI
 import com.example.ass07.admin.RoomGroupInfo
+import com.example.ass07.admin.RoomType
 import com.example.ass07.admin.ScreenAdmin
 import retrofit2.Call
 import retrofit2.Callback
@@ -91,6 +92,7 @@ fun ManageRoom(navController: NavController) {
     var selectedFilter by remember { mutableStateOf(RoomFilter.ALL) }
     var selectedSort by remember { mutableStateOf<RoomSort?>(null) }
     var rooms by remember { mutableStateOf<List<Room>>(emptyList()) }
+    var roomType by remember { mutableStateOf<List<RoomType>>(emptyList()) }
     var filteredRooms by remember { mutableStateOf<List<Room>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -111,12 +113,17 @@ fun ManageRoom(navController: NavController) {
             }
 
 
+
             override fun onFailure(call: Call<List<Room>>, t: Throwable) {
                 errorMessage = "Error: ${t.message}"
                 isLoading = false
             }
         })
+
+
     }
+
+
 
     var selectedRoomType by remember { mutableStateOf<String?>(null) }
     var selectedPetType by remember { mutableStateOf<String?>(null) }
@@ -272,6 +279,8 @@ fun ManageRoom(navController: NavController) {
                 item {
                     Spacer(modifier = Modifier.height(16.dp))
                     AddRoomButton(navController)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    EditRoomButton(navController = navController)
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
@@ -594,10 +603,11 @@ fun AddRoomButton(navController: NavController) {
             Text("เพิ่มห้องพัก")
         }
     }
-
-
+}
+@Composable
+fun EditRoomButton(navController: NavController) {
     Button(
-        onClick = { navController.navigate(ScreenAdmin.RoomEditType.route + "/{room_type_id}") },
+        onClick = { navController.navigate(ScreenAdmin.RoomEditType.route )},
         modifier = Modifier
             .fillMaxWidth()
             .height(48.dp),
@@ -619,6 +629,7 @@ fun AddRoomButton(navController: NavController) {
             Text("แก้ไขประเภทห้องพัก")
         }
     }
+
 }
 
 @Composable

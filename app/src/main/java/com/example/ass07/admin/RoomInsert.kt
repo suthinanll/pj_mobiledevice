@@ -14,7 +14,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.content.MediaType.Companion.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -28,16 +27,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextAlign
 import coil.compose.rememberAsyncImagePainter
+import com.example.ass07.R
 import com.example.ass07.customer.Mypet.PetType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,12 +54,10 @@ fun RoomInsert(navController: NavHostController) {
     var isAddingRoomType by remember { mutableStateOf(false) }
     var petTypes by remember { mutableStateOf<List<PetType>>(emptyList()) }
     var selectedPetType by remember { mutableStateOf<PetType?>(null) }
-    var base64Image by remember { mutableStateOf<String?>(null) }
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
 
     val createClient = RoomAPI.create()
     val contextForToast = LocalContext.current
-
-
 
     LaunchedEffect(Unit) {
         createClient.getPetTypes().enqueue(object : Callback<List<PetType>> {
@@ -153,11 +157,29 @@ fun RoomInsert(navController: NavHostController) {
                             return@RoomTypeDropdown
                         }
                         isAddingRoomType = true
+
+                        // Upload image along with room type info
+                        val imageFile = imageUri?.let { uri ->
+                            val inputStream = contextForToast.contentResolver.openInputStream(uri)
+                            val imageFile = File.createTempFile("image", ".jpg", contextForToast.cacheDir)
+                            val outputStream = FileOutputStream(imageFile)
+                            inputStream?.copyTo(outputStream)
+                            inputStream?.close()
+                            outputStream.close()
+                            imageFile
+                        }
+
+                        // Upload image along with room type info
+                        val requestBody = imageFile?.asRequestBody("image/jpeg".toMediaTypeOrNull())
+                        val imagePart = requestBody?.let {
+                            MultipartBody.Part.createFormData("image", imageFile.name, it)
+                        }
+
                         createClient.addRoomType(
                             name_type = newTypeName,
                             price_per_day = pricePerDay,
-                            pet_type = selectedPetType!!.Pet_type_id.toString() ,
-                            image = base64Image
+                            pet_type = selectedPetType!!.Pet_type_id.toString(),
+                            image = imagePart.toString()
                         ).enqueue(object : Callback<RoomTypeResponse> {
                             override fun onResponse(
                                 call: Call<RoomTypeResponse>,
@@ -212,7 +234,6 @@ fun RoomInsert(navController: NavHostController) {
                     label = "สถานะห้อง",
                     options = listOf("ว่าง", "ไม่ว่าง")
                 )
-
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -295,7 +316,7 @@ fun RoomTypeDropdown(
     selectedPetType: PetType?,
     onRoomTypeSelected: (RoomType) -> Unit,
     onPetTypeSelected: (PetType) -> Unit,
-    onAddNewRoomType: (String, Double) -> Unit
+    onAddNewRoomType: (String, Double) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
     var newRoomTypeName by remember { mutableStateOf("") }
@@ -303,21 +324,21 @@ fun RoomTypeDropdown(
     var showAddDialog by remember { mutableStateOf(false) }
     var petExpanded by remember { mutableStateOf(false) }
     var selectedPet by remember { mutableStateOf<PetType?>(null) }
+    val createClient = RoomAPI.create()
 
     val contextForToast = LocalContext.current
     var imageUri by remember { mutableStateOf<Uri?>(null) }
-    var base64Image by remember { mutableStateOf<String?>(null) }
+
     val context = LocalContext.current
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let {
-            imageUri = it
-            base64Image = encodeImageToBase64(context, it)
-            //Log.d("API_REQUEST", "Base64 Image: $base64String")
+        contract = ActivityResultContracts.GetContent(),
+        onResult = { uri ->
+            uri?.let {
+                imageUri = it
+            }
         }
-    }
+    )
 
     Column {
         ExposedDropdownMenuBox(
@@ -369,18 +390,28 @@ fun RoomTypeDropdown(
                 onDismissRequest = { showAddDialog = false },
                 title = { Text("เพิ่มประเภทห้องใหม่") },
                 text = {
-                    Column {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
                         OutlinedTextField(
                             value = newRoomTypeName,
                             onValueChange = { newRoomTypeName = it },
-                            label = { Text("ชื่อประเภทห้อง") }
+                            label = { Text("ชื่อประเภทห้อง") },
+                            modifier = Modifier.fillMaxWidth()
                         )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
                         OutlinedTextField(
                             value = newPricePerDay,
                             onValueChange = { newPricePerDay = it },
                             label = { Text("ราคา/วัน") },
-                            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
+                            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.fillMaxWidth()
                         )
+
+                        Spacer(modifier = Modifier.height(8.dp))
 
                         // เลือกประเภทสัตว์เลี้ยง
                         ExposedDropdownMenuBox(
@@ -420,51 +451,113 @@ fun RoomTypeDropdown(
                             }
                         }
 
-
-                        // ปุ่มเลือกภาพ
-                        Button(onClick = { imagePickerLauncher.launch("image/*") }) {
-                            Text("เลือกภาพประเภทห้อง")
-                        }
+                        Spacer(modifier = Modifier.height(16.dp))
 
                         // แสดงตัวอย่างภาพที่เลือก
-                        imageUri?.let {
+                        if (imageUri != null) {
                             Image(
-                                painter = rememberAsyncImagePainter(it),
+                                painter = rememberAsyncImagePainter(imageUri),
                                 contentDescription = "Room Type Image",
                                 modifier = Modifier
                                     .size(150.dp)
                                     .padding(8.dp)
                             )
+                        } else {
+                            Image(
+                                painter = painterResource(id = R.drawable.logoapp),
+                                contentDescription = "Default Logo",
+                                modifier = Modifier
+                                    .size(100.dp)
+                                    .padding(8.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // ปุ่มเลือกรูปภาพ
+                        Button(
+                            onClick = { imagePickerLauncher.launch("image/*") },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("เลือกภาพประเภทห้อง")
                         }
                     }
                 },
                 confirmButton = {
                     Button(
                         onClick = {
-                            if (newRoomTypeName.isBlank() || newPricePerDay.isBlank() || selectedPet == null) {
-                                Toast.makeText(
-                                    contextForToast,
-                                    "กรุณากรอกข้อมูลให้ครบ",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                return@Button
-                            }
+                            try {
+                                val priceValue = newPricePerDay.toDoubleOrNull()
+                                if (newRoomTypeName.isBlank()) {
+                                    Toast.makeText(context, "กรุณากรอกชื่อประเภทห้อง", Toast.LENGTH_SHORT).show()
+                                    return@Button
+                                }
+                                if (priceValue == null) {
+                                    Toast.makeText(context, "กรุณากรอกราคาที่ถูกต้อง", Toast.LENGTH_SHORT).show()
+                                    return@Button
+                                }
+                                if (selectedPet == null) {
+                                    Toast.makeText(context, "กรุณาเลือกประเภทสัตว์เลี้ยง", Toast.LENGTH_SHORT).show()
+                                    return@Button
+                                }
+                                if (imageUri == null) {
+                                    Toast.makeText(context, "กรุณาเลือกรูปภาพ", Toast.LENGTH_SHORT).show()
+                                    return@Button
+                                    Log.d("ImagePicker", "Selected Image URI: $imageUri")
 
-                            val pricePerDay = newPricePerDay.toDoubleOrNull()
-                            if (pricePerDay == null) {
-                                Toast.makeText(
-                                    contextForToast,
-                                    "กรุณากรอกราคาให้ถูกต้อง",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                return@Button
-                            }
+                                }
 
-                            onAddNewRoomType(newRoomTypeName, pricePerDay)
-                            showAddDialog = false
-                            newRoomTypeName = ""
-                            newPricePerDay = ""
-                            selectedPet = null
+                                val inputStream = imageUri?.let {
+                                    contextForToast.contentResolver.openInputStream(it)
+                                } ?: throw Exception("Failed to open input stream")
+
+                                // Create a temporary file to save the image
+                                val imageFile = File.createTempFile("image", ".jpg")
+
+                                // Create an output stream to save the image file
+                                val outputStream = FileOutputStream(imageFile)
+                                inputStream.copyTo(outputStream)
+
+                                // Close the streams
+                                inputStream.close()
+                                outputStream.close()
+
+                                // Prepare the image for uploading as MultipartBody.Part
+                                val requestBody = imageFile.asRequestBody("image/jpeg".toMediaTypeOrNull())
+                                val imagePart = MultipartBody.Part.createFormData("image", imageFile.name, requestBody)
+
+                                // Prepare other form data: Room name, Price per day, and Pet type
+                                val titleRequestBody = newRoomTypeName.toRequestBody("text/plain".toMediaTypeOrNull())
+                                val priceRequestBody = newPricePerDay.toRequestBody("text/plain".toMediaTypeOrNull())
+                                val petTypeRequestBody = selectedPet?.Pet_type_id?.toString()?.toRequestBody("text/plain".toMediaTypeOrNull())
+
+                                // Perform the network request to upload the data
+                                if (petTypeRequestBody != null) {
+                                    createClient.uploadRoomData(imagePart, titleRequestBody, priceRequestBody, petTypeRequestBody)
+                                        .enqueue(object : Callback<RoomType> {
+                                            override fun onResponse(call: Call<RoomType>, response: Response<RoomType>) {
+                                                if (response.isSuccessful) {
+                                                    Toast.makeText(context, "บันทึกสำเร็จ", Toast.LENGTH_SHORT).show()
+                                                    onAddNewRoomType(newRoomTypeName, priceValue)
+                                                    showAddDialog = false
+                                                    newRoomTypeName = ""
+                                                    newPricePerDay = ""
+                                                    selectedPet = null
+                                                    imageUri = null
+
+                                                } else {
+                                                    Toast.makeText(context, "บันทึกไม่สำเร็จ: ${response.message()}", Toast.LENGTH_SHORT).show()
+                                                }
+                                            }
+
+                                            override fun onFailure(call: Call<RoomType>, t: Throwable) {
+                                                Toast.makeText(context, "เกิดข้อผิดพลาด: ${t.message}", Toast.LENGTH_SHORT).show()
+                                            }
+                                        })
+                                }
+                            } catch (e: Exception) {
+                                Toast.makeText(contextForToast, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                            }
                         }
                     ) {
                         Text("เพิ่ม")
@@ -477,33 +570,5 @@ fun RoomTypeDropdown(
                 }
             )
         }
-    }
-}
-fun encodeImageToBase64(context: Context, uri: Uri): String? {
-    return try {
-        val bitmap = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
-            val source = ImageDecoder.createSource(context.contentResolver, uri)
-            ImageDecoder.decodeBitmap(source)
-        } else {
-            MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
-        }
-
-        val outputStream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
-        val byteArray = outputStream.toByteArray()
-        val base64String = Base64.encodeToString(byteArray, Base64.DEFAULT)
-
-        // เพิ่ม log เพื่อดู Base64
-        Log.d("API_REQUEST", "Base64 Image: $base64String")
-
-        // ตรวจสอบว่า Base64 มีค่าไหม
-        if (base64String.isEmpty()) {
-            Toast.makeText(context, "Base64 image is empty", Toast.LENGTH_SHORT).show()
-        }
-
-        base64String
-    } catch (e: Exception) {
-        e.printStackTrace()
-        null
     }
 }

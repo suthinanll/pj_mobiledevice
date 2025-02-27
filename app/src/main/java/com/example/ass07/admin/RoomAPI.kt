@@ -4,6 +4,8 @@ package com.example.ass07.admin
 import com.example.ass07.customer.Mypet.PetType
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -11,8 +13,10 @@ import retrofit2.http.Body
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
+import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.PUT
+import retrofit2.http.Part
 import retrofit2.http.Path
 
 
@@ -45,6 +49,15 @@ interface RoomAPI {
         @Field("image") image: String?
     ): Call<RoomTypeResponse>
 
+    @Multipart
+    @POST("addRoomType")
+    fun uploadRoomData(
+        @Part image: MultipartBody.Part, // Image part
+        @Part("name_type") name_type: RequestBody,  // Room name part
+        @Part("price_per_day") price_per_day: RequestBody, // Price per day part
+        @Part("pet_type") pet_type: RequestBody  // Pet type part
+    ): Call<RoomType>
+
 
     @GET("updateRoomType/{room_type_id}")
     fun getRoomTypeById(
@@ -54,12 +67,13 @@ interface RoomAPI {
     @FormUrlEncoded
     @PUT("updateRoomType/{room_type_id}")
     fun updateRoomType(
-        @Path("room_type_id") roomTypeId: Int,
-        @Field("name_type") nameType: String,
-        @Field("price_per_day") pricePerDay: Double,
-        @Field("pet_type") petType: String,
+        @Path("room_type_id") room_type_id: Int,
+        @Field("name_type") name_type: String,
+        @Field("price_per_day") price_per_day: Double,
+        @Field("pet_type") pet_type: String,
         @Field("image") image: String?
     ): Call<RoomType>
+
 
 
 

@@ -37,25 +37,28 @@ import com.example.ass07.admin.Room
 import com.example.ass07.admin.RoomAPI
 import com.example.ass07.admin.RoomType
 import com.example.ass07.admin.ScreenAdmin
+import com.example.ass07.customer.Mypet.PetType
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
 @Composable
-fun RoomEditType(navController: NavController, room_type_id: Int) {
+fun RoomEditType(navController: NavController) {
     val contextForToast = LocalContext.current
     var rooms by remember { mutableStateOf<List<RoomType>>(emptyList()) }
+    var petTypes by remember { mutableStateOf<List<PetType>>(emptyList()) }  // ดึงข้อมูล pet_type
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
-    // Fetch room data based on room_type_id from API
-    LaunchedEffect(room_type_id) {
+    // Fetch room data from API
+    LaunchedEffect(Unit) {
         val api = RoomAPI.create()
+
+        // ดึงข้อมูล RoomTypes (ห้อง)
         api.getRoomTypes().enqueue(object : Callback<List<RoomType>> {
             override fun onResponse(call: Call<List<RoomType>>, response: Response<List<RoomType>>) {
                 if (response.isSuccessful) {
-                    rooms = response.body()?.filter { it.room_type_id == room_type_id } ?: emptyList()
-                    Log.d("RoomEditType", "Room data fetched: $rooms")
+                    rooms = response.body() ?: emptyList()
                 } else {
                     errorMessage = "Error: ${response.message()}"
                     Log.d("RoomEditType", "Error fetching room: ${response.message()}")
@@ -65,8 +68,23 @@ fun RoomEditType(navController: NavController, room_type_id: Int) {
 
             override fun onFailure(call: Call<List<RoomType>>, t: Throwable) {
                 errorMessage = "Error: ${t.message}"
-                Log.d("RoomEditType", "Failure fetching room: ${t.message}")
                 isLoading = false
+            }
+        })
+
+        // ดึงข้อมูล petTypes (ประเภทสัตว์เลี้ยง)
+        api.getPetTypes().enqueue(object : Callback<List<PetType>> {
+            override fun onResponse(call: Call<List<PetType>>, response: Response<List<PetType>>) {
+                if (response.isSuccessful) {
+                    petTypes = response.body() ?: emptyList()
+                } else {
+                    errorMessage = "Error: ${response.message()}"
+                    Log.d("RoomEditType", "Error fetching pet types: ${response.message()}")
+                }
+            }
+
+            override fun onFailure(call: Call<List<PetType>>, t: Throwable) {
+                errorMessage = "Error: ${t.message}"
             }
         })
     }
@@ -81,7 +99,18 @@ fun RoomEditType(navController: NavController, room_type_id: Int) {
         } else if (errorMessage != null) {
             Text("เกิดข้อผิดพลาด: $errorMessage", modifier = Modifier.padding(16.dp))
         } else {
-            // Use LazyColumn to loop through the room data
+            Spacer(modifier = Modifier.height(5.dp))
+            Text(
+                text = "ประเภทห้องทั้งหมด",
+                style = MaterialTheme.typography.titleLarge,
+                color = Color(0xFF1F2937),
+                modifier = Modifier.padding(16.dp)
+                    .padding(16.dp)
+                    .align(Alignment.CenterHorizontally)
+            )
+
+            // Use LazyColumn to display all rooms
+            Spacer(modifier = Modifier.width(25.dp))
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
@@ -89,7 +118,7 @@ fun RoomEditType(navController: NavController, room_type_id: Int) {
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(rooms) { room ->
-                    RoomCardEdit(roomtype = room, navController = navController)
+                    RoomCardEdit(roomtype = room, petTypes = petTypes, navController = navController)
                 }
             }
         }
@@ -97,8 +126,11 @@ fun RoomEditType(navController: NavController, room_type_id: Int) {
 }
 
 @Composable
-fun RoomCardEdit(roomtype: RoomType, navController: NavController) {
+fun RoomCardEdit(roomtype: RoomType, petTypes: List<PetType>, navController: NavController) {
     var expanded by remember { mutableStateOf(false) }
+
+    // หาค่าชื่อสัตว์เลี้ยงที่ตรงกับ pet_type_id
+    val petName = petTypes.find { it.Pet_type_id.toString() == roomtype.pet_type }?.Pet_name_type ?: "ไม่ระบุ"
 
     Card(
         modifier = Modifier
@@ -123,9 +155,13 @@ fun RoomCardEdit(roomtype: RoomType, navController: NavController) {
                     .padding(8.dp)
             ) {
                 // Display room image (use a placeholder if no image)
+                val imageUrl = roomtype.image ?: "" // Check if image is null
                 Image(
-                    //painter = rememberImagePainter(room.image),
-                    painter = painterResource(id = R.drawable.logoapp),
+                    painter = if (imageUrl.isEmpty()) {
+                        painterResource(id = R.drawable.logoapp) // Use the default logo
+                    } else {
+                        rememberImagePainter(imageUrl) // Use the image from URL if available
+                    },
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize()
                 )
@@ -143,7 +179,7 @@ fun RoomCardEdit(roomtype: RoomType, navController: NavController) {
 
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = roomtype.pet_type_name, // Pet type name (instead of pet_type)
+                    text = petName, // Pet type name from the API
                     style = MaterialTheme.typography.titleMedium,
                     color = Color(0xFF1F2937) // Dark gray
                 )
@@ -173,7 +209,7 @@ fun RoomCardEdit(roomtype: RoomType, navController: NavController) {
                 DropdownMenuItem(
                     text = { Text("แก้ไข", color = Color.Black) },
                     onClick = {
-                        navController.navigate(ScreenAdmin.RoomEdit.route + "/${roomtype.room_type_id}")
+                        navController.navigate(ScreenAdmin.RoomEditType2.route + "/${roomtype.room_type_id}")
                         expanded = false
                     },
                     leadingIcon = {
