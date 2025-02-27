@@ -46,11 +46,17 @@ fun RoomEdit(navController: NavHostController, room_id: Int) {
     val contextForToast = LocalContext.current
 
     // เรียกข้อมูลห้องและข้อมูลประเภทสัตว์เลี้ยง
-    LaunchedEffect(Unit) {
+    LaunchedEffect(room_id) {
         createClient.getRoomById(room_id).enqueue(object : Callback<Room> {
             override fun onResponse(call: Call<Room>, response: Response<Room>) {
                 if (response.isSuccessful) {
                     room = response.body()
+
+                    room?.let {
+                        // ตั้งค่า roomStatus ให้ตรงกับสถานะห้องที่ได้รับจาก API
+                        roomStatus = it.room_status // กำหนดสถานะห้องที่ดึงมาจาก API
+                        Log.e("API_ERROR", "Room Status: ${roomStatus}") // แสดงค่า roomStatus
+                    }
                     loading = false
                 }
             }
@@ -82,7 +88,16 @@ fun RoomEdit(navController: NavHostController, room_id: Int) {
                 if (response.isSuccessful) {
                     roomTypes = response.body() ?: emptyList()
                     if (roomTypes.isNotEmpty()) {
-                        selectedRoomType = roomTypes[0]
+                        // ค้นหา index ของ roomType ที่ตรงกับ room_type_id
+                        room?.let {
+                            val index = roomTypes.indexOfFirst { roomType -> roomType.room_type_id == it.type_type_id }
+                            if (index != -1) {
+                                selectedRoomType = roomTypes[index]
+                                Log.e("API_ERROR", "selectedRoomType: ${selectedRoomType?.name_type}")
+                            } else {
+                                Log.e("API_ERROR", "Room type not found")
+                            }
+                        }
                     }
                 }
             }
@@ -235,14 +250,15 @@ fun RoomEdit(navController: NavHostController, room_id: Int) {
                 Button(
                     onClick = {
                         if (selectedRoomType != null) {
-                            val roomTypeId = selectedRoomType?.type_id ?: 0
-                            createClient.insertRoom(
+                            val roomTypeId = selectedRoomType?.room_type_id ?: 0
+                            createClient.updateroom(
+                                room_id = room_id,
                                 roomTypeId = roomTypeId,
                                 roomStatus = roomStatus
                             ).enqueue(object : Callback<Room> {
                                 override fun onResponse(call: Call<Room>, response: Response<Room>) {
                                     if (response.isSuccessful) {
-                                        Log.d("RoomEdit", "RoomType ID: ${selectedRoomType?.type_id}")
+                                        Log.d("RoomEdit", "RoomType ID: ${selectedRoomType?.room_type_id}")
                                         Log.d("RoomEdit", "RoomStatus: $roomStatus")
                                         Log.d("RoomEdit", "room_id: $room_id")
                                         Toast.makeText(contextForToast, "บันทึกสำเร็จ", Toast.LENGTH_SHORT).show()
@@ -269,4 +285,5 @@ fun RoomEdit(navController: NavHostController, room_id: Int) {
         }
     }
 }
+
 

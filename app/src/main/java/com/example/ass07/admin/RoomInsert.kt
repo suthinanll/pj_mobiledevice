@@ -219,7 +219,7 @@ fun RoomInsert(navController: NavHostController) {
                 Button(
                     onClick = {
                         if (selectedRoomType != null) {
-                            val roomTypeId = selectedRoomType?.type_id ?: 0
+                            val roomTypeId = selectedRoomType?.room_type_id ?: 0
                             Log.d("API_REQUEST", "roomTypeId: $roomTypeId, roomStatus: $roomStatus")
 
                             createClient.insertRoom(

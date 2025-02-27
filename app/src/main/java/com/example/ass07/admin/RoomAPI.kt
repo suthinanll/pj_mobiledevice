@@ -46,6 +46,23 @@ interface RoomAPI {
     ): Call<RoomTypeResponse>
 
 
+    @GET("updateRoomType/{room_type_id}")
+    fun getRoomTypeById(
+        @Path("room_type_id") roomTypeId: Int,
+    ): Call<RoomType>
+
+    @FormUrlEncoded
+    @PUT("updateRoomType/{room_type_id}")
+    fun updateRoomType(
+        @Path("room_type_id") roomTypeId: Int,
+        @Field("name_type") nameType: String,
+        @Field("price_per_day") pricePerDay: Double,
+        @Field("pet_type") petType: String,
+        @Field("image") image: String?
+    ): Call<RoomType>
+
+
+
     @GET("updateroom/{room_id}")
     fun getRoomById(
         @Path("room_id") room_id: Int,

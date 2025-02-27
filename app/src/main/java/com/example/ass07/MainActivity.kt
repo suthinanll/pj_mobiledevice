@@ -26,7 +26,7 @@ class MainActivity : ComponentActivity() {
 
                 BB.MyScaffoldLayout()
                 AdminNav.MyScaffoldLayout()
-                MyScreen()
+//                MyScreen()
             }
 
             }
@@ -38,19 +38,19 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun GreetingPreview() {
     ASS07Theme {
-        //BB.MyScaffoldLayout()
+        BB.MyScaffoldLayout()
         AdminNav.MyScaffoldLayout()
     }
 }
-@Composable
-fun MyScreen(){
-    val navController = rememberNavController()
-    Column (
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ){  }
-    NavGraph(navController)
-}
+//@Composable
+//fun MyScreen(){
+//    val navController = rememberNavController()
+//    Column (
+//        modifier = Modifier.fillMaxSize(),
+//        horizontalAlignment = Alignment.CenterHorizontally
+//    ){  }
+//    NavGraph(navController)
+//}
 
 
 

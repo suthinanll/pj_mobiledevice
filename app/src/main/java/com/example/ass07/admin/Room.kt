@@ -15,7 +15,7 @@ data class Room(
     @Expose
     @SerializedName("price_per_day") val price_per_day:Double?,
     @Expose
-    @SerializedName("room_status") val room_status:Int,
+    @SerializedName("status") val room_status:Int,
     @Expose
     @SerializedName("type_type_id") val type_type_id:Int,
     @Expose
@@ -30,7 +30,6 @@ data class Room(
     @SerializedName("image") val image:String,
     @Expose
     @SerializedName("user_id") val userId: Int) : Parcelable
-
 
 
 
