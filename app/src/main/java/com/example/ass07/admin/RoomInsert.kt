@@ -5,7 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.net.Uri
 import android.provider.MediaStore
-import android.util.Base64
+
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController

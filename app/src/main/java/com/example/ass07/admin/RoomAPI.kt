@@ -64,15 +64,25 @@ interface RoomAPI {
         @Path("room_type_id") roomTypeId: Int,
     ): Call<RoomType>
 
+    @Multipart
+    @PUT("updateRoomType/{room_type_id}")
+    fun updateRoomTypeWithImage(
+        @Path("room_type_id") room_type_id: Int,
+        @Part image: MultipartBody.Part,
+        @Part("name_type") name_type: RequestBody,
+        @Part("price_per_day") price_per_day: RequestBody,
+        @Part("pet_type") pet_type: RequestBody
+    ): Call<RoomTypeResponse>
+
     @FormUrlEncoded
     @PUT("updateRoomType/{room_type_id}")
-    fun updateRoomType(
+    fun updateRoomTypeNoImage(
         @Path("room_type_id") room_type_id: Int,
         @Field("name_type") name_type: String,
         @Field("price_per_day") price_per_day: Double,
-        @Field("pet_type") pet_type: String,
-        @Field("image") image: String?
-    ): Call<RoomType>
+        @Field("pet_type") pet_type: Int
+    ): Call<RoomTypeResponse>
+
 
 
 
