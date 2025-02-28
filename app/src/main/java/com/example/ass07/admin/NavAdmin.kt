@@ -10,6 +10,9 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+
+import com.example.ass07.RoomEditType
+
 import com.example.ass07.RoomList
 import com.example.ass07.admin.booking.BookingDetail
 import com.example.ass07.customer.Booking
@@ -20,7 +23,7 @@ fun NavGraphAdmin(navController: NavHostController) {
         navController = navController,
         startDestination = ScreenAdmin.Dashboard.route
     ) {
-        composable(route = ScreenAdmin.ManageRoom.route) {
+        composable(route = ScreenAdmin.ManageRoom.route ) {
             ManageRoom(navController)
         }
         composable(route = ScreenAdmin.Booking.route) {
@@ -36,6 +39,19 @@ fun NavGraphAdmin(navController: NavHostController) {
         composable (route =  ScreenAdmin.Dashboard.route){
             AdminDashboard()
         }
+        composable(route = ScreenAdmin.RoomEditType.route) {
+            RoomEditType(navController)
+        }
+        composable(
+            route = ScreenAdmin.RoomEditType2.route + "/{room_type_id}", // เส้นทาง RoomEditType ที่ต้องมี room_type_id
+        ) { backStackEntry ->
+            val room_type_id = backStackEntry.arguments?.getString("room_type_id")?.toIntOrNull()
+            if (room_type_id != null) {
+                RoomEditType2(navController = navController, room_type_id = room_type_id)
+            }
+        }
+
+
 
 
         composable(route = ScreenAdmin.BookingDetail.route+"/{id}") { backStackEntry ->

@@ -6,10 +6,12 @@ import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,6 +26,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Settings
@@ -58,11 +61,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.ass07.R
 import com.example.ass07.admin.Room
 import com.example.ass07.admin.RoomAPI
 import com.example.ass07.admin.RoomGroupInfo
+import com.example.ass07.admin.RoomType
 import com.example.ass07.admin.ScreenAdmin
 import retrofit2.Call
 import retrofit2.Callback
@@ -93,6 +98,7 @@ fun ManageRoom(navController: NavController) {
     var selectedFilter by remember { mutableStateOf(RoomFilter.ALL) }
     var selectedSort by remember { mutableStateOf<RoomSort?>(null) }
     var rooms by remember { mutableStateOf<List<Room>>(emptyList()) }
+    var roomType by remember { mutableStateOf<List<RoomType>>(emptyList()) }
     var filteredRooms by remember { mutableStateOf<List<Room>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -117,7 +123,11 @@ fun ManageRoom(navController: NavController) {
                 isLoading = false
             }
         })
+
+
     }
+
+
 
     var selectedRoomType by remember { mutableStateOf<String?>(null) }
     var selectedPetType by remember { mutableStateOf<String?>(null) }
@@ -260,7 +270,8 @@ fun ManageRoom(navController: NavController) {
                             price = key.second,
                             petType = key.third,
                             availableCount = groupedRooms.count { it.room_status == 1 },
-                            occupiedCount = groupedRooms.count { it.room_status == 0 }
+                            occupiedCount = groupedRooms.count { it.room_status == 0 },
+                            improvedCount = groupedRooms.count { it.room_status == 3 }
                         )
                     }
 
@@ -272,6 +283,8 @@ fun ManageRoom(navController: NavController) {
                 item {
                     Spacer(modifier = Modifier.height(16.dp))
                     AddRoomButton(navController)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    EditRoomButton(navController = navController)
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
@@ -552,6 +565,12 @@ fun GroupedRoomCard(roomGroup: RoomGroupInfo, onCardClick: (RoomGroupInfo) -> Un
                         color = Color(0xFFFBBF24),
                         style = MaterialTheme.typography.bodySmall
                     )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "ปรับปรุง ${roomGroup.improvedCount} ห้อง",
+                        color = Color(0xFFFF4500),
+                        style = MaterialTheme.typography.bodySmall
+                    )
                 }
             }
 
@@ -588,6 +607,33 @@ fun AddRoomButton(navController: NavController) {
             Text("เพิ่มห้องพัก")
         }
     }
+}
+@Composable
+fun EditRoomButton(navController: NavController) {
+    Button(
+        onClick = { navController.navigate(ScreenAdmin.RoomEditType.route )},
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(48.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color(0xFFFBBF24) // amber-400
+        ),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.Edit,
+                contentDescription = "Edit room Type",
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("แก้ไขประเภทห้องพัก")
+        }
+    }
+
 }
 
 @Composable
@@ -639,8 +685,10 @@ fun RoomCard(room: Room,navController: NavController) {
                     .background(
                         color = if (room.room_status == 1) {
                             Color(0xFF22C55E) // สีเขียว (ว่าง)
-                        } else {
+                        } else if(room.room_status == 0) {
                             Color(0xFFFBBF24) // สีส้ม (ไม่ว่าง)
+                        } else{
+                            Color( 0xFFFF6347 ) //
                         },
                         shape = CircleShape
                     )
@@ -698,11 +746,18 @@ fun RoomCard(room: Room,navController: NavController) {
 
             DropdownMenu(
                 expanded = expanded,
-                onDismissRequest = { expanded = false }
+                onDismissRequest = { expanded = false }, // เมื่อคลิกออกจากเมนูให้ปิด
+                modifier = Modifier
+                    .background(Color.White)  // ปรับสีพื้นหลังให้เป็นสีขาว
+                    .border(1.dp, Color(0xFFFFD966))  // กรอบสีเหลือง (สี #FFD966)
+                    .padding(8.dp)  // กำหนดขนาด padding ของเมนู
+
             ) {
                 // เมนูสำหรับแก้ไขห้อง
                 DropdownMenuItem(
-                    text = { Text("แก้ไข") },
+                    text = {
+                        Text("แก้ไข", color = Color.Black)  // เปลี่ยนสีของข้อความ
+                    },
                     onClick = {
                         Toast.makeText(contextForToast, "แก้ไขห้อง", Toast.LENGTH_SHORT).show()
                         navController.navigate(ScreenAdmin.RoomEdit.route + "/${room.room_id}")
@@ -715,7 +770,9 @@ fun RoomCard(room: Room,navController: NavController) {
 
                 // เมนูสำหรับลบห้อง
                 DropdownMenuItem(
-                    text = { Text("ลบ") },
+                    text = {
+                        Text("ลบ", color = Color.Red)  // เปลี่ยนสีของข้อความสำหรับ "ลบ" ให้เป็นสีแดง
+                    },
                     onClick = {
                         Toast.makeText(contextForToast, "ลบ", Toast.LENGTH_SHORT).show()
                         expanded = false  // ปิดการแสดงเมนู dropdown
@@ -770,3 +827,4 @@ fun ShowAllMatchingRooms(
         }
     }
 }
+

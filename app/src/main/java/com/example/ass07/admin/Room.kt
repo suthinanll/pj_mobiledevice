@@ -15,7 +15,7 @@ data class Room(
     @Expose
     @SerializedName("price_per_day") val price_per_day: Double?,
     @Expose
-    @SerializedName("room_status") val room_status: Int,
+    @SerializedName("status") val room_status:Int,
     @Expose
     @SerializedName("type_type_id") val type_type_id: Int,
     @Expose
@@ -40,6 +40,7 @@ data class RoomStatistic(
     val booked: Int,
     val clean: Int
 )
+
 
 data class Booking(
     val bookingId: Int,
