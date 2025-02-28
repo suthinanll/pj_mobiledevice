@@ -63,8 +63,13 @@ dependencies {
 
     implementation(libs.androidx.media3.common.ktx)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.material)
+    implementation(libs.androidx.monitor)
+    implementation(libs.androidx.junit.ktx)
     testImplementation(libs.junit)
-    implementation("io.coil-kt:coil-compose:2.0.0") // ใช้แสดงรูปภาพจาก URL หรือไฟล์
+    implementation("io.coil-kt:coil-compose:2.0.0")
+    androidTestImplementation(libs.junit.junit) // ใช้แสดงรูปภาพจาก URL หรือไฟล์
 
 
 }

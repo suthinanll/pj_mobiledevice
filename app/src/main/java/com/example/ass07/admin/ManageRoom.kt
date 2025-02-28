@@ -67,16 +67,8 @@ import com.example.ass07.admin.ScreenAdmin
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-
-
-enum class RoomFilter {
-    ALL,
-    AVAILABLE,
-    OCCUPIED,
-    ROOM_TYPE,
-    PET_TYPE
-}
-
+import com.example.ass07.admin.RoomStatus.RoomSort
+import com.example.ass07.admin.RoomStatus.RoomFilter
 
 enum class RoomSort {
     PRICE_LOW_TO_HIGH,

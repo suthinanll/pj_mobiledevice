@@ -18,7 +18,7 @@ import com.example.ass07.customer.Booking
 fun NavGraphAdmin(navController: NavHostController) {
     NavHost(
         navController = navController,
-        startDestination = ScreenAdmin.ManageRoom.route
+        startDestination = ScreenAdmin.Dashboard.route
     ) {
         composable(route = ScreenAdmin.ManageRoom.route) {
             ManageRoom(navController)
@@ -32,16 +32,10 @@ fun NavGraphAdmin(navController: NavHostController) {
         composable(route = ScreenAdmin.RoomInsert.route) {
             RoomInsert(navController)
         }
-//        composable(route = ScreenAdmin.RoomEdit.route + "/{room_id}") { backStackEntry ->
-//            val roomId = backStackEntry.arguments?.getString("room_id")?.toIntOrNull()  // รับ room_id จาก URL
-//            val roomViewModel: RoomViewModel = viewModel()  // ใช้ RoomViewModel
-//            val room by roomViewModel.room.observeAsState()
-//
-//            roomId?.let {  // เช็คว่า room_id มีค่าหรือไม่
-//                RoomEdit(navController, it)  // ส่ง room_id ไปยัง RoomEdit
-//
-//            }
-//        }
+
+        composable (route =  ScreenAdmin.Dashboard.route){
+            AdminDashboard()
+        }
 
 
         composable(route = ScreenAdmin.BookingDetail.route+"/{id}") { backStackEntry ->
