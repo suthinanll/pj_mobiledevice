@@ -1,6 +1,7 @@
 package com.example.ass07.customer
 
 import android.content.Context
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -25,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.test.isSelected
 import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -155,8 +157,8 @@ class BB {
                             selectedTextColor = Color.White,
                             unselectedIconColor = Color.Black,
                             unselectedTextColor = Color.Black,
-                            indicatorColor = Color.Transparent
-                        )
+                            indicatorColor = if (selectedScreen == index) Color(0xFFFF9900) else Color.Transparent
+                        ),
                     )
                 }
             }
