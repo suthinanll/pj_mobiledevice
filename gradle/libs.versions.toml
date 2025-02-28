@@ -18,6 +18,7 @@ volley = "1.2.1"
 playServicesBase = "18.0.1"
 media3CommonKtx = "1.5.1"
 roomKtx = "2.6.1"
+benchmarkTraceprocessorAndroid = "1.4.0-alpha08"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -45,6 +46,7 @@ volley = { group = "com.android.volley", name = "volley", version.ref = "volley"
 play-services-base = { group = "com.google.android.gms", name = "play-services-base", version.ref = "playServicesBase" }
 androidx-media3-common-ktx = { group = "androidx.media3", name = "media3-common-ktx", version.ref = "media3CommonKtx" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomKtx" }
+androidx-benchmark-traceprocessor-android = { group = "androidx.benchmark", name = "benchmark-traceprocessor-android", version.ref = "benchmarkTraceprocessorAndroid" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

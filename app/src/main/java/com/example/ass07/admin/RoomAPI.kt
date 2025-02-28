@@ -107,6 +107,11 @@ interface RoomAPI {
         @Field("room_id") room_id: Int
     ): Call<Void>
 
+    @FormUrlEncoded
+    @POST("/softDeleteRoomType")
+    fun softDeleteRoomType(
+        @Field("room_type_id") room_type_id: Int
+    ): Call<Void>
 
 
     companion object {

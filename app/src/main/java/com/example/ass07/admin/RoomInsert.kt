@@ -13,9 +13,11 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -28,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,6 +47,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.io.File
 import java.io.FileOutputStream
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -77,7 +81,10 @@ fun RoomInsert(navController: NavHostController) {
         })
 
         createClient.getRoomTypes().enqueue(object : Callback<List<RoomType>> {
-            override fun onResponse(call: Call<List<RoomType>>, response: Response<List<RoomType>>) {
+            override fun onResponse(
+                call: Call<List<RoomType>>,
+                response: Response<List<RoomType>>
+            ) {
                 if (response.isSuccessful) {
                     roomTypes = response.body() ?: emptyList()
                     if (roomTypes.isNotEmpty()) {
@@ -99,177 +106,236 @@ fun RoomInsert(navController: NavHostController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
+            .background(Color(0xFFFFFBEB)),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFAF0)),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth() // Fill the width of the screen
+                    .padding(16.dp)
+                    .background(Color(0xFFFFFBEB))
             ) {
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp),
+                        .fillMaxWidth() // Fill the width to space elements
+                        .align(Alignment.CenterStart), // Aligning the content to the left (back button)
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(
-                        onClick = { navController.navigate(ScreenAdmin.ManageRoom.route) },
-                        modifier = Modifier.align(Alignment.CenterVertically)
+                        onClick = { navController.navigate(ScreenAdmin.ManageRoom.route) } // Navigate back on click
                     ) {
                         Icon(
-                            imageVector = Icons.Filled.ArrowBack,
-                            contentDescription = "ย้อนกลับ",
-                            tint = Color.Black
-                        )
-                    }
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "เพิ่มห้อง",
-                            fontSize = 20.sp,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "back",
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                 }
 
-                RoomTypeDropdown(
-                    roomTypes = roomTypes,
-                    selectedRoomType = selectedRoomType,
-                    petTypes = petTypes,
-                    selectedPetType = selectedPetType,
-                    onRoomTypeSelected = { selectedRoomType = it },
-                    onPetTypeSelected = { selectedPetType = it },
-                    onAddNewRoomType = { newTypeName, pricePerDay ->
-                        if (selectedPetType == null) {
-                            Toast.makeText(
-                                contextForToast,
-                                "กรุณาเลือกประเภทสัตว์เลี้ยง",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            return@RoomTypeDropdown
-                        }
-                        isAddingRoomType = true
+                // Centered Text
+                Text(
+                    text = "เพิ่มห้อง", // ข้อความ
+                    modifier = Modifier
+                        .align(Alignment.Center), // Horizontally and vertically center the text
+                    fontWeight = FontWeight.Bold, // Bold text
+                    style = MaterialTheme.typography.titleLarge // Typography style
+                )
+            }
 
-                        // Upload image along with room type info
-                        val imageFile = imageUri?.let { uri ->
-                            val inputStream = contextForToast.contentResolver.openInputStream(uri)
-                            val imageFile = File.createTempFile("image", ".jpg", contextForToast.cacheDir)
-                            val outputStream = FileOutputStream(imageFile)
-                            inputStream?.copyTo(outputStream)
-                            inputStream?.close()
-                            outputStream.close()
-                            imageFile
-                        }
 
-                        // Upload image along with room type info
-                        val requestBody = imageFile?.asRequestBody("image/jpeg".toMediaTypeOrNull())
-                        val imagePart = requestBody?.let {
-                            MultipartBody.Part.createFormData("image", imageFile.name, it)
-                        }
+            RoomTypeDropdown(
+                roomTypes = roomTypes,
+                selectedRoomType = selectedRoomType,
+                petTypes = petTypes,
+                selectedPetType = selectedPetType,
+                onRoomTypeSelected = { selectedRoomType = it },
+                onPetTypeSelected = { selectedPetType = it },
+                onAddNewRoomType = { newTypeName, pricePerDay ->
+                    if (selectedPetType == null) {
+                        Toast.makeText(
+                            contextForToast,
+                            "กรุณาเลือกประเภทสัตว์เลี้ยง",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        return@RoomTypeDropdown
+                    }
+                    isAddingRoomType = true
 
-                        createClient.addRoomType(
-                            name_type = newTypeName,
-                            price_per_day = pricePerDay,
-                            pet_type = selectedPetType!!.Pet_type_id.toString(),
-                            image = imagePart.toString()
-                        ).enqueue(object : Callback<RoomTypeResponse> {
-                            override fun onResponse(
-                                call: Call<RoomTypeResponse>,
-                                response: Response<RoomTypeResponse>
-                            ) {
-                                isAddingRoomType = false
-                                if (response.isSuccessful) {
-                                    val newRoomType = response.body()?.roomType
-                                    if (newRoomType != null) {
-                                        if (roomTypes.none { it.name_type == newRoomType.name_type }) {
-                                            roomTypes = roomTypes.toMutableList().apply { add(newRoomType) }
-                                            selectedRoomType = newRoomType
-                                        }
-                                        Toast.makeText(
-                                            contextForToast,
-                                            "เพิ่มประเภทห้องพักสำเร็จ",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    } else {
-                                        Toast.makeText(
-                                            contextForToast,
-                                            "ไม่สามารถเพิ่มประเภทห้องพัก",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
+                    // Upload image along with room type info
+                    val imageFile = imageUri?.let { uri ->
+                        val inputStream = contextForToast.contentResolver.openInputStream(uri)
+                        val imageFile =
+                            File.createTempFile("image", ".jpg", contextForToast.cacheDir)
+                        val outputStream = FileOutputStream(imageFile)
+                        inputStream?.copyTo(outputStream)
+                        inputStream?.close()
+                        outputStream.close()
+                        imageFile
+                    }
+
+                    // Upload image along with room type info
+                    val requestBody = imageFile?.asRequestBody("image/jpeg".toMediaTypeOrNull())
+                    val imagePart = requestBody?.let {
+                        MultipartBody.Part.createFormData("image", imageFile.name, it)
+                    }
+
+                    createClient.addRoomType(
+                        name_type = newTypeName,
+                        price_per_day = pricePerDay,
+                        pet_type = selectedPetType!!.Pet_type_id.toString(),
+                        image = imagePart.toString()
+                    ).enqueue(object : Callback<RoomTypeResponse> {
+                        override fun onResponse(
+                            call: Call<RoomTypeResponse>,
+                            response: Response<RoomTypeResponse>
+                        ) {
+                            isAddingRoomType = false
+                            if (response.isSuccessful) {
+                                val newRoomType = response.body()?.roomType
+                                Log.d("API_REQUEST", "newRoomType: $newRoomType")
+                                if (newRoomType != null) {
+                                    if (roomTypes.none { it.name_type == newRoomType.name_type }) {
+                                        roomTypes =
+                                            roomTypes.toMutableList().apply { add(newRoomType) }
+                                        selectedRoomType = newRoomType
+
                                     }
+                                    Toast.makeText(
+                                        contextForToast,
+                                        "เพิ่มประเภทห้องพักสำเร็จ",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 } else {
                                     Toast.makeText(
                                         contextForToast,
-                                        "ไม่สามารถเพิ่มประเภทห้องพัก",
+                                        "ลองรีอีกรอบ",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+
+                                }
+                            } else {
+                                Toast.makeText(
+                                    contextForToast,
+                                    "ไม่สามารถเพิ่มประเภทห้องพัก",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+
+                        override fun onFailure(call: Call<RoomTypeResponse>, t: Throwable) {
+                            isAddingRoomType = false
+                            Toast.makeText(
+                                contextForToast,
+                                "เกิดข้อผิดพลาด: ${t.message}",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    })
+                }
+            )
+
+
+            RadioGroupUsage(
+                selected = if (roomStatus == 1) "ว่าง" else "ไม่ว่าง",
+                setSelected = {
+                    roomStatus = if (it == "ว่าง") 1 else 0
+                },
+                label = "สถานะห้อง",
+                options = listOf("ว่าง", "ไม่ว่าง")
+            )
+            val context = LocalContext.current
+            val contentResolver = context.contentResolver
+
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = {
+                    if (selectedRoomType != null) {
+                        val roomTypeId = selectedRoomType!!.room_type_id // แก้ไขตรงนี้ ไม่ใช้ ?: 0
+                        Log.d("API_REQUEST", "roomTypeId: $roomTypeId, roomStatus: $roomStatus")
+
+
+                        imageUri?.let { uri ->  // Use the imageUri state here
+                            val bitmap =
+                                MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
+                            val imageFile = imageUri?.let { uri ->
+                                val bitmap =
+                                    MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
+                                val file = File.createTempFile("image", ".jpg")
+                                val outputStream = FileOutputStream(file)
+                                bitmap.compress(
+                                    Bitmap.CompressFormat.JPEG,
+                                    80,
+                                    outputStream
+                                ) // ลดขนาดภาพ
+                                outputStream.flush()
+                                outputStream.close()
+                                file
+                            }
+                            val requestBody =
+                                imageFile?.asRequestBody("image/jpeg".toMediaTypeOrNull())
+                            val imagePart = requestBody?.let {
+                                MultipartBody.Part.createFormData("image", imageFile.name, it)
+                            }
+
+                        }
+
+
+
+                        createClient.insertRoom(
+                            roomTypeId = roomTypeId,
+                            roomStatus = roomStatus,
+                        ).enqueue(object : Callback<Room> {
+                            override fun onResponse(call: Call<Room>, response: Response<Room>) {
+                                if (response.isSuccessful) {
+                                    Toast.makeText(
+                                        contextForToast,
+                                        "บันทึกสำเร็จ",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    navController.navigate(ScreenAdmin.ManageRoom.route)
+                                } else {
+                                    Toast.makeText(
+                                        contextForToast,
+                                        "บันทึกไม่สำเร็จ: ${response.message()}",
                                         Toast.LENGTH_SHORT
                                     ).show()
                                 }
                             }
 
-                            override fun onFailure(call: Call<RoomTypeResponse>, t: Throwable) {
-                                isAddingRoomType = false
+                            override fun onFailure(call: Call<Room>, t: Throwable) {
                                 Toast.makeText(
                                     contextForToast,
                                     "เกิดข้อผิดพลาด: ${t.message}",
-                                    Toast.LENGTH_SHORT
+                                    Toast.LENGTH_LONG
                                 ).show()
                             }
                         })
+                    } else {
+                        Toast.makeText(contextForToast, "กรุณาเลือกประเภทห้อง", Toast.LENGTH_SHORT)
+                            .show()
                     }
-                )
-
-                RadioGroupUsage(
-                    selected = if (roomStatus == 1) "ว่าง" else "ไม่ว่าง",
-                    setSelected = {
-                        roomStatus = if (it == "ว่าง") 1 else 0
-                    },
-                    label = "สถานะห้อง",
-                    options = listOf("ว่าง", "ไม่ว่าง")
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Button(
-                    onClick = {
-                        if (selectedRoomType != null) {
-                            val roomTypeId = selectedRoomType?.room_type_id ?: 0
-                            Log.d("API_REQUEST", "roomTypeId: $roomTypeId, roomStatus: $roomStatus")
-
-                            createClient.insertRoom(
-                                roomTypeId = roomTypeId,
-                                roomStatus = roomStatus,
-                            ).enqueue(object : Callback<Room> {
-                                override fun onResponse(call: Call<Room>, response: Response<Room>) {
-                                    if (response.isSuccessful) {
-                                        Toast.makeText(contextForToast, "บันทึกสำเร็จ", Toast.LENGTH_SHORT).show()
-                                        navController.navigate(ScreenAdmin.ManageRoom.route)
-                                    } else {
-                                        Toast.makeText(contextForToast, "บันทึกไม่สำเร็จ: ${response.message()}", Toast.LENGTH_SHORT).show()
-                                    }
-                                }
-
-                                override fun onFailure(call: Call<Room>, t: Throwable) {
-                                    Toast.makeText(contextForToast, "เกิดข้อผิดพลาด: ${t.message}", Toast.LENGTH_LONG).show()
-                                }
-                            })
-                        } else {
-                            Toast.makeText(contextForToast, "กรุณาเลือกประเภทห้อง", Toast.LENGTH_SHORT).show()
-                        }
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD966)),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("เพิ่มห้อง", color = Color.Black)
-                }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+                    .height(48.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFFBBF24) // amber-400
+                ),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text("เพิ่มห้อง", color = Color.Black)
             }
+
         }
     }
 }

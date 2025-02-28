@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Settings
@@ -27,12 +28,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
+import coil.request.ImageRequest
 import com.example.ass07.admin.Room
 import com.example.ass07.admin.RoomAPI
 import com.example.ass07.admin.RoomType
@@ -100,14 +105,37 @@ fun RoomEditType(navController: NavController) {
             Text("เกิดข้อผิดพลาด: $errorMessage", modifier = Modifier.padding(16.dp))
         } else {
             Spacer(modifier = Modifier.height(5.dp))
-            Text(
-                text = "ประเภทห้องทั้งหมด",
-                style = MaterialTheme.typography.titleLarge,
-                color = Color(0xFF1F2937),
-                modifier = Modifier.padding(16.dp)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth() // Fill the width of the screen
                     .padding(16.dp)
-                    .align(Alignment.CenterHorizontally)
-            )
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth() // Fill the width to space elements
+                        .align(Alignment.CenterStart), // Aligning the content to the left (back button)
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(
+                        onClick = { navController.navigate(ScreenAdmin.ManageRoom.route)} // Navigate back on click
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "back",
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+
+                // Centered Text
+                Text(
+                    text = "ประเภทห้องทั้งหมด", // ข้อความ
+                    modifier = Modifier
+                        .align(Alignment.Center), // Horizontally and vertically center the text
+                    fontWeight = FontWeight.Bold, // Bold text
+                    style = MaterialTheme.typography.titleLarge // Typography style
+                )
+            }
 
             // Use LazyColumn to display all rooms
             Spacer(modifier = Modifier.width(25.dp))
@@ -121,6 +149,7 @@ fun RoomEditType(navController: NavController) {
                     RoomCardEdit(roomtype = room, petTypes = petTypes, navController = navController)
                 }
             }
+            Spacer(modifier = Modifier.height(25.dp))
         }
     }
 }
@@ -128,9 +157,32 @@ fun RoomEditType(navController: NavController) {
 @Composable
 fun RoomCardEdit(roomtype: RoomType, petTypes: List<PetType>, navController: NavController) {
     var expanded by remember { mutableStateOf(false) }
+    val contextForToast = LocalContext.current
+
 
     // หาค่าชื่อสัตว์เลี้ยงที่ตรงกับ pet_type_id
     val petName = petTypes.find { it.Pet_type_id.toString() == roomtype.pet_type }?.Pet_name_type ?: "ไม่ระบุ"
+
+
+    fun softDeleteRoomType(room_type_id: Int, contextForToast: Context) {
+        val createClient = RoomAPI.create()
+        createClient.softDeleteRoomType(room_type_id).enqueue(object : Callback<Void> {
+            override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                Log.d("SoftDelete", "Response code: ${room_type_id}") // ✅ Debug Response Code
+                if (response.isSuccessful) {
+                    Toast.makeText(contextForToast, "ลบประเภทห้องสำเร็จ", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(contextForToast, "ลบประเภทห้องไม่สำเร็จ", Toast.LENGTH_SHORT).show()
+                    Log.e("SoftDelete", "Error: ${response.errorBody()?.string()}") // ✅ Debug Error
+                }
+            }
+
+            override fun onFailure(call: Call<Void>, t: Throwable) {
+                Toast.makeText(contextForToast, "Error: ${t.message}", Toast.LENGTH_LONG).show()
+                Log.e("SoftDelete", "Failure: ${t.message}") // ✅ Debug Failure
+            }
+        })
+    }
 
     Card(
         modifier = Modifier
@@ -150,20 +202,33 @@ fun RoomCardEdit(roomtype: RoomType, petTypes: List<PetType>, navController: Nav
             // Room image (ภาพห้อง)
             Box(
                 modifier = Modifier
-                    .size(64.dp)
-                    .background(Color(0xFFFDE68A), RoundedCornerShape(8.dp))
-                    .padding(8.dp)
+                    .size(64.dp) // ขนาดของกล่องที่มีขอบสีเหลือง
+                    .background(Color(0xFFFDE68A), RoundedCornerShape(8.dp)) // ขอบสีเหลือง
+                    .padding(5.dp)
             ) {
                 // Display room image (use a placeholder if no image)
-                val imageUrl = roomtype.image ?: "" // Check if image is null
+                val imageUri = roomtype.image ?: "" // Check if image is null
                 Image(
-                    painter = if (imageUrl.isEmpty()) {
+                    painter = if (imageUri.isEmpty()) {
                         painterResource(id = R.drawable.logoapp) // Use the default logo
                     } else {
-                        rememberImagePainter(imageUrl) // Use the image from URL if available
+                        val imagePath =
+                            roomtype.image?.replace("uploads/", "")  // Remove "uploads/" from the path
+                        rememberAsyncImagePainter(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data("http://10.0.2.2:3000/${roomtype.image}")
+                                .crossfade(true)
+                                .build(),
+                            onError = {
+                                Log.e("ImageDebug", "Error loading image: ${roomtype.image}, error: ${it.result.throwable.message}")
+                            }
+                        )
                     },
                     contentDescription = null,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier
+                        .fillMaxSize() // ใช้ fillMaxSize เพื่อให้ภาพขยายเต็มขนาดของ Box
+                        .clip(RoundedCornerShape(5.dp)), // ใช้ fillMaxSize เพื่อให้ภาพขยายเต็มขนาดของ Box
+                    contentScale = ContentScale.Crop // ใช้ fillMaxSize เพื่อให้ภาพขยายเต็มขนาดของ Box
                 )
             }
 
@@ -222,7 +287,7 @@ fun RoomCardEdit(roomtype: RoomType, petTypes: List<PetType>, navController: Nav
                     text = { Text("ลบ", color = Color.Red) },
                     onClick = {
                         expanded = false
-                        // Call soft delete function if needed
+                        softDeleteRoomType(roomtype.room_type_id, contextForToast)
                     },
                     leadingIcon = {
                         Icon(Icons.Outlined.Delete, contentDescription = null)
