@@ -467,6 +467,8 @@ app.get('/getroom', (req, res) => {
   });
 });
 
+ 
+
 
 app.post('/addroom', async (req, res) => {
     const { room_type_id, room_status } = req.body;
@@ -536,7 +538,6 @@ app.post('/addroom', async (req, res) => {
     }
 });
 
-
 // Soft delete a room using NOW() for the deleted_at timestamp
 app.post('/softDeleteRoom', function (req, res) {
     const { room_id } = req.body;
@@ -561,6 +562,8 @@ app.post('/softDeleteRoom', function (req, res) {
     });
 });
 
+
+
 app.get('/getRoomTypes', function (req, res) {
     dbConn.query('SELECT type_id, name_type FROM room_type', function (error, results) {
         if (error) {
@@ -571,73 +574,6 @@ app.get('/getRoomTypes', function (req, res) {
 });
 
 
-app.post('/addRoomType', function (req, res) {
-    const roomType = {
-        name_type: req.body.name_type,
-        price_per_day: req.body.price_per_day,
-        pet_type: req.body.pet_type,
-        image: req.body.image
-    };
-
-    // ตรวจสอบว่ามีชื่อประเภทห้องพักส่งมาหรือไม่
-    if (!roomType.name_type || !roomType.price_per_day || !roomType.pet_type) {
-        return res.status(400).send({
-            error: true,
-            message: "กรุณาระบุชื่อประเภทห้องพัก ราคาต่อวัน และประเภทสัตว์เลี้ยง"
-        });
-    }
-
-
-    // ตรวจสอบว่ามีประเภทห้องพักนี้อยู่แล้วหรือไม่
-    dbConn.promise().query(
-        'SELECT * FROM room_type WHERE name_type = ? AND deleted_at IS NULL',
-        [roomType.name_type]
-    ).then(function ([results]) {
-        if (results.length > 0) {
-            return res.status(400).send({
-                error: true,
-                message: "มีประเภทห้องพักนี้อยู่แล้ว"
-            });
-        }
-
-        // เพิ่มประเภทห้องพักใหม่
-        dbConn.promise().query(
-            'INSERT INTO room_type (name_type, price_per_day, pet_type) VALUES (?, ?, ?)',
-            [roomType.name_type, roomType.price_per_day, roomType.pet_type]
-        ).then(function ([insertResult]) {
-            // ดึงข้อมูลที่เพิ่มเข้าไปใหม่
-            dbConn.promise().query(
-                'SELECT * FROM room_type WHERE type_id = ?',
-                [insertResult.insertId]
-            ).then(function ([newRoomType]) {
-                return res.status(201).send({
-                    error: false,
-                    message: "เพิ่มประเภทห้องพักสำเร็จ",
-                    roomType: newRoomType[0]
-                });
-            }).catch(function (error) {
-                return res.status(500).send({
-                    error: true,
-                    message: "เพิ่มข้อมูลสำเร็จแต่ไม่สามารถดึงข้อมูลได้",
-                    details: error
-                });
-            });
-        }).catch(function (error) {
-            return res.status(500).send({
-                error: true,
-                message: "เกิดข้อผิดพลาดในการเพิ่มประเภทห้องพัก",
-                details: error
-            });
-        });
-
-    }).catch(function (error) {
-        return res.status(500).send({
-            error: true,
-            message: "เกิดข้อผิดพลาดในการตรวจสอบประเภทห้องพัก",
-            details: error
-        });
-    });
-});
 
 
 app.post('/addRoomType', function (req, res) {
@@ -748,8 +684,46 @@ const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp'); // ใช้สำหรับจัดการรูปภาพ (เช่น การย่อขนาด)
 
-app.put('/updateRoomType/:roomId', function (req, res) {
-    const roomId = req.params.roomId; // รับ room_id จาก URL parameter
+
+app.get('/updateroomtype/:room_type_id', async (req, res) => {
+    const { room_type_id } = req.params;  // Get room_type_id from URL parameters
+
+    try {
+        // Query the database to fetch the room type by room_type_id
+        const [roomResults] = await dbConn.promise().query(
+            'SELECT * FROM room_type WHERE type_id = ? AND deleted_at IS NULL',
+            [room_type_id]
+        );
+
+        // Check if the room type exists
+        if (roomResults.length === 0) {
+            return res.status(404).json({
+                error: true,
+                message: 'ไม่พบห้องที่ระบุ'  // "Room not found"
+            });
+        }
+
+        // Room type found, return the first result (room type data)
+        const roomtype = roomResults[0];
+        console.log("Fetched roomtype:", roomtype);  // Log room details for debugging (remove in production)
+
+        // Return the room type data
+        return res.json(roomtype);
+
+    } catch (error) {
+        // Catch any errors and send a 500 Internal Server Error
+        console.error("Error fetching room type:", error);
+        return res.status(500).json({
+            error: true,
+            message: 'เกิดข้อผิดพลาดในการดึงข้อมูลห้องพัก',  // "Error fetching room data"
+            details: error.message
+        });
+    }
+});
+
+
+app.put('/updateRoomType/:room_type_id', function (req, res) {
+    const room_type_id = req.params.room_type_id; // รับ room_id จาก URL parameter
     const roomType = {
         name_type: req.body.name_type,
         price_per_day: req.body.price_per_day,
@@ -771,7 +745,7 @@ app.put('/updateRoomType/:roomId', function (req, res) {
     // ตรวจสอบว่ามีประเภทห้องพักนี้อยู่แล้วหรือไม่
     dbConn.promise().query(
         'SELECT * FROM room_type WHERE type_id = ? AND deleted_at IS NULL',
-        [roomId]
+        [room_type_id]
     ).then(function ([results]) {
         if (results.length === 0) {
             return res.status(404).send({
@@ -816,12 +790,12 @@ app.put('/updateRoomType/:roomId', function (req, res) {
         // อัปเดตประเภทห้องพัก
         dbConn.promise().query(
             'UPDATE room_type SET name_type = ?, price_per_day = ?, pet_type = ?, image = ? WHERE type_id = ?',
-            [roomType.name_type, roomType.price_per_day, roomType.pet_type, imagePath, roomId] // อัปเดตข้อมูล
+            [roomType.name_type, roomType.price_per_day, roomType.pet_type, imagePath, room_type_id] // อัปเดตข้อมูล
         ).then(function () {
             // ดึงข้อมูลที่อัปเดตแล้ว
             dbConn.promise().query(
                 'SELECT * FROM room_type WHERE type_id = ?',
-                [roomId]
+                [room_type_id]
             ).then(function ([updatedRoomType]) {
                 return res.status(200).send({
                     error: false,
@@ -852,6 +826,28 @@ app.put('/updateRoomType/:roomId', function (req, res) {
     });
 });
 
+
+app.get('/updateroom/:room_id', async (req, res) => {
+    const { room_id } = req.params;
+
+    // Query the database to fetch the room by room_id
+    const [roomResults] = await dbConn.promise().query(
+        'SELECT * FROM rooms WHERE room_id = ? AND deleted_at IS NULL',
+        [room_id]
+    );
+
+    if (roomResults.length === 0) {
+        return res.status(404).json({
+            error: true,
+            message: 'ไม่พบห้องที่ระบุ'
+        });
+    }
+
+    const room = roomResults[0];
+
+    console.log("Fetched room:", room); // Log room details for debugging
+    return res.json(room); // Return room data (including room_type_id)
+});
 
 app.put('/updateroom/:room_id', async (req, res) => {
     const { room_type_id, room_status } = req.body;
@@ -937,6 +933,7 @@ app.put('/updateroom/:room_id', async (req, res) => {
         });
     }
 });
+
 
 //การจอง Admin
 
