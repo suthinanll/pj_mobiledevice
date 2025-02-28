@@ -1238,7 +1238,95 @@ app.put("/profile/edit/:id", function (req, res) {
     });
 });
 
-//Search
+app.get('/availableRooms', function (req, res) {
+    // รับพารามิเตอร์จาก query string
+    const checkIn = req.query.check_in;
+    const checkOut = req.query.check_out;
+    const petTypeId = req.query.pet_type_id;  // optional - ถ้าต้องการกรองตามประเภทสัตว์เลี้ยง
+
+    // ตรวจสอบว่ามีการส่งวันเช็คอินและเช็คเอาท์มาหรือไม่
+    if (!checkIn || !checkOut) {
+        return res.status(400).send({
+            error: true,
+            message: "กรุณาระบุวันเช็คอินและเช็คเอาท์"
+        });
+    }
+
+    // คำสั่ง SQL เพื่อค้นหาห้องที่ว่างในช่วงเวลาที่กำหนด
+    let query = `
+        SELECT 
+            r.room_id, 
+            r.status AS room_status,
+            rt.type_id AS room_type_id, 
+            rt.name_type, 
+            rt.price_per_day, 
+            rt.image, 
+            pt.pet_type_id,
+            pt.pet_name_type AS pet_type
+        FROM 
+            rooms r
+        JOIN 
+            room_type rt ON r.type_type_id = rt.type_id
+        JOIN 
+            pet_type pt ON rt.pet_type = pt.pet_type_id
+        WHERE 
+            r.status = 1  -- สถานะห้องว่าง
+            AND r.deleted_at IS NULL
+            AND rt.deleted_at IS NULL
+            AND r.room_id NOT IN (
+                SELECT 
+                    b.room_id 
+                FROM 
+                    bookings b 
+                WHERE 
+                    b.deleted_at IS NULL
+                    AND b.booking_status NOT IN (2, 3)  -- ไม่เช็คเอาท์หรือยกเลิก
+                    AND (
+                        (b.check_in <= ? AND b.check_out >= ?)  -- เช็คอินก่อนหรือวันเดียวกันกับที่ต้องการเช็คเอาท์
+                        OR (b.check_in >= ? AND b.check_in < ?)  -- เช็คอินในช่วงที่ต้องการจอง
+                    )
+            )
+    `;
+
+    // พารามิเตอร์สำหรับ query
+    let params = [checkOut, checkIn, checkIn, checkOut];
+
+    // เพิ่มเงื่อนไขกรองตามประเภทสัตว์เลี้ยง (ถ้ามี)
+    if (petTypeId) {
+        query += " AND pt.pet_type_id = ?";
+        params.push(petTypeId);
+    }
+
+    // ทำการค้นหาข้อมูล
+    dbConn.query(query, params, function (error, results) {
+        if (error) {
+            console.error("Database Error:", error);
+            return res.status(500).send({
+                error: true,
+                message: "เกิดข้อผิดพลาดในการค้นหาห้องว่าง",
+                details: error
+            });
+        }
+
+        // แปลงรูปแบบ URL ของรูปภาพให้เป็น absolute URL
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        results = results.map(room => {
+            // ถ้ามีรูปภาพและไม่ใช่ URL เต็มรูปแบบ ให้เพิ่ม baseUrl
+            if (room.image && !room.image.startsWith('http')) {
+                room.image = `${baseUrl}${room.image.startsWith('/') ? '' : '/'}${room.image}`;
+            }
+            return room;
+        });
+
+        return res.json({
+            error: false,
+            message: "ค้นหาห้องว่างสำเร็จ",
+            check_in: checkIn,
+            check_out: checkOut,
+            available_rooms: results
+        });
+    });
+});
 
 
 

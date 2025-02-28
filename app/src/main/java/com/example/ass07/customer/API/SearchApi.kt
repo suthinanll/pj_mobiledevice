@@ -1,16 +1,30 @@
 package com.example.ass07.customer.API
 
+import com.example.ass07.customer.Home.AvailableRoomsResponse
 import retrofit2.Call
-import retrofit2.http.Field
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
+import retrofit2.http.Query
 
 
 interface SearchApi {
-    @GET("search-rooms")
-    fun searchRooms(
-        @Field("pet_type_id") petTypeId: Int,
-        @Field("check_in") checkIn: String,
-        @Field("check_out") checkOut: String
-    ): Call<asd>
+    @GET("availableRooms")
+    fun getAvailableRooms(
+        @Query("check_in") checkIn: String,
+        @Query("check_out") checkOut: String,
+        @Query("pet_type_id") petTypeId: Int? = null
+    ): Call<AvailableRoomsResponse>
+
+    companion object{
+        fun create() : SearchApi {
+            val SearchClient : SearchApi = Retrofit.Builder()
+                .baseUrl("http://10.0.2.2:3000/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
+                .create(SearchApi::class.java)
+            return SearchClient
+        }
+    }
+
 }
-g
