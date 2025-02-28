@@ -27,6 +27,7 @@ class MainActivity : ComponentActivity() {
                 BB.MyScaffoldLayout()
                 AdminNav.MyScaffoldLayout()
                 MyScreen()
+
             }
 
             }

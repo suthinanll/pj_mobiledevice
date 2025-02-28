@@ -14,6 +14,7 @@
         <DialogSelection />
       </SelectionState>
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       <SelectionState runConfigName="MainActivity">
         <option name="selectionMode" value="DROPDOWN" />
@@ -36,6 +37,8 @@
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
 >>>>>>> 3980f3ec465c120ad6402da86640b9c072df07c6
+=======
+>>>>>>> f2bf95757895c6c1167a45e6248ffe12d75d0376
     </selectionStates>
   </component>
 </project>

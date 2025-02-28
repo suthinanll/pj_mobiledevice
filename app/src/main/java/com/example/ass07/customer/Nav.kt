@@ -7,8 +7,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.example.ass07.admin.ManageRoom
 import com.example.ass07.admin.PetsAdmin
 import com.example.ass07.admin.RoomEdit
@@ -16,6 +18,7 @@ import com.example.ass07.admin.RoomInsert
 import com.example.ass07.admin.ScreenAdmin
 import com.example.ass07.admin.booking.BookingDetail
 import com.example.ass07.admin.PetsAdmin
+import com.example.ass07.customer.Home.Home
 import com.example.ass07.customer.Home.Search
 import com.example.ass07.customer.LoginRegister.Login
 import com.example.ass07.customer.LoginRegister.Register
@@ -98,8 +101,12 @@ fun NavGraph(navController: NavHostController) {
             val bookingId = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: 0
             BookingDetail(bookingId)
         }
-        composable(route = Screen.Search.route) {
-            Search(navController)
+        composable("search/{pet}/{checkin}/{checkout}") { backStackEntry ->
+            val pet = backStackEntry.arguments?.getString("pet")?.toIntOrNull() ?: 0
+            val checkin = backStackEntry.arguments?.getString("checkin") ?: ""
+            val checkout = backStackEntry.arguments?.getString("checkout") ?: ""
+
+            Search(navController, pet, checkin, checkout)
+        }
         }
     }
-}
