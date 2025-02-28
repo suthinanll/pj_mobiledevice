@@ -42,6 +42,14 @@ fun NavGraphAdmin(navController: NavHostController) {
         composable(route = ScreenAdmin.RoomEditType.route) {
             RoomEditType(navController)
         }
+        composable(route = ScreenAdmin.RoomEdit.route + "/{room_id}") { backStackEntry ->
+            val roomId = backStackEntry.arguments?.getString("room_id")?.toIntOrNull()  // รับ room_id จาก URL
+
+            roomId?.let {  // เช็คว่า room_id มีค่าหรือไม่
+                RoomEdit(navController, it)  // ส่ง room_id ไปยัง RoomEdit
+            }
+        }
+
         composable(
             route = ScreenAdmin.RoomEditType2.route + "/{room_type_id}", // เส้นทาง RoomEditType ที่ต้องมี room_type_id
         ) { backStackEntry ->

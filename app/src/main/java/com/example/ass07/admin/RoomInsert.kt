@@ -223,7 +223,7 @@ fun RoomInsert(navController: NavHostController) {
                             } else {
                                 Toast.makeText(
                                     contextForToast,
-                                    "ไม่สามารถเพิ่มประเภทห้องพัก",
+                                    "สลับไปกดไอคอนอันอื่นแล้วเข้าใหม่",
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }

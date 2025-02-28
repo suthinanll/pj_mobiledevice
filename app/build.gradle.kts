@@ -64,18 +64,12 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.8.5")
     implementation(libs.androidx.media3.common.ktx)
     implementation(libs.androidx.room.ktx)
-<<<<<<< HEAD
-<<<<<<< HEAD
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.monitor)
     implementation(libs.androidx.junit.ktx)
-=======
     implementation(libs.androidx.ui.test.android)
->>>>>>> f2bf95757895c6c1167a45e6248ffe12d75d0376
-=======
     implementation(libs.androidx.benchmark.traceprocessor.android)
->>>>>>> eve
     testImplementation(libs.junit)
     implementation("io.coil-kt:coil-compose:2.0.0")
     androidTestImplementation(libs.junit.junit) // ใช้แสดงรูปภาพจาก URL หรือไฟล์

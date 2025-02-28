@@ -11,6 +11,9 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.ass07.RoomEditType
+import com.example.ass07.RoomList
+import com.example.ass07.admin.AdminDashboard
 import com.example.ass07.admin.ManageRoom
 import com.example.ass07.admin.PetsAdmin
 import com.example.ass07.admin.RoomEdit
@@ -18,6 +21,7 @@ import com.example.ass07.admin.RoomInsert
 import com.example.ass07.admin.ScreenAdmin
 import com.example.ass07.admin.booking.BookingDetail
 import com.example.ass07.admin.PetsAdmin
+import com.example.ass07.admin.RoomEditType2
 import com.example.ass07.customer.Home.Home
 import com.example.ass07.customer.Home.Search
 import com.example.ass07.customer.LoginRegister.Login
@@ -89,6 +93,12 @@ fun NavGraph(navController: NavHostController) {
             RoomInsert(navController)
         }
 
+        composable (route =  ScreenAdmin.Dashboard.route){
+            AdminDashboard()
+        }
+        composable(route = ScreenAdmin.RoomEditType.route) {
+            RoomEditType(navController)
+        }
         composable(route = ScreenAdmin.RoomEdit.route + "/{room_id}") { backStackEntry ->
             val roomId = backStackEntry.arguments?.getString("room_id")?.toIntOrNull()  // รับ room_id จาก URL
 
@@ -97,9 +107,34 @@ fun NavGraph(navController: NavHostController) {
             }
         }
 
+        composable(
+            route = ScreenAdmin.RoomEditType2.route + "/{room_type_id}", // เส้นทาง RoomEditType ที่ต้องมี room_type_id
+        ) { backStackEntry ->
+            val room_type_id = backStackEntry.arguments?.getString("room_type_id")?.toIntOrNull()
+            if (room_type_id != null) {
+                RoomEditType2(navController = navController, room_type_id = room_type_id)
+            }
+        }
+
+
+
+
         composable(route = ScreenAdmin.BookingDetail.route+"/{id}") { backStackEntry ->
             val bookingId = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: 0
             BookingDetail(bookingId)
+        }
+        composable(
+            route = "room_list/{roomType}/{petType}",
+            arguments = listOf(
+                navArgument("roomType") { type = NavType.StringType },
+                navArgument("petType") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val roomType = backStackEntry.arguments?.getString("roomType") ?: "ทั้งหมด"
+            val petType = backStackEntry.arguments?.getString("petType") ?: "ทั้งหมด"
+
+            RoomList(roomType = roomType, petType = petType,navController=navController)
+
         }
         composable("search/{pet}/{checkin}/{checkout}") { backStackEntry ->
             val pet = backStackEntry.arguments?.getString("pet")?.toIntOrNull() ?: 0
