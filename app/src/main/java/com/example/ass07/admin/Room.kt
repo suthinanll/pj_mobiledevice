@@ -11,28 +11,52 @@ data class Room(
     @Expose
     @SerializedName("room_id") val room_id: Int,
     @Expose
-    @SerializedName("room_type") val room_type :String,
+    @SerializedName("room_type") val room_type: String,
     @Expose
-    @SerializedName("price_per_day") val price_per_day:Double?,
+    @SerializedName("price_per_day") val price_per_day: Double?,
     @Expose
-    @SerializedName("room_status") val room_status:Int,
+    @SerializedName("room_status") val room_status: Int,
     @Expose
-    @SerializedName("type_type_id") val type_type_id:Int,
+    @SerializedName("type_type_id") val type_type_id: Int,
     @Expose
-    @SerializedName("name_type") val name_type:String,
+    @SerializedName("name_type") val name_type: String,
     @Expose
-    @SerializedName("type_id") val room_type_id:Int,
+    @SerializedName("type_id") val room_type_id: Int,
     @Expose
-    @SerializedName("pet_type") val pet_type:String,
+    @SerializedName("pet_type") val pet_type: String,
     @Expose
-    @SerializedName("pet_type_name") val pet_type_name:String,
+    @SerializedName("pet_type_name") val pet_type_name: String,
     @Expose
-    @SerializedName("image") val image:String,
+    @SerializedName("image") val image: String,
     @Expose
+<<<<<<< HEAD
     @SerializedName("user_id") val userId: Int) : Parcelable {
 
 }
 
+=======
+    @SerializedName("user_id") val userId: Int,
+    @Expose
+    @SerializedName("pet_id") val petId: Int,
+) : Parcelable
+
+data class RoomStatistic(
+    val type: String,
+    val available: Int,
+    val booked: Int,
+    val clean: Int
+)
+>>>>>>> 03b69733ab39602669d52a2b071e8a592bd117da
 
 
+data class Booking(
+    val bookingId: Int,
+    val name: String,
+    val petName: String,
+    val tellNumber: String,
+    val checkIn: String,
+    val checkOut: String,
+    val status: Int,
+    val createdAt: String
+)
 

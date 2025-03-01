@@ -51,6 +51,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation ("io.coil-kt:coil-compose:2.4.0")
     implementation ("com.squareup.retrofit2:retrofit:2.9.0")
     implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation ("com.google.code.gson:gson:2.8.7")
@@ -60,12 +61,18 @@ dependencies {
     implementation(libs.firebase.firestore.ktx)
     implementation(libs.volley)
     implementation(libs.play.services.base)
-
+    implementation("androidx.navigation:navigation-compose:2.8.5")
     implementation(libs.androidx.media3.common.ktx)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.material)
+    implementation(libs.androidx.monitor)
+    implementation(libs.androidx.junit.ktx)
     implementation(libs.androidx.ui.test.android)
+    implementation(libs.androidx.benchmark.traceprocessor.android)
     testImplementation(libs.junit)
-    implementation("io.coil-kt:coil-compose:2.0.0") // ใช้แสดงรูปภาพจาก URL หรือไฟล์
+    implementation("io.coil-kt:coil-compose:2.0.0")
+    androidTestImplementation(libs.junit.junit) // ใช้แสดงรูปภาพจาก URL หรือไฟล์
 
 
 }
