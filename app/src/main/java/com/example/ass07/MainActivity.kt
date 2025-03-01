@@ -30,27 +30,21 @@ class MainActivity : ComponentActivity() {
 
 
             ASS07Theme {
-<<<<<<< HEAD
-                BB.MyScaffoldLayout()
-//                AdminNav.MyScaffoldLayout()
-//                MyScreen()
-//                HotelBookingScreen(navController)
-//                NavGraph(navController) // ถ้าไม่มีมันจะไม่ไปหน้าจองทำไมกันใครทราบที่แน่ๆผมไม่ทราบ
 
-=======
+
 
                 BB.MyScaffoldLayout()
                 AdminNav.MyScaffoldLayout()
                 //MyScreen()
 
             }
->>>>>>> 03b69733ab39602669d52a2b071e8a592bd117da
+
 
             }
 
         }
     }
-}
+
 
 
 

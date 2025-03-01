@@ -23,11 +23,10 @@ import com.example.ass07.admin.RoomEdit
 import com.example.ass07.admin.RoomInsert
 import com.example.ass07.admin.ScreenAdmin
 import com.example.ass07.admin.booking.BookingDetail
-<<<<<<< HEAD
-=======
+
 import com.example.ass07.admin.PetsAdmin
 import com.example.ass07.admin.RoomEditType2
->>>>>>> 03b69733ab39602669d52a2b071e8a592bd117da
+
 import com.example.ass07.customer.Home.Home
 import com.example.ass07.customer.Home.Search
 import com.example.ass07.customer.LoginRegister.Login

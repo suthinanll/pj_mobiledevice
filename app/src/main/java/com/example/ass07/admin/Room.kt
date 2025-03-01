@@ -29,12 +29,6 @@ data class Room(
     @Expose
     @SerializedName("image") val image: String,
     @Expose
-<<<<<<< HEAD
-    @SerializedName("user_id") val userId: Int) : Parcelable {
-
-}
-
-=======
     @SerializedName("user_id") val userId: Int,
     @Expose
     @SerializedName("pet_id") val petId: Int,
@@ -46,7 +40,7 @@ data class RoomStatistic(
     val booked: Int,
     val clean: Int
 )
->>>>>>> 03b69733ab39602669d52a2b071e8a592bd117da
+
 
 
 data class Booking(
