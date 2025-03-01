@@ -17,16 +17,39 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.ass07.R
+import com.example.ass07.admin.Room
 
 @Composable
 fun PaymentScreen(
-    navController: NavController,
-    checkIn: String,
-    checkOut: String,
-    totalPrice: Comparable<*>
+    navController: NavController
 ) {
 
+    // ดึงข้อมูลจาก savedStateHandle
 
+    val totalPrice = navController.previousBackStackEntry?.savedStateHandle?.get<Double>("totalPrice") ?: 0.0
+    val room = navController.previousBackStackEntry?.savedStateHandle?.get<Room>("room_data")
+    val pet = navController.previousBackStackEntry?.savedStateHandle?.get<Int>("pet") ?: 0
+    val checkIn = navController.previousBackStackEntry?.savedStateHandle?.get<String>("checkIn") ?: "N/A"
+    val checkOut = navController.previousBackStackEntry?.savedStateHandle?.get<String>("checkOut") ?: "N/A"
+
+    val petType = navController.previousBackStackEntry?.savedStateHandle?.get<String>("petType") ?: ""
+
+
+    val checkin = navController.previousBackStackEntry?.savedStateHandle?.get<String>("checkin")
+    val checkout  = navController.previousBackStackEntry?.savedStateHandle?.get<String>("checkout")
+
+    val bookingData = navController.previousBackStackEntry?.savedStateHandle?.get<BookingClass>("booking_data")
+
+    val days = navController.previousBackStackEntry?.savedStateHandle?.get<Int>("days") ?: 1
+
+    val formattedCheckIn = convertDateToMonthName(checkin ?: "")
+    val formattedCheckOut = convertDateToMonthName(checkout ?: "")
+    val petTypeName = when (pet ?: 0) {
+        1 -> "สุนัข"
+        2 -> "แมว"
+        3 -> "นก"
+        else -> "ไม่ทราบ"
+    }
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState())
@@ -34,9 +57,20 @@ fun PaymentScreen(
             .background(Color.Gray.copy(alpha = 0.1f))
             .padding(16.dp)
     ) {
+
+        Card(
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(text = "ประเภท: $petType", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Text(text = "$checkIn - $checkOut", fontSize = 14.sp, color = Color.Gray)
+
+            }
+        }
         Spacer(modifier = Modifier.height(10.dp))
 
-        // Header
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -76,13 +110,8 @@ fun PaymentScreen(
 
                     Column {
                         Text(
-                            text = "1 x ดีลักซ์",
+                            text = "$days วัน",
                             fontWeight = FontWeight.Medium
-                        )
-                        Text(
-                            text = "8 ตารางเมตร | ห้องขนาดใหญ่ | อากาศถ่ายเท",
-                            fontSize = 14.sp,
-                            color = Color.Gray
                         )
                     }
                 }
@@ -101,7 +130,7 @@ fun PaymentScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(text = "เช็คอิน", color = Color.Gray)
+                        Text(text = "เช็คอิน ", color = Color.Gray)
                         Text(
                             text = checkIn,
                             fontWeight = FontWeight.Medium
@@ -131,11 +160,11 @@ fun PaymentScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "1 ห้อง 2 คืน",
+                        text = "$days วัน ",
                         modifier = Modifier.weight(1f)
                     )
                     Text(
-                        text = "THB ",
+                        text = "THB ${String.format("%,.2f", totalPrice)}",
                         fontWeight = FontWeight.Medium
                     )
                 }
@@ -189,7 +218,7 @@ fun PaymentScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Button(
-                    onClick = { /* TODO */ },
+                    onClick = {navController.navigate(Screen.History.route) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFB74D))
                 ) {
@@ -237,5 +266,4 @@ fun RadioButtonGroup(options: List<String>) {
         }
     }
 }
-
 

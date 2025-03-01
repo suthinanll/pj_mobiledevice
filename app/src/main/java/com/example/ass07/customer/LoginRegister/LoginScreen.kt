@@ -86,7 +86,7 @@ fun Login(navController : NavHostController) {
             Lifecycle.State.STARTED -> {}
             Lifecycle.State.RESUMED -> {
                 if (sharePreferences.isLoggedIn) {
-                    navController.navigate(Screen.Home.route)
+                    navController.navigate(Screen.Profile.route)
                 }
 
                 if (!sharePreferences.email.isNullOrEmpty()) {

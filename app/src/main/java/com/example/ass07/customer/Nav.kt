@@ -31,6 +31,7 @@ import com.example.ass07.customer.Mypet.Mypetinsert
 import com.example.ass07.customer.Mypet.PetViewModel
 import com.example.ass07.customer.Profile.EditProfile
 import com.example.ass07.customer.Profile.Profile
+import java.net.URLDecoder
 
 @Composable
 fun NavGraph(navController: NavHostController) {
@@ -111,37 +112,51 @@ fun NavGraph(navController: NavHostController) {
             val pet = backStackEntry.arguments?.getString("pet")?.toIntOrNull() ?: 0
             val checkin = backStackEntry.arguments?.getString("checkin") ?: ""
             val checkout = backStackEntry.arguments?.getString("checkout") ?: ""
-
             Search(navController, pet, checkin, checkout)
         }
+
 //        composable(route = Screen.Search.route) {
 //            Search(navController)
 //        }
 
-        composable(route = Screen.BookingInfo.route) {
-            val context = LocalContext.current
-            val roomId = 1
-            val days = 2
-            BookingScreen(Modifier, navController, context,roomId,days)
+        composable(route = "BookingInfo") {
+//            val roomId = 1
+//            val days = 2
+//            val petType = ""
+//            val roomType = ""
+//            val checkIn = ""
+//            val checkOut = ""
+            BookingScreen(navController )
         }
+//        composable(
+//            route = "payment_screen/{checkIn}/{checkOut}/{totalPrice}",
+//        ) { backStackEntry ->
+//            val checkIn = backStackEntry.arguments?.getString("checkIn") ?: "N/A"
+//            val checkOut = backStackEntry.arguments?.getString("checkOut") ?: "N/A"
+//            val totalPrice = backStackEntry.arguments?.getDouble("totalPrice") ?: 0.0 // แปลงเป็น Double
+//
+//            // ส่งข้อมูลไปยัง PaymentScreen
+//            PaymentScreen(navController, checkIn, checkOut, totalPrice)
+//        }
+
+
+//        composable(route = Screen.RoomDetail.route) {
+//            HotelBookingScreen(navController)
+//        }
+
         composable(
-            route = "payment_screen/{checkIn}/{checkOut}/{totalPrice}",
-            arguments = listOf(
-                navArgument("checkIn") { type = NavType.StringType },
-                navArgument("checkOut") { type = NavType.StringType },
-                navArgument("totalPrice") { type = NavType.IntType }
+            route = "RoomDetail",
+        ) {
 
+            HotelBookingScreen(
+                navController = navController
             )
-        ) { backStackEntry ->
-            val checkIn = backStackEntry.arguments?.getString("checkIn") ?: "N/A"
-            val checkOut = backStackEntry.arguments?.getString("checkOut") ?: "N/A"
-            val totalPrice = backStackEntry.arguments?.getInt("totalPrice") ?: 0
-
-            PaymentScreen(navController, checkIn, checkOut,totalPrice)
         }
 
-        composable(route = Screen.RoomDetail.route) {
-            HotelBookingScreen(navController)
+        composable(
+            route = "payment_screen",
+        ) { backStackEntry ->
+            PaymentScreen(navController)
         }
 
     }

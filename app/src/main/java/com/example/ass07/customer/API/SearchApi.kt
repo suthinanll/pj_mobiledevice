@@ -16,6 +16,8 @@ interface SearchApi {
         @Query("pet_type_id") petTypeId: Int? = null
     ): Call<AvailableRoomsResponse>
 
+
+
     companion object{
         fun create() : SearchApi {
             val SearchClient : SearchApi = Retrofit.Builder()

@@ -1,6 +1,5 @@
 package com.example.ass07.customer.Home
 
-
 import com.example.ass07.admin.Room
 
 data class AvailableRoomsResponse(

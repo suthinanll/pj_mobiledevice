@@ -29,7 +29,9 @@ data class Room(
     @Expose
     @SerializedName("image") val image:String,
     @Expose
-    @SerializedName("user_id") val userId: Int) : Parcelable
+    @SerializedName("user_id") val userId: Int) : Parcelable {
+
+}
 
 
 

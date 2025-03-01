@@ -5,6 +5,7 @@ import com.example.ass07.customer.Mypet.PetType
 import com.example.ass07.customer.Mypet.UpdatePetRequest
 import com.example.ass07.customer.Mypet.petMember
 import retrofit2.Call
+import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
@@ -16,6 +17,10 @@ import retrofit2.http.PUT
 import retrofit2.http.Path
 
 interface PetApi {
+
+
+
+
     @GET("getPetTypes")
     fun getPetTypes(): Call<List<PetType>>
 
@@ -24,8 +29,7 @@ interface PetApi {
 
     @GET("mypet/{user_id}")
     fun mypet(
-        @Path("user_id") user_id: Int,
-    ): Call<List<petMember>>
+        @Path("user_id") user_id: Int): Call<List<petMember>>
 
     @FormUrlEncoded
     @POST("pet")

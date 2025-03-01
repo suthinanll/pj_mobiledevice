@@ -18,7 +18,12 @@ sealed class Screen(val route: String, val name: String, val icon: (@Composable 
 
     object BookingInfo : Screen(route = "BookingInfo", name = "BookingInfo", icon = { painterResource(id = R.drawable.user) })
     object Payment : Screen(route = "payment_screen/{checkIn}/{checkOut}/{totalPrice}", name = "Payment", icon = { painterResource(id = R.drawable.user) })
-    object RoomDetail : Screen(route = "RoomDetail", name = "Roomdetail", icon = { painterResource(id = R.drawable.user) })
+//    object RoomDetail : Screen(route = "RoomDetail", name = "Roomdetail", icon = { painterResource(id = R.drawable.user) })
+object RoomDetail : Screen(
+    route = "RoomDetail/{encodedRoomType}/{checkin}/{checkout}/{pet}/{pricePerDay}/{roomId}",
+    name = "RoomDetail",
+    icon = { painterResource(id = R.drawable.user) }
+)
 
 
 
