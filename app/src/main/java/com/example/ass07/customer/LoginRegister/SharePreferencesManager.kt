@@ -32,6 +32,10 @@ class SharePreferencesManager(context: Context) {
         get() = preferences.getString(KEY_USER_TELL, null)
         set(value) = preferences.edit().putString(KEY_USER_TELL, value).apply()
 
+    var petTypeName: String?
+        get() = preferences.getString(KEY_PET_TYPE_NAME, null)
+        set(value) = preferences.edit().putString(KEY_PET_TYPE_NAME, value).apply()
+
     fun clearUserAll() {
         preferences.edit().clear().apply()
     }
@@ -47,5 +51,6 @@ class SharePreferencesManager(context: Context) {
         private const val KEY_USER_NAME = "name"
         private const val KEY_USER_EMAIL = "email"
         private const val KEY_USER_TELL = "tell"
+        private const val KEY_PET_TYPE_NAME = "pet_type_name"
     }
 }

@@ -27,6 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.example.ass07.customer.NavGraph
 
 class AdminNav {
     companion object {
@@ -48,7 +49,7 @@ class AdminNav {
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
 
-                    NavGraphAdmin(navController = navController)
+                    NavGraph(navController = navController)
                 }
             }
         }

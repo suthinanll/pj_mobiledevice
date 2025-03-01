@@ -9,5 +9,6 @@ data class RoomGroupInfo(
     val price: Double?,
     val petType: String,
     val availableCount: Int,
-    val occupiedCount: Int
+    val occupiedCount: Int,
+    val improvedCount: Int
 ):Parcelable

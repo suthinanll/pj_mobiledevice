@@ -218,7 +218,7 @@ fun Login(navController : NavHostController) {
                                                 navController.navigate(Screen.Home.route)  // ไปหน้า User
                                             }
 
-                                    } else {
+                                        } else {
                                             Toast.makeText(
                                                 contextForToast, "Username or password is incorrect.",
                                                 Toast.LENGTH_SHORT
@@ -267,4 +267,4 @@ fun Login(navController : NavHostController) {
             }
         }
     }
-    }
+}

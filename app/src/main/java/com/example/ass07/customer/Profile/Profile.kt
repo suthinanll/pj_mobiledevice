@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
@@ -278,7 +279,9 @@ private fun ProfileActions(onEditClick: () -> Unit, onLogoutClick: () -> Unit) {
         onClick = onLogoutClick,
         modifier = Modifier
             .fillMaxWidth()
-            .height(50.dp)
+            .height(50.dp),
+        colors = ButtonDefaults.buttonColors(Color.Red)
+
     ) {
         Icon(
             imageVector = Icons.Default.ExitToApp,

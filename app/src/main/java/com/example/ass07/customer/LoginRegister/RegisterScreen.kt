@@ -227,6 +227,7 @@ fun Register(navController: NavHostController) {
                                         contextForToast, "Successfully Inserted",
                                         Toast.LENGTH_SHORT
                                     ).show()
+
                                     navController.navigate(ScreenLogin.Login.route)
                                 } else {
                                     Toast.makeText(

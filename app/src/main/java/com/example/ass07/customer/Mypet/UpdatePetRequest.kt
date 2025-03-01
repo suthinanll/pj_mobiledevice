@@ -8,5 +8,6 @@ data class UpdatePetRequest(
     val pet_age: Int,
     val pet_weight: Double,
     val additional_info: String,
-    val pet_type_id: Int
+    val pet_type_id: Int,
+
 )
