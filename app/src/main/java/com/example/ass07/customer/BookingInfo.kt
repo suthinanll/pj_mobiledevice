@@ -34,7 +34,6 @@ import com.example.ass07.customer.LoginRegister.SharePreferencesManager
 import com.example.ass07.customer.Mypet.PetViewModel
 import com.example.ass07.customer.Mypet.petMember
 import com.example.ass07.customer.Profile.User
-import com.example.ass07.customer.RoomPriceResponse
 import com.example.ass07.customer.Screen
 import com.example.ass07.customer.convertDateToMonthName
 import com.example.ass07.ui.theme.ASS07Theme
@@ -60,7 +59,6 @@ fun BookingScreen(
 
     var roomType by remember { mutableStateOf("สแตนดาร์ด") }
     val preferencesManager = remember { SharePreferencesManager(context) }
-    var priceResponse by remember { mutableStateOf<RoomPriceResponse?>(null) }
 
     var name by remember { mutableStateOf(preferencesManager.userName ?: "") }
     var email by remember { mutableStateOf(preferencesManager.email ?: "") }

@@ -4,7 +4,6 @@ import com.example.ass07.customer.LoginRegister.LoginClass
 import com.example.ass07.customer.Profile.UpdateProfileRequest
 import com.example.ass07.customer.Profile.UpdateProfileResponse
 import com.example.ass07.customer.Profile.User
-import com.example.ass07.customer.RoomPriceResponse
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -49,11 +48,7 @@ interface projectApi {
         @Body request: UpdateProfileRequest
     ): Call<UpdateProfileResponse>
 
-    @GET("room-price/{room_id}")
-    fun getRoomPrice(
-        @Path("room_id") roomId: Int,
-        @Query("days") days: Int
-    ): Call<RoomPriceResponse>
+
 
 
 
