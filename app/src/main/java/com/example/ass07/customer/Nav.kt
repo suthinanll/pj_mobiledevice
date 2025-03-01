@@ -38,7 +38,7 @@ import com.example.ass07.customer.Profile.Profile
 fun NavGraph(navController: NavHostController) {
     NavHost(
         navController = navController,
-        startDestination = ScreenLogin.Login.route
+        startDestination = ScreenAdmin.Dashboard.route
     ) {
         composable(route = ScreenLogin.Login.route) {
             Login(navController)

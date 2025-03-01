@@ -607,7 +607,7 @@ fun RoomGridItem(
 
     val statusText = when (room.room_status) {
         0 -> "ว่าง"
-        1 -> "จอง"
+        1 -> "ไมว่าง"
         2 -> "ทำความสะอาด"
         else -> "ไม่ทราบสถานะ"
     }
@@ -930,7 +930,7 @@ fun RecentBookingItem(
     val statusColor = when (booking.status) {
         0 -> Color(0xFF3F51B5) // รอเช็คอิน
         1 -> Color(0xFF4CAF50) // เข้าพักอยู่
-        2 -> Color(0xFF9E9E9E) // สำเร็จ
+        2 -> Color(0xFF9E9E9E) //เช็คเอาท์
         3 -> Color(0xFFF44336) // ยกเลิก
         else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
@@ -938,7 +938,7 @@ fun RecentBookingItem(
     val statusText = when (booking.status) {
         0 -> "รอเช็คอิน"
         1 -> "เข้าพักอยู่"
-        2 -> "สำเร็จ"
+        2 -> "เช็คเอาท์"
         3 -> "ยกเลิก"
         else -> "ไม่ทราบสถานะ"
     }
