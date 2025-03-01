@@ -182,62 +182,68 @@ fun RoomInsert(navController: NavHostController) {
 
                     // Upload image along with room type info
                     val requestBody = imageFile?.asRequestBody("image/jpeg".toMediaTypeOrNull())
-                    val imagePart = requestBody?.let {
+                    val imagePart: MultipartBody.Part? = requestBody?.let {
                         MultipartBody.Part.createFormData("image", imageFile.name, it)
                     }
+                    val nameRequestBody = newTypeName.toRequestBody("text/plain".toMediaTypeOrNull())
+                    val priceRequestBody = pricePerDay.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+                    val petTypeRequestBody = selectedPetType!!.Pet_type_id.toString().toRequestBody("text/plain".toMediaTypeOrNull())
 
-                    createClient.addRoomType(
-                        name_type = newTypeName,
-                        price_per_day = pricePerDay,
-                        pet_type = selectedPetType!!.Pet_type_id.toString(),
-                        image = imagePart.toString()
-                    ).enqueue(object : Callback<RoomTypeResponse> {
-                        override fun onResponse(
-                            call: Call<RoomTypeResponse>,
-                            response: Response<RoomTypeResponse>
-                        ) {
-                            isAddingRoomType = false
-                            if (response.isSuccessful) {
-                                val newRoomType = response.body()?.roomType
-                                Log.d("API_REQUEST", "newRoomType: $newRoomType")
-                                if (newRoomType != null) {
-                                    if (roomTypes.none { it.name_type == newRoomType.name_type }) {
-                                        roomTypes =
-                                            roomTypes.toMutableList().apply { add(newRoomType) }
-                                        selectedRoomType = newRoomType
+// เรียกใช้ API ด้วยพารามิเตอร์ที่ถูกต้อง
+                    if (imagePart != null) {
+                        createClient.addRoomType(
+                            name_type = nameRequestBody,
+                            price_per_day = priceRequestBody,
+                            pet_type = petTypeRequestBody,
+                            image = imagePart
+                        ).enqueue(object : Callback<RoomTypeResponse> {
+                            override fun onResponse(
+                                call: Call<RoomTypeResponse>,
+                                response: Response<RoomTypeResponse>
+                            ) {
+                                isAddingRoomType = false
+                                if (response.isSuccessful) {
+                                    val newRoomType = response.body()?.roomType
+                                    Log.d("API_REQUEST", "newRoomType: $newRoomType")
+                                    if (newRoomType != null) {
+                                        if (roomTypes.none { it.name_type == newRoomType.name_type }) {
+                                            roomTypes =
+                                                roomTypes.toMutableList().apply { add(newRoomType) }
+                                            selectedRoomType = newRoomType
+
+                                        }
+                                        Toast.makeText(
+                                            contextForToast,
+                                            "เพิ่มประเภทห้องพักสำเร็จ",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    } else {
+                                        Toast.makeText(
+                                            contextForToast,
+                                            "ลองรีอีกรอบ",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
 
                                     }
-                                    Toast.makeText(
-                                        contextForToast,
-                                        "เพิ่มประเภทห้องพักสำเร็จ",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
                                 } else {
                                     Toast.makeText(
                                         contextForToast,
-                                        "ลองรีอีกรอบ",
+                                        "ไม่สามารเพิ่มประเภทห้องพักได้",
                                         Toast.LENGTH_SHORT
                                     ).show()
-
                                 }
-                            } else {
+                            }
+
+                            override fun onFailure(call: Call<RoomTypeResponse>, t: Throwable) {
+                                isAddingRoomType = false
                                 Toast.makeText(
                                     contextForToast,
-                                    "สลับไปกดไอคอนอันอื่นแล้วเข้าใหม่",
+                                    "เกิดข้อผิดพลาด: ${t.message}",
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }
-                        }
-
-                        override fun onFailure(call: Call<RoomTypeResponse>, t: Throwable) {
-                            isAddingRoomType = false
-                            Toast.makeText(
-                                contextForToast,
-                                "เกิดข้อผิดพลาด: ${t.message}",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    })
+                        })
+                    }
                 }
             )
 
@@ -555,19 +561,32 @@ fun RoomTypeDropdown(
                             try {
                                 val priceValue = newPricePerDay.toDoubleOrNull()
                                 if (newRoomTypeName.isBlank()) {
-                                    Toast.makeText(context, "กรุณากรอกชื่อประเภทห้อง", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(
+                                        context,
+                                        "กรุณากรอกชื่อประเภทห้อง",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                     return@Button
                                 }
                                 if (priceValue == null) {
-                                    Toast.makeText(context, "กรุณากรอกราคาที่ถูกต้อง", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(
+                                        context,
+                                        "กรุณากรอกราคาที่ถูกต้อง",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                     return@Button
                                 }
                                 if (selectedPet == null) {
-                                    Toast.makeText(context, "กรุณาเลือกประเภทสัตว์เลี้ยง", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(
+                                        context,
+                                        "กรุณาเลือกประเภทสัตว์เลี้ยง",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                     return@Button
                                 }
                                 if (imageUri == null) {
-                                    Toast.makeText(context, "กรุณาเลือกรูปภาพ", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "กรุณาเลือกรูปภาพ", Toast.LENGTH_SHORT)
+                                        .show()
                                     return@Button
                                     Log.d("ImagePicker", "Selected Image URI: $imageUri")
 
@@ -589,21 +608,41 @@ fun RoomTypeDropdown(
                                 outputStream.close()
 
                                 // Prepare the image for uploading as MultipartBody.Part
-                                val requestBody = imageFile.asRequestBody("image/jpeg".toMediaTypeOrNull())
-                                val imagePart = MultipartBody.Part.createFormData("image", imageFile.name, requestBody)
+                                val requestBody =
+                                    imageFile.asRequestBody("image/jpeg".toMediaTypeOrNull())
+                                val imagePart = MultipartBody.Part.createFormData(
+                                    "image",
+                                    imageFile.name,
+                                    requestBody
+                                )
 
                                 // Prepare other form data: Room name, Price per day, and Pet type
-                                val titleRequestBody = newRoomTypeName.toRequestBody("text/plain".toMediaTypeOrNull())
-                                val priceRequestBody = newPricePerDay.toRequestBody("text/plain".toMediaTypeOrNull())
-                                val petTypeRequestBody = selectedPet?.Pet_type_id?.toString()?.toRequestBody("text/plain".toMediaTypeOrNull())
+                                val titleRequestBody =
+                                    newRoomTypeName.toRequestBody("text/plain".toMediaTypeOrNull())
+                                val priceRequestBody =
+                                    newPricePerDay.toRequestBody("text/plain".toMediaTypeOrNull())
+                                val petTypeRequestBody = selectedPet?.Pet_type_id?.toString()
+                                    ?.toRequestBody("text/plain".toMediaTypeOrNull())
 
                                 // Perform the network request to upload the data
                                 if (petTypeRequestBody != null) {
-                                    createClient.uploadRoomData(imagePart, titleRequestBody, priceRequestBody, petTypeRequestBody)
+                                    createClient.uploadRoomData(
+                                        imagePart,
+                                        titleRequestBody,
+                                        priceRequestBody,
+                                        petTypeRequestBody
+                                    )
                                         .enqueue(object : Callback<RoomType> {
-                                            override fun onResponse(call: Call<RoomType>, response: Response<RoomType>) {
+                                            override fun onResponse(
+                                                call: Call<RoomType>,
+                                                response: Response<RoomType>
+                                            ) {
                                                 if (response.isSuccessful) {
-                                                    Toast.makeText(context, "บันทึกสำเร็จ", Toast.LENGTH_SHORT).show()
+                                                    Toast.makeText(
+                                                        context,
+                                                        "บันทึกสำเร็จ",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
                                                     onAddNewRoomType(newRoomTypeName, priceValue)
                                                     showAddDialog = false
                                                     newRoomTypeName = ""
@@ -612,17 +651,32 @@ fun RoomTypeDropdown(
                                                     imageUri = null
 
                                                 } else {
-                                                    Toast.makeText(context, "บันทึกไม่สำเร็จ: ${response.message()}", Toast.LENGTH_SHORT).show()
+                                                    Toast.makeText(
+                                                        context,
+                                                        "บันทึกไม่สำเร็จ: ${response.message()}",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
                                                 }
                                             }
 
-                                            override fun onFailure(call: Call<RoomType>, t: Throwable) {
-                                                Toast.makeText(context, "เกิดข้อผิดพลาด: ${t.message}", Toast.LENGTH_SHORT).show()
+                                            override fun onFailure(
+                                                call: Call<RoomType>,
+                                                t: Throwable
+                                            ) {
+                                                Toast.makeText(
+                                                    context,
+                                                    "เกิดข้อผิดพลาด: ${t.message}",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
                                             }
                                         })
                                 }
                             } catch (e: Exception) {
-                                Toast.makeText(contextForToast, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    contextForToast,
+                                    "Error: ${e.message}",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
                         }
                     ) {

@@ -40,13 +40,13 @@ interface RoomAPI {
 
 
 
-    @FormUrlEncoded
-    @POST("addRoomType")
+    @Multipart
+    @POST("/addRoomType")
     fun addRoomType(
-        @Field("name_type") name_type: String,
-        @Field("price_per_day") price_per_day: Double,
-        @Field("pet_type") pet_type: String,
-        @Field("image") image: String?
+        @Part("name_type") name_type: RequestBody,
+        @Part("price_per_day") price_per_day: RequestBody,
+        @Part("pet_type") pet_type: RequestBody,
+        @Part image: MultipartBody.Part
     ): Call<RoomTypeResponse>
 
     @Multipart
@@ -73,6 +73,8 @@ interface RoomAPI {
         @Part("price_per_day") price_per_day: RequestBody,
         @Part("pet_type") pet_type: RequestBody
     ): Call<RoomTypeResponse>
+
+
 
     @FormUrlEncoded
     @PUT("updateRoomType/{room_type_id}")

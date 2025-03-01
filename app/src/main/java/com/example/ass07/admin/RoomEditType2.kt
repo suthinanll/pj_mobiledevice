@@ -114,7 +114,6 @@ fun RoomEditType2(room_type_id: Int, navController: NavController) {
         }
     }
 }
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RoomEditForm(roomType: RoomType, room_type_id: Int, navController: NavController) {
@@ -122,10 +121,11 @@ fun RoomEditForm(roomType: RoomType, room_type_id: Int, navController: NavContro
     var updatedPricePerDay by remember { mutableStateOf(roomType.price_per_day.toString()) }
     var updatedPetType by remember { mutableStateOf(roomType.pet_type) }
     var petExpanded by remember { mutableStateOf(false) }
-    var selectedPet by remember { mutableStateOf<PetType?>(null) }
-    var imageUri by remember { mutableStateOf<Uri?>(null) }
+    var selectedPetTypeName by remember { mutableStateOf("") } // Store the selected pet type name
+    var selectedPetTypeId by remember { mutableStateOf(0) } // Store the selected pet type ID
     var petTypes by remember { mutableStateOf<List<PetType>>(emptyList()) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
     val context = LocalContext.current
     val api = RoomAPI.create()
 
@@ -135,9 +135,11 @@ fun RoomEditForm(roomType: RoomType, room_type_id: Int, navController: NavContro
             override fun onResponse(call: Call<List<PetType>>, response: Response<List<PetType>>) {
                 if (response.isSuccessful) {
                     petTypes = response.body() ?: emptyList()
-                    // ตั้งค่าประเภทสัตว์เลี้ยงเริ่มต้นตามข้อมูลที่มีอยู่
-                    petTypes.find { it.Pet_name_type == updatedPetType }?.let {
-                        selectedPet = it
+
+                    // Find the pet type that matches the room's pet type ID
+                    petTypes.find { it.Pet_type_id.toString() == updatedPetType }?.let {
+                        selectedPetTypeName = it.Pet_name_type
+                        selectedPetTypeId = it.Pet_type_id
                     }
                 } else {
                     errorMessage = "Error fetching pet types: ${response.message()}"
@@ -149,7 +151,6 @@ fun RoomEditForm(roomType: RoomType, room_type_id: Int, navController: NavContro
             }
         })
     }
-
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
         onResult = { uri ->
@@ -298,17 +299,15 @@ fun RoomEditForm(roomType: RoomType, room_type_id: Int, navController: NavContro
                 .fillMaxWidth()
                 .padding(vertical = 8.dp)
         ) {
-            updatedPetType?.let {
-                OutlinedTextField(
-                    value = it,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("ประเภทสัตว์เลี้ยง") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor()
-                )
-            }
+            OutlinedTextField(
+                value = selectedPetTypeName, // แสดงชื่อประเภทสัตว์เลี้ยงแทนรหัส
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("ประเภทสัตว์เลี้ยง") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .menuAnchor()
+            )
 
             ExposedDropdownMenu(
                 expanded = petExpanded,
@@ -318,15 +317,14 @@ fun RoomEditForm(roomType: RoomType, room_type_id: Int, navController: NavContro
                     DropdownMenuItem(
                         text = { Text(petType.Pet_name_type) },
                         onClick = {
-                            selectedPet = petType
-                            updatedPetType = petType.Pet_name_type
+                            selectedPetTypeName = petType.Pet_name_type // เก็บชื่อที่แสดง
+                            selectedPetTypeId = petType.Pet_type_id // เก็บรหัสสำหรับส่งไป API
                             petExpanded = false
                         }
                     )
                 }
             }
         }
-
         // เลือกรูปภาพ
         Button(
             onClick = { imagePickerLauncher.launch("image/*") },
@@ -358,7 +356,7 @@ fun RoomEditForm(roomType: RoomType, room_type_id: Int, navController: NavContro
                             .show()
                         return@Button
                     }
-                    if (selectedPet == null) {
+                    if (selectedPetTypeId == 0) {
                         Toast.makeText(context, "กรุณาเลือกประเภทสัตว์เลี้ยง", Toast.LENGTH_SHORT)
                             .show()
                         return@Button
@@ -387,8 +385,9 @@ fun RoomEditForm(roomType: RoomType, room_type_id: Int, navController: NavContro
                             updatedRoomName.toRequestBody("text/plain".toMediaTypeOrNull())
                         val priceRequestBody =
                             updatedPricePerDay.toRequestBody("text/plain".toMediaTypeOrNull())
-                        val petTypeRequestBody = selectedPet?.Pet_type_id?.toString()
-                            ?.toRequestBody("text/plain".toMediaTypeOrNull())
+
+                        val petTypeRequestBody = selectedPetTypeId.toString()
+                            .toRequestBody("text/plain".toMediaTypeOrNull())
 
                         // ส่งคำขอสำหรับอัปเดตข้อมูลพร้อมรูปภาพใหม่
                         if (petTypeRequestBody != null) {
@@ -431,7 +430,7 @@ fun RoomEditForm(roomType: RoomType, room_type_id: Int, navController: NavContro
                             room_type_id = room_type_id,
                             name_type = updatedRoomName,
                             price_per_day = priceValue,
-                            pet_type = selectedPet?.Pet_type_id ?: 0
+                            pet_type = selectedPetTypeId // เปลี่ยนจาก selectedPet?.Pet_type_id ?? 0 เป็น selectedPetTypeId
                         ).enqueue(object : Callback<RoomTypeResponse> {
                             override fun onResponse(
                                 call: Call<RoomTypeResponse>,
