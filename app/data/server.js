@@ -536,11 +536,8 @@ app.get('/getroom', (req, res) => {
   });
 });
 
-<<<<<<< HEAD
-=======
  
 
->>>>>>> 1a4f09370c6f74917869e5abb76f5e0da92d6706
 
 app.post('/addroom', async (req, res) => {
     const { room_type_id, room_status } = req.body;
@@ -610,15 +607,11 @@ app.post('/addroom', async (req, res) => {
     }
 });
 
-<<<<<<< HEAD
 
 //const bcrypt = require('bcryptjs');
 
 
 // Soft delete a room
-=======
-// Soft delete a room using NOW() for the deleted_at timestamp
->>>>>>> 1a4f09370c6f74917869e5abb76f5e0da92d6706
 app.post('/softDeleteRoom', function (req, res) {
     const { room_id, deleted_at } = req.body;
 
@@ -642,10 +635,6 @@ app.post('/softDeleteRoom', function (req, res) {
 });
 
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 1a4f09370c6f74917869e5abb76f5e0da92d6706
 app.get('/getRoomTypes', function (req, res) {
     dbConn.query('SELECT type_id, name_type FROM room_type', function (error, results) {
         if (error) {
