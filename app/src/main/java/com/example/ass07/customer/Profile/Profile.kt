@@ -268,11 +268,13 @@ private fun ProfileActions(onEditClick: () -> Unit, onLogoutClick: () -> Unit) {
         onClick = onEditClick,
         modifier = Modifier
             .fillMaxWidth()
-            .height(50.dp)
+            .height(50.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color(0xFFF39C12)
+        )
     ) {
         Text(text = "แก้ไขโปรไฟล์", color = Color.White)
     }
-
     Spacer(modifier = Modifier.height(16.dp))
 
     Button(

@@ -3,6 +3,7 @@ package com.example.ass07.admin.booking
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +21,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
@@ -32,6 +34,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -57,6 +60,14 @@ import androidx.compose.ui.unit.dp
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+
+// ประกาศสีหลักที่ใช้ในแอพพลิเคชัน
+private val primaryBackground = Color(0xFFF8F0E5) // สีพื้นหลักโทนครีม
+private val cardBackground = Color(0xFFFFFFFF) // สีพื้นการ์ด
+private val primaryColor = Color(0xFF855B41) // สีหลัก (น้ำตาล)
+private val accentColor = Color(0xFFDCB996) // สีรอง (น้ำตาลอ่อน)
+private val checkoutColor = Color(0xFFE74C3C) // สีแดงสำหรับเช็คเอาท์
+private val extendColor = Color(0xFFF39C12) // สีส้มสำหรับขยายเวลา
 
 @Composable
 fun BookingDetail(bookingId: Int) {
@@ -90,22 +101,24 @@ fun BookingDetail(bookingId: Int) {
         })
     }
 
-
     Scaffold(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .background(primaryBackground)
     ) { paddingValues ->
         if (isLoading) {
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier.fillMaxSize()
             ) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(color = primaryColor)
             }
         } else {
             booking?.let { bookingData ->
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
+                        .background(primaryBackground)
                         .padding(paddingValues)
                         .verticalScroll(rememberScrollState())
                         .padding(horizontal = 12.dp)
@@ -115,9 +128,9 @@ fun BookingDetail(bookingId: Int) {
                     // Booking ID Card
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer
-                        )
+                        colors = CardDefaults.cardColors(containerColor = cardBackground),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
                         Row(
                             modifier = Modifier
@@ -130,13 +143,13 @@ fun BookingDetail(bookingId: Int) {
                                 Text(
                                     text = "รหัสการจอง",
                                     style = MaterialTheme.typography.labelLarge,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                                    color = primaryColor.copy(alpha = 0.7f)
                                 )
                                 Text(
                                     text = "#${bookingData.bookingId}",
                                     style = MaterialTheme.typography.headlineMedium,
                                     fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    color = primaryColor
                                 )
                             }
                             StatusBadge(bookingData.status)
@@ -190,73 +203,74 @@ fun BookingDetail(bookingId: Int) {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.tertiaryContainer
-                        )
+                            containerColor = cardBackground
+                        ),
+                        border = BorderStroke(
+                            width = 1.dp,
+                            color = accentColor.copy(alpha = 0.3f)
+                        ),
+                        elevation = CardDefaults.cardElevation(
+                            defaultElevation = 2.dp
+                        ),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
                         Column(
                             modifier = Modifier.padding(16.dp)
                         ) {
-                            Text(
-                                text = "สรุปค่าใช้จ่าย",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onTertiaryContainer
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
                             Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.Top
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(bottom = 12.dp)
                             ) {
-                                Text(
-                                    text = "ค่าห้องพัก (${bookingData.pricePerDay} บาท/วัน)\n[ก่อนขยายเวลา]",
-                                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                                Icon(
+                                    imageVector = Icons.Filled.AttachMoney,
+                                    contentDescription = "Total Cost",
+                                    tint = primaryColor,
+                                    modifier = Modifier.size(24.dp)
                                 )
+                                Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "${bookingData.pay} บาท",
-                                    fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                                    text = "สรุปค่าใช้จ่าย",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = primaryColor
                                 )
                             }
 
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(4.dp))
+
+                            ExpenseItem(
+                                title = "ค่าห้องพัก (${bookingData.pricePerDay} บาท/วัน)",
+                                subtitle = "ก่อนขยายเวลา",
+                                amount = "${bookingData.pay} บาท"
+                            )
 
                             if (bookingData.adjust != null && bookingData.adjust != 0) {
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text(
-                                        text = "ค่าใช้จ่ายเพิ่มเติม",
-                                        color = MaterialTheme.colorScheme.onTertiaryContainer
-                                    )
-                                    Text(
-                                        text = "${bookingData.adjust} บาท",
-                                        fontWeight = FontWeight.Medium,
-                                        color = MaterialTheme.colorScheme.onTertiaryContainer
-                                    )
-                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                ExpenseItem(
+                                    title = "ค่าใช้จ่ายเพิ่มเติม",
+                                    amount = "${bookingData.adjust} บาท"
+                                )
                             }
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Divider(color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.2f))
-                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Divider(color = primaryColor.copy(alpha = 0.1f), thickness = 1.dp)
+                            Spacer(modifier = Modifier.height(12.dp))
+
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-
                                 Text(
                                     text = "รวมทั้งสิ้น",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                                    color = primaryColor
                                 )
                                 Text(
                                     text = "$totalPrice บาท",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                                    color = primaryColor
                                 )
                             }
                         }
@@ -273,35 +287,37 @@ fun BookingDetail(bookingId: Int) {
                                 onClick = { showCheckoutDialog = true },
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.error
-                                )
+                                    containerColor = checkoutColor
+                                ),
+                                shape = RoundedCornerShape(10.dp)
                             ) {
                                 Icon(
                                     Icons.AutoMirrored.Filled.ExitToApp,
                                     contentDescription = null,
                                     modifier = Modifier.padding(end = 8.dp)
                                 )
-                                Text("เช็คเอาท์")
+                                Text("เช็คเอาท์", fontWeight = FontWeight.Bold)
                             }
                             Spacer(modifier = Modifier.height(8.dp))
                             Button(
                                 onClick = { showExtendDialog = true },
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.tertiary
-                                )
+                                    containerColor = extendColor
+                                ),
+                                shape = RoundedCornerShape(10.dp)
                             ) {
                                 Icon(
                                     Icons.Filled.DateRange,
                                     contentDescription = null,
                                     modifier = Modifier.padding(end = 8.dp)
                                 )
-                                Text("ขยายเวลา")
+                                Text("ขยายเวลา", fontWeight = FontWeight.Bold)
                             }
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
                 }
             } ?: run {
                 ErrorMessage()
@@ -336,7 +352,6 @@ fun BookingDetail(bookingId: Int) {
         )
     }
 
-    // ใน BookingDetail
     if (showExtendDialog) {
         ExtendStayDialog(
             pricePerDay = booking?.pricePerDay ?: 0,
@@ -367,6 +382,38 @@ fun BookingDetail(bookingId: Int) {
 }
 
 @Composable
+private fun ExpenseItem(
+    title: String,
+    amount: String,
+    subtitle: String? = null
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Top
+    ) {
+        Column {
+            Text(
+                text = title,
+                color = Color.Black.copy(alpha = 0.7f)
+            )
+            if (subtitle != null) {
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Black.copy(alpha = 0.5f)
+                )
+            }
+        }
+        Text(
+            text = amount,
+            fontWeight = FontWeight.Medium,
+            color = Color.Black
+        )
+    }
+}
+
+@Composable
 fun SectionCard(
     icon: ImageVector,
     title: String,
@@ -375,15 +422,16 @@ fun SectionCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = cardBackground
         ),
         border = BorderStroke(
             width = 1.dp,
-            color = MaterialTheme.colorScheme.outlineVariant
+            color = accentColor.copy(alpha = 0.3f)
         ),
-        elevation = CardDefaults.cardElevation(  // เพิ่มเงา
+        elevation = CardDefaults.cardElevation(
             defaultElevation = 2.dp
-        )
+        ),
+        shape = RoundedCornerShape(12.dp)
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -395,7 +443,7 @@ fun SectionCard(
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = primaryColor,
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
@@ -403,7 +451,7 @@ fun SectionCard(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = primaryColor
                 )
             }
             content()
@@ -421,12 +469,12 @@ fun DetailRow(label: String, value: String) {
     ) {
         Text(
             text = label,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            color = Color.Black.copy(alpha = 0.7f)
         )
         Text(
             text = value,
             fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onSurface
+            color = Color.Black
         )
     }
 }
@@ -434,22 +482,23 @@ fun DetailRow(label: String, value: String) {
 @Composable
 fun StatusBadge(status: Int) {
     val (statusText, color) = when (status) {
-        0 -> "ยังไม่เช็คอิน" to MaterialTheme.colorScheme.primary
-        1 -> "เช็คอินแล้ว" to Color(0xFF4CAF50)
-        2 -> "เช็คเอาท์แล้ว" to Color(0xFF2196F3)
-        3 -> "ยกเลิก" to Color(0xFFE91E63)
+        0 -> "ยังไม่เช็คอิน" to Color.Gray
+        1 -> "เช็คอินแล้ว" to Color(0xFF4CAF50) // สีเขียว
+        2 -> "เช็คเอาท์แล้ว" to Color(0xFF2196F3) // สีฟ้า
+        3 -> "ยกเลิก" to Color(0xFFE74C3C) // สีแดง
         else -> "ไม่ระบุ" to Color.Gray
     }
 
     Surface(
         shape = RoundedCornerShape(16.dp),
-        color = color.copy(alpha = 0.1f),
+        color = color.copy(alpha = 0.15f),
+        border = BorderStroke(1.dp, color.copy(alpha = 0.5f)),
         modifier = Modifier.padding(4.dp)
     ) {
         Text(
             text = statusText,
             color = color,
-            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
         )
     }
@@ -461,6 +510,7 @@ fun ErrorMessage() {
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .fillMaxSize()
+            .background(primaryBackground)
             .padding(16.dp)
     ) {
         Column(
@@ -469,7 +519,7 @@ fun ErrorMessage() {
             Icon(
                 Icons.Outlined.Warning,
                 contentDescription = "Error",
-                tint = MaterialTheme.colorScheme.error,
+                tint = checkoutColor,
                 modifier = Modifier
                     .size(48.dp)
                     .padding(bottom = 8.dp)
@@ -477,11 +527,12 @@ fun ErrorMessage() {
             Text(
                 text = "ไม่พบข้อมูลการจอง",
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.error
+                color = primaryColor
             )
         }
     }
 }
+
 @Composable
 fun CheckoutConfirmationDialog(
     onConfirm: () -> Unit,
@@ -489,24 +540,34 @@ fun CheckoutConfirmationDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("ยืนยันการเช็คเอาท์") },
+        containerColor = cardBackground,
+        titleContentColor = primaryColor,
+        textContentColor = Color.Black.copy(alpha = 0.7f),
+        title = { Text("ยืนยันการเช็คเอาท์", fontWeight = FontWeight.Bold) },
         text = { Text("คุณต้องการเช็คเอาท์การจองนี้ใช่หรือไม่?") },
         confirmButton = {
             Button(
                 onClick = onConfirm,
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                colors = ButtonDefaults.buttonColors(containerColor = checkoutColor),
+                shape = RoundedCornerShape(8.dp)
             ) {
-                Text("ยืนยัน")
+                Text("ยืนยัน", fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
-            OutlinedButton(onClick = onDismiss) {
+            OutlinedButton(
+                onClick = onDismiss,
+                border = BorderStroke(1.dp, primaryColor),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = primaryColor),
+                shape = RoundedCornerShape(8.dp)
+            ) {
                 Text("ยกเลิก")
             }
         }
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExtendStayDialog(
     pricePerDay: Int,
@@ -518,22 +579,34 @@ fun ExtendStayDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("ขยายเวลาเข้าพัก") },
+        containerColor = cardBackground,
+        titleContentColor = primaryColor,
+        textContentColor = Color.Black.copy(alpha = 0.7f),
+        title = { Text("ขยายเวลาเข้าพัก", fontWeight = FontWeight.Bold) },
         text = {
             Column {
                 Text("กรุณาระบุจำนวนวันที่ต้องการขยายเวลา")
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 OutlinedTextField(
                     value = additionalDays,
                     onValueChange = { if (it.toIntOrNull() != null) additionalDays = it },
                     label = { Text("จำนวนวัน") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = androidx.compose.material3.TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = primaryColor,
+                        focusedLabelColor = primaryColor,
+                        cursorColor = primaryColor
+                    )
                 )
                 if (additionalDays.toIntOrNull() != null && additionalDays.toInt() > 0) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text("ค่าใช้จ่ายเพิ่มเติม: $additionalCost บาท")
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        "ค่าใช้จ่ายเพิ่มเติม: $additionalCost บาท",
+                        fontWeight = FontWeight.Medium,
+                        color = Color.Black
+                    )
                 }
             }
         },
@@ -543,13 +616,20 @@ fun ExtendStayDialog(
                     val days = additionalDays.toIntOrNull() ?: 1
                     onConfirm(days, additionalCost)
                 },
-                enabled = additionalDays.toIntOrNull() != null && additionalDays.toInt() > 0
+                enabled = additionalDays.toIntOrNull() != null && additionalDays.toInt() > 0,
+                colors = ButtonDefaults.buttonColors(containerColor = extendColor),
+                shape = RoundedCornerShape(8.dp)
             ) {
-                Text("ยืนยัน")
+                Text("ยืนยัน", fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
-            OutlinedButton(onClick = onDismiss) {
+            OutlinedButton(
+                onClick = onDismiss,
+                border = BorderStroke(1.dp, primaryColor),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = primaryColor),
+                shape = RoundedCornerShape(8.dp)
+            ) {
                 Text("ยกเลิก")
             }
         }

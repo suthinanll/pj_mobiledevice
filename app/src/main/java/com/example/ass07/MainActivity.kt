@@ -12,7 +12,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
-import com.example.ass07.admin.AdminNav
 import com.example.ass07.customer.BB
 import com.example.ass07.customer.NavGraph
 import com.example.ass07.ui.theme.ASS07Theme
@@ -25,7 +24,7 @@ class MainActivity : ComponentActivity() {
             ASS07Theme {
 
                 BB.MyScaffoldLayout()
-                AdminNav.MyScaffoldLayout()
+                //AdminNav.MyScaffoldLayout()
                 //MyScreen()
 
             }
@@ -40,7 +39,7 @@ class MainActivity : ComponentActivity() {
 fun GreetingPreview() {
     ASS07Theme {
         BB.MyScaffoldLayout()
-        AdminNav.MyScaffoldLayout()
+        //AdminNav.MyScaffoldLayout()
     }
 }
 @Composable

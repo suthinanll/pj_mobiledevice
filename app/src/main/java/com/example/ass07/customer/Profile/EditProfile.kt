@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.OutlinedTextField
@@ -160,6 +161,9 @@ fun EditProfile(navController: NavHostController) {
                 Button(
                     onClick = { updateProfile() },
                     modifier = Modifier.fillMaxWidth().height(50.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFF39C12)
+                    ),
                     enabled = !isLoading
                 ) {
                     Text(text = if (isLoading) "กำลังบันทึก..." else "Save", color = Color.White)
@@ -169,7 +173,10 @@ fun EditProfile(navController: NavHostController) {
 
                 Button(
                     onClick = { navController.popBackStack() },
-                    modifier = Modifier.fillMaxWidth().height(50.dp)
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFE74C3C)
+                    )
                 ) {
                     Text(text = "Cancel", color = Color.White)
                 }

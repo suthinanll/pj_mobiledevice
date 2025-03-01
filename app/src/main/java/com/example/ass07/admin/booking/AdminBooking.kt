@@ -1,5 +1,6 @@
 package com.example.ass07.admin.booking
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,21 +11,25 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -32,12 +37,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -51,6 +59,15 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
+// // ประกาศสีหลักที่ใช้ในแอพพลิเคชัน
+private val backgroundColor = Color(0xFFFFFAF0)
+private val primaryColor = Color(0xFFC88141)
+private val accentColor = Color(0xFFFFD966)
+private val cardBackground = Color.White
+private val checkInColor = Color(0xFF4CAF50)
+private val checkOutColor = Color(0xFF2196F3)
+private val cancelColor = Color(0xD7EE2C2C)
+private val dividerColor = Color(0xFFEEE0D0)
 
 @Composable
 fun Booking(navController: NavController) {
@@ -61,7 +78,6 @@ fun Booking(navController: NavController) {
     val context = LocalContext.current
     val bookingService = BookingAPI.create()
 
-    // โหลดข้อมูลการจองจาก API
     LaunchedEffect(Unit) {
         fetchBookings(bookingService) { bookings ->
             Log.d("Booking", "Fetched bookings: $bookings")
@@ -69,7 +85,6 @@ fun Booking(navController: NavController) {
         }
     }
 
-    // แปลงค่า selectedStatus เป็นตัวเลขสำหรับการ query
     val statusValue = when (selectedStatus) {
         "ยังไม่เช็คอิน" -> "0"
         "เช็คอินแล้ว" -> "1"
@@ -78,7 +93,6 @@ fun Booking(navController: NavController) {
         else -> "ทั้งหมด"
     }
 
-    // กรองข้อมูลตามสถานะและคำค้นหา
     val filteredBookings = bookingList.filter {
         (statusValue == "ทั้งหมด" || it.status?.toString() == statusValue) &&
                 (it.petName?.contains(searchQuery, ignoreCase = true) == true ||
@@ -87,33 +101,76 @@ fun Booking(navController: NavController) {
                         it.bookingId?.toString()?.contains(searchQuery) == true)
     }
 
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Text(text = "การจองที่พักสัตว์เลี้ยง", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(8.dp))
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(backgroundColor)
+            .padding(16.dp)
+    ) {
+        Text(
+            text = "การจองที่พักสัตว์เลี้ยง",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = primaryColor
+        )
 
-        // ช่องค้นหา
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Search field with rounded corners
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text(" ค้นหาการจอง... (ชื่อสัตว์เลี้ยง / เจ้าของ / ประเภทห้อง)", fontSize = 12.sp) },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(10.dp)),
+            placeholder = {
+                Text(
+                    "ค้นหาการจอง... (ชื่อสัตว์เลี้ยง / เจ้าของ / ประเภทห้อง)",
+                    fontSize = 12.sp,
+                    color = Color.Gray
+                )
+            },
+            leadingIcon = {
+                Icon(
+                    Icons.Default.Search,
+                    contentDescription = "Search",
+                    tint = primaryColor
+                )
+            },
             keyboardOptions = KeyboardOptions.Default.copy(
                 keyboardType = KeyboardType.Text,
                 imeAction = ImeAction.Search
-            )
+            ),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = primaryColor,
+                unfocusedBorderColor = dividerColor,
+                focusedContainerColor = cardBackground,
+                unfocusedContainerColor = cardBackground
+            ),
+            singleLine = true
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
-        // Dropdown เลือกสถานะการจอง
+        // Status dropdown with improved styling
         StatusDropdown(selectedStatus) { newStatus ->
             selectedStatus = newStatus
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
-        LazyColumn {
+        // Booking count
+        Text(
+            text = "พบ ${filteredBookings.size} รายการ",
+            fontSize = 14.sp,
+            color = Color.Gray,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        // Booking list
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
             items(filteredBookings) { booking ->
                 BookingItem(booking, navController, bookingService, onResult = { bookings ->
                     bookingList = bookings
@@ -137,25 +194,56 @@ fun StatusDropdown(selectedStatus: String, onStatusSelected: (String) -> Unit) {
     Box(modifier = Modifier.fillMaxWidth()) {
         OutlinedButton(
             onClick = { expanded = true },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.align(Alignment.CenterEnd),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = primaryColor,
+                containerColor = cardBackground
+            )
         ) {
-            Text("สถานะ: $selectedStatus")
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "สถานะ: $selectedStatus",
+                    fontSize = 14.sp
+                )
+                Icon(
+                    Icons.Outlined.KeyboardArrowDown,
+                    contentDescription = "Dropdown Arrow"
+                )
+            }
         }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .background(cardBackground)
+        ) {
             statusOptions.forEach { status ->
                 DropdownMenuItem(
-                    text = { Text(status) },
+                    text = {
+                        Text(
+                            status,
+                            fontSize = 14.sp
+                        )
+                    },
                     onClick = {
                         onStatusSelected(status)
                         expanded = false
                     }
                 )
+
+                if (status != statusOptions.last()) {
+                    Divider(color = dividerColor, thickness = 0.5.dp)
+                }
             }
         }
     }
 }
 
-// ฟังก์ชันโหลดข้อมูลจาก API
 fun fetchBookings(bookingService: BookingAPI, onResult: (List<Booking>) -> Unit) {
     bookingService.getBookings().enqueue(object : Callback<List<Booking>> {
         override fun onResponse(call: Call<List<Booking>>, response: Response<List<Booking>>) {
@@ -174,23 +262,21 @@ fun fetchBookings(bookingService: BookingAPI, onResult: (List<Booking>) -> Unit)
     })
 }
 
-
-// แสดงรายการการจองแต่ละรายการ
 @Composable
-fun BookingItem(booking: Booking, navController: NavController,
-                bookingService: BookingAPI, onResult: (List<Booking>) -> Unit) {
-    // คำนวณจำนวนวันจาก func calculateNumOfDays()
+fun BookingItem(
+    booking: Booking,
+    navController: NavController,
+    bookingService: BookingAPI,
+    onResult: (List<Booking>) -> Unit
+) {
     val numOfDays = calculateNumOfDays(booking.checkIn, booking.checkOut)
-
-    // ราคารวมที่มีอยู่แล้ว
     val totalPrice = booking.totalPay ?: 0
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
             .let { baseModifier ->
-                if (booking.status != 0 ) {
+                if (booking.status != 0) {
                     baseModifier.clickable {
                         navController.navigate(route = ScreenAdmin.BookingDetail.route+"/${booking.bookingId}")
                     }
@@ -198,43 +284,182 @@ fun BookingItem(booking: Booking, navController: NavController,
                     baseModifier
                 }
             },
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        colors = CardDefaults.cardColors(containerColor = cardBackground),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(16.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = "📌 ID: ${booking.bookingId ?: "ไม่ทราบ"}")
-            Text(text = "🐶 สัตว์เลี้ยง: ${booking.petName ?: "ไม่มีข้อมูล"} (${booking.petNameType ?: "ไม่ระบุ"} - ${booking.petBreed ?: "ไม่ระบุ"}, ${booking.petAge ?: "?"} ปี)")
-            Text(text = "👤 เจ้าของ: ${booking.name ?: "ไม่ระบุ"} (${booking.tellNumber ?: "ไม่มีเบอร์"})")
-            Text(text = "🏠 ห้อง: ${booking.roomType ?: "ไม่ระบุ"} (ราคา ${booking.pricePerDay ?: "?"} บาท/วัน)")
-            Text(text = "📅 Check-in: ${formatDateTime(booking.checkIn)} น.")
-            Text(text = "📅 Check-out: ${formatDateTime(booking.checkOut)} น.")
-            Text(text = "📅 จำนวนวันที่เข้าพัก: $numOfDays วัน")
-            Text(text = "💰 ราคารวม: $totalPrice บาท")
-            StatusText(booking.status) // status แบบมีสี
+            // Header with ID and Status
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "ID: ${booking.bookingId ?: "ไม่ทราบ"}",
+                    fontSize = 14.sp,
+                    color = Color.Gray
+                )
+                StatusChip(booking.status)
+            }
 
-            Row(horizontalArrangement = Arrangement.End) {
-                if (booking.status == 0) {
-                    Button(
-                        onClick = { onConfirmBooking(booking.bookingId, bookingService, onResult) },
-                        modifier = Modifier.padding(top = 8.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.Green,
-                            contentColor = Color.White
-                        )
-                    ) {
-                        Text(text = "เช็คอินเข้าพัก")
-                    }
+            Divider(
+                color = dividerColor,
+                thickness = 1.dp,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
 
-                    Spacer(modifier = Modifier.padding(6.dp))
+            // Pet details
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "🐶",
+                    fontSize = 18.sp
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Column {
+                    Text(
+                        text = "${booking.petName ?: "ไม่มีข้อมูล"}",
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 16.sp
+                    )
+                    Text(
+                        text = "${booking.petNameType ?: "ไม่ระบุ"} - ${booking.petBreed ?: "ไม่ระบุ"}, ${booking.petAge ?: "?"} ปี",
+                        fontSize = 14.sp,
+                        color = Color.Gray
+                    )
+                }
+            }
 
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Owner details
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "👤",
+                    fontSize = 18.sp
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Column {
+                    Text(
+                        text = "${booking.name ?: "ไม่ระบุ"}",
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 16.sp
+                    )
+                    Text(
+                        text = "${booking.tellNumber ?: "ไม่มีเบอร์"}",
+                        fontSize = 14.sp,
+                        color = Color.Gray
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Room details
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "🏠",
+                    fontSize = 18.sp
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "${booking.roomType ?: "ไม่ระบุ"} (${booking.pricePerDay ?: "?"} บาท/วัน)",
+                    fontSize = 14.sp
+                )
+            }
+
+            Divider(
+                color = dividerColor,
+                thickness = 1.dp,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+
+            // Date details
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text(
+                        text = "Check-in",
+                        fontSize = 12.sp,
+                        color = Color.Gray
+                    )
+                    Text(
+                        text = "${formatDateTime(booking.checkIn)}",
+                        fontSize = 14.sp
+                    )
+                }
+
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = "Check-out",
+                        fontSize = 12.sp,
+                        color = Color.Gray
+                    )
+                    Text(
+                        text = "${formatDateTime(booking.checkOut)}",
+                        fontSize = 14.sp
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Price details
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "จำนวนวันที่เข้าพัก: $numOfDays วัน",
+                    fontSize = 14.sp
+                )
+
+                Text(
+                    text = "฿$totalPrice",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    color = primaryColor
+                )
+            }
+
+            // Action buttons
+            if (booking.status == 0) {
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
                     Button(
                         onClick = { onCancelBooking(booking.bookingId, bookingService, onResult) },
-                        modifier = Modifier.padding(top = 8.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.Red,
+                            containerColor = cancelColor,
                             contentColor = Color.White
-                        )
+                        ),
+                        shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text(text = "ยกเลิกการจอง")
+                        Text(
+                            text = "ยกเลิกการจอง",
+                            fontSize = 14.sp
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Button(
+                        onClick = { onConfirmBooking(booking.bookingId, bookingService, onResult) },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = accentColor,
+                            contentColor = Color.Black
+                        ),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(
+                            text = "เช็คอินเข้าพัก",
+                            fontSize = 14.sp
+                        )
                     }
                 }
             }
@@ -242,8 +467,33 @@ fun BookingItem(booking: Booking, navController: NavController,
     }
 }
 
+@Composable
+fun StatusChip(status: Int) {
+    val (statusText, statusColor, backgroundColor) = when (status) {
+        0 -> Triple("ยังไม่เช็คอิน", Color.Gray, Color(0xFFEEEEEE))
+        1 -> Triple("เช็คอินแล้ว", checkInColor, Color(0xFFE8F5E9))
+        2 -> Triple("เช็คเอาท์แล้ว", checkOutColor, Color(0xFFE3F2FD))
+        3 -> Triple("ยกเลิก", cancelColor, Color(0xFFFFEBEE))
+        else -> Triple("ไม่ระบุ", Color.Gray, Color(0xFFEEEEEE))
+    }
 
-// onclick เช็คอิน
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(50.dp))
+            .background(backgroundColor)
+            .padding(horizontal = 10.dp, vertical = 4.dp)
+    ) {
+        Text(
+            text = statusText,
+            color = statusColor,
+            fontWeight = FontWeight.Medium,
+            fontSize = 12.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
 fun onConfirmBooking(bookingId: Int, bookingService: BookingAPI, onResult: (List<Booking>) -> Unit) {
     val statusUpdate = mapOf("booking_status" to 1)
 
@@ -251,7 +501,6 @@ fun onConfirmBooking(bookingId: Int, bookingService: BookingAPI, onResult: (List
         override fun onResponse(call: Call<Map<String, String>>, response: Response<Map<String, String>>) {
             if (response.isSuccessful) {
                 Log.d("BookingDetail", "อัปเดตสถานะสำเร็จ: ${response.body()?.get("message")}")
-                // รีเฟรชข้อมูล
                 fetchBookings(bookingService, onResult)
             } else {
                 Log.e("BookingDetail", "อัปเดตสถานะล้มเหลว: ${response.message()}")
@@ -264,7 +513,6 @@ fun onConfirmBooking(bookingId: Int, bookingService: BookingAPI, onResult: (List
     })
 }
 
-// onclick ยกเลิก
 fun onCancelBooking(bookingId: Int, bookingService: BookingAPI, onResult: (List<Booking>) -> Unit) {
     val statusUpdate = mapOf("booking_status" to 3)
 
@@ -272,7 +520,6 @@ fun onCancelBooking(bookingId: Int, bookingService: BookingAPI, onResult: (List<
         override fun onResponse(call: Call<Map<String, String>>, response: Response<Map<String, String>>) {
             if (response.isSuccessful) {
                 Log.d("Booking", "สถานะการจองยกเลิกสำเร็จ: ${response.body()?.get("message")}")
-                // รีเฟรชข้อมูล
                 fetchBookings(bookingService, onResult)
             } else {
                 Log.e("Booking", "การยกเลิกสถานะล้มเหลว: ${response.message()}")
@@ -285,30 +532,12 @@ fun onCancelBooking(bookingId: Int, bookingService: BookingAPI, onResult: (List<
     })
 }
 
-@Composable
-fun StatusText(status: Int) {
-    val (statusText, statusColor) = when (status) {
-        0 -> "ยังไม่เช็คอิน" to MaterialTheme.colorScheme.primary
-        1 -> "เช็คอินแล้ว" to Color(0xFF4CAF50) // สีเขียว
-        2 -> "เช็คเอาท์แล้ว" to Color(0xFF2196F3) // สีน้ำเงิน
-        3 -> "ยกเลิก" to Color(0xFFE91E63) // สีแดง
-        else -> "ไม่ระบุ" to Color.Gray
-    }
-
-    Text(
-        text = "📌 สถานะ: $statusText",
-        color = statusColor,
-        fontWeight = FontWeight.Bold
-    )
-}
-
-//format เวลา
 fun formatDateTime(isoDate: String?): String {
     return try {
         isoDate?.let {
             val instant = Instant.parse(it)
             val formatter = DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm")
-                .withZone(ZoneId.systemDefault()) // กำหนดโซนเวลาตามเครื่อง
+                .withZone(ZoneId.systemDefault())
             formatter.format(instant)
         } ?: "ไม่ระบุ"
     } catch (e: Exception) {
@@ -316,13 +545,10 @@ fun formatDateTime(isoDate: String?): String {
     }
 }
 
-//คำนวณเวลา
-
-
 fun calculateNumOfDays(checkIn: String?, checkOut: String?): Long {
     return try {
         if (!checkIn.isNullOrEmpty() && !checkOut.isNullOrEmpty()) {
-            val formatter = DateTimeFormatter.ISO_DATE_TIME // ใช้ฟอร์แมต ISO 8601
+            val formatter = DateTimeFormatter.ISO_DATE_TIME
             val checkInDate = LocalDate.parse(checkIn, formatter)
             val checkOutDate = LocalDate.parse(checkOut, formatter)
             ChronoUnit.DAYS.between(checkInDate, checkOutDate)
