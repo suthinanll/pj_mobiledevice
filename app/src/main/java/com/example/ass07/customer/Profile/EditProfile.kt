@@ -1,6 +1,7 @@
 package com.example.ass07.customer.Profile
 
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -46,6 +47,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
+private val primaryColor = Color(0xFF855B41)
 @Composable
 fun EditProfile(navController: NavHostController) {
     val context = LocalContext.current
@@ -226,7 +228,11 @@ fun AvatarSelectionDialog(
             }
         },
         confirmButton = {
-            Button(onClick = { onAvatarSelected(currentAvatar) }) {
+            Button(onClick = { onAvatarSelected(currentAvatar) },
+                border = BorderStroke(1.dp, primaryColor),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = primaryColor),
+                shape = RoundedCornerShape(8.dp)
+                ) {
                 Text("ยกเลิก")
             }
         }

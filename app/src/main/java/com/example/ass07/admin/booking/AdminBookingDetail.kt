@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
@@ -33,15 +32,17 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -55,11 +56,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 // ประกาศสีหลักที่ใช้ในแอพพลิเคชัน
 private val primaryBackground = Color(0xFFF8F0E5) // สีพื้นหลักโทนครีม
@@ -240,7 +245,7 @@ fun BookingDetail(bookingId: Int) {
 
                             ExpenseItem(
                                 title = "ค่าห้องพัก (${bookingData.pricePerDay} บาท/วัน)",
-                                subtitle = "ก่อนขยายเวลา",
+                                subtitle = "[ก่อนขยายเวลา]",
                                 amount = "${bookingData.pay} บาท"
                             )
 
@@ -353,31 +358,49 @@ fun BookingDetail(bookingId: Int) {
     }
 
     if (showExtendDialog) {
-        ExtendStayDialog(
-            pricePerDay = booking?.pricePerDay ?: 0,
-            onConfirm = { days, cost ->
-                val bookingApi = BookingAPI.create()
-                val request = ExtendBookingRequest(days = days, additionalCost = cost)
+        booking?.let { bookingData ->
+            ExtendStayDialog(
+                pricePerDay = bookingData.pricePerDay,
+                currentCheckOut = bookingData.checkOut,
+                onConfirm = { days, cost ->
+                    val bookingApi = BookingAPI.create()
+                    val request = ExtendBookingRequest(days = days, additionalCost = cost)
 
-                bookingApi.extendBooking(bookingId, request).enqueue(object : Callback<ExtendBookingResponse> {
-                    override fun onResponse(call: Call<ExtendBookingResponse>, response: Response<ExtendBookingResponse>) {
-                        if (response.isSuccessful) {
-                            Toast.makeText(context, "ขยายเวลาเข้าพักสำเร็จ", Toast.LENGTH_SHORT).show()
-                            refreshTrigger = !refreshTrigger  // รีเฟรชข้อมูล
-                        } else {
-                            Toast.makeText(context, "ไม่สามารถขยายเวลาเข้าพักได้", Toast.LENGTH_SHORT).show()
+                    bookingApi.extendBooking(bookingId, request).enqueue(object : Callback<ExtendBookingResponse> {
+                        override fun onResponse(call: Call<ExtendBookingResponse>, response: Response<ExtendBookingResponse>) {
+                            if (response.isSuccessful) {
+                                val resultData = response.body()
+                                if (resultData != null) {
+                                    // แสดงข้อมูลที่อัพเดตสำเร็จ
+                                    Toast.makeText(
+                                        context,
+                                        "ขยายเวลาเข้าพักสำเร็จ (${days} วัน, ${cost} บาท)",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    refreshTrigger = !refreshTrigger  // รีเฟรชข้อมูล
+                                } else {
+                                    Toast.makeText(context, "ไม่สามารถขยายเวลาเข้าพักได้: ไม่พบข้อมูลตอบกลับ", Toast.LENGTH_SHORT).show()
+                                }
+                            } else {
+                                val errorMsg = try {
+                                    response.errorBody()?.string() ?: "ไม่สามารถขยายเวลาเข้าพักได้"
+                                } catch (e: Exception) {
+                                    "ไม่สามารถขยายเวลาเข้าพักได้: ${response.code()}"
+                                }
+                                Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
+                            }
                         }
-                    }
 
-                    override fun onFailure(call: Call<ExtendBookingResponse>, t: Throwable) {
-                        Toast.makeText(context, "เกิดข้อผิดพลาด: ${t.message}", Toast.LENGTH_SHORT).show()
-                    }
-                })
+                        override fun onFailure(call: Call<ExtendBookingResponse>, t: Throwable) {
+                            Toast.makeText(context, "เกิดข้อผิดพลาด: ${t.message}", Toast.LENGTH_SHORT).show()
+                        }
+                    })
 
-                showExtendDialog = false
-            },
-            onDismiss = { showExtendDialog = false }
-        )
+                    showExtendDialog = false
+                },
+                onDismiss = { showExtendDialog = false }
+            )
+        }
     }
 }
 
@@ -571,41 +594,83 @@ fun CheckoutConfirmationDialog(
 @Composable
 fun ExtendStayDialog(
     pricePerDay: Int,
+    currentCheckOut: String,
     onConfirm: (days: Int, cost: Int) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var additionalDays by remember { mutableStateOf("1") }
-    val additionalCost = (additionalDays.toIntOrNull() ?: 0) * pricePerDay
+    var showDatePicker by remember { mutableStateOf(false) }
+    // เช็คว่าเลือกวันหรือยัง
+    var isDateSelected by remember { mutableStateOf(false) }
+
+    // Parse current checkout date
+    val currentCheckOutDateTime = remember {
+        try {
+            LocalDateTime.parse(currentCheckOut, DateTimeFormatter.ISO_DATE_TIME)
+        } catch (e: Exception) {
+            // Fallback to current date if parsing fails
+            LocalDateTime.now()
+        }
+    }
+
+    // Initial selected date is current checkout + 1 day
+    var selectedDate by remember {
+        mutableStateOf(currentCheckOutDateTime.plusDays(1))
+    }
+
+    // Calculate days difference between current checkout and selected date
+    val daysDifference = remember(selectedDate) {
+        ChronoUnit.DAYS.between(currentCheckOutDateTime.toLocalDate(), selectedDate.toLocalDate()).toInt()
+    }
+
+    // Calculate additional cost based on days difference
+    val additionalCost = daysDifference * pricePerDay
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = cardBackground,
-        titleContentColor = primaryColor,
-        textContentColor = Color.Black.copy(alpha = 0.7f),
-        title = { Text("ขยายเวลาเข้าพัก", fontWeight = FontWeight.Bold) },
+        title = { Text("ขยายเวลาเข้าพัก") },
         text = {
             Column {
-                Text("กรุณาระบุจำนวนวันที่ต้องการขยายเวลา")
-                Spacer(modifier = Modifier.height(12.dp))
-                OutlinedTextField(
-                    value = additionalDays,
-                    onValueChange = { if (it.toIntOrNull() != null) additionalDays = it },
-                    label = { Text("จำนวนวัน") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = androidx.compose.material3.TextFieldDefaults.outlinedTextFieldColors(
-                        focusedBorderColor = primaryColor,
-                        focusedLabelColor = primaryColor,
-                        cursorColor = primaryColor
-                    )
+                Text("กรุณาเลือกวันที่ต้องการ check-out ใหม่")
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // โชว์ วัน checkout เดิม
+                DetailRow(
+                    label = "วันที่ check-out ปัจจุบัน",
+                    value = formatDateTime(currentCheckOut)
                 )
-                if (additionalDays.toIntOrNull() != null && additionalDays.toInt() > 0) {
-                    Spacer(modifier = Modifier.height(12.dp))
+
+                // open date picker
+                OutlinedButton(
+                    onClick = { showDatePicker = true },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                ) {
+                    Icon(
+                        Icons.Filled.DateRange,
+                        contentDescription = "เลือกวันที่",
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    Text("เลือกวันที่ check-out ใหม่")
+                }
+
+                // โชว์วัน checkout ใหม่
+                DetailRow(
+                    label = "วันที่ check-out ใหม่",
+                    value = selectedDate.format(DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm"))
+                )
+
+                // Show days difference
+                if (daysDifference > 0) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("จำนวนวันที่ขยาย: $daysDifference วัน")
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text("ค่าใช้จ่ายเพิ่มเติม: $additionalCost บาท")
+                } else {
+                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        "ค่าใช้จ่ายเพิ่มเติม: $additionalCost บาท",
-                        fontWeight = FontWeight.Medium,
-                        color = Color.Black
+                        "กรุณาเลือกวันที่มากกว่าวันที่ check-out ปัจจุบัน",
+                        color = MaterialTheme.colorScheme.error
                     )
                 }
             }
@@ -613,25 +678,70 @@ fun ExtendStayDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    val days = additionalDays.toIntOrNull() ?: 1
-                    onConfirm(days, additionalCost)
+                    if (daysDifference > 0) {
+                        onConfirm(daysDifference, additionalCost)
+                    }
                 },
-                enabled = additionalDays.toIntOrNull() != null && additionalDays.toInt() > 0,
+                shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = extendColor),
-                shape = RoundedCornerShape(8.dp)
+                enabled = daysDifference > 0
             ) {
-                Text("ยืนยัน", fontWeight = FontWeight.Bold)
+                Text("ยืนยัน")
             }
         },
         dismissButton = {
-            OutlinedButton(
-                onClick = onDismiss,
+            OutlinedButton(onClick = onDismiss,
                 border = BorderStroke(1.dp, primaryColor),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = primaryColor),
                 shape = RoundedCornerShape(8.dp)
-            ) {
+                ) {
                 Text("ยกเลิก")
             }
         }
     )
+
+    // Date Picker Dialog
+    if (showDatePicker) {
+        // Convert LocalDateTime to millis for DatePicker
+        val initialSelectedDateMillis = selectedDate.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = initialSelectedDateMillis
+        )
+
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                Button(onClick = {
+                    datePickerState.selectedDateMillis?.let { millis ->
+                        // Convert selected millis back to LocalDateTime
+                        val newDate = Instant.ofEpochMilli(millis)
+                            .atZone(ZoneId.systemDefault())
+                            .toLocalDateTime()
+                        // Keep the time part from the original selection
+                        selectedDate = LocalDateTime.of(
+                            newDate.toLocalDate(),
+                            currentCheckOutDateTime.toLocalTime()
+                        )
+                    }
+                    showDatePicker = false
+                },
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = extendColor)
+                    ) {
+                    Text("ตกลง")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showDatePicker = false },
+                    border = BorderStroke(1.dp, primaryColor),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = primaryColor),
+                    shape = RoundedCornerShape(8.dp)
+                    ) {
+                    Text("ยกเลิก")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
 }

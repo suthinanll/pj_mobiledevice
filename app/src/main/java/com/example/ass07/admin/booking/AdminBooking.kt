@@ -53,9 +53,8 @@ import com.example.ass07.admin.ScreenAdmin
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
@@ -219,7 +218,7 @@ fun StatusDropdown(selectedStatus: String, onStatusSelected: (String) -> Unit) {
             expanded = expanded,
             onDismissRequest = { expanded = false },
             modifier = Modifier
-                .align(Alignment.CenterEnd)
+                .fillMaxWidth()
                 .background(cardBackground)
         ) {
             statusOptions.forEach { status ->
@@ -532,30 +531,22 @@ fun onCancelBooking(bookingId: Int, bookingService: BookingAPI, onResult: (List<
     })
 }
 
-fun formatDateTime(isoDate: String?): String {
+
+fun formatDateTime(dateTimeStr: String): String {
     return try {
-        isoDate?.let {
-            val instant = Instant.parse(it)
-            val formatter = DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm")
-                .withZone(ZoneId.systemDefault())
-            formatter.format(instant)
-        } ?: "ไม่ระบุ"
+        val dateTime = LocalDateTime.parse(dateTimeStr, DateTimeFormatter.ISO_DATE_TIME)
+        dateTime.format(DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm"))
     } catch (e: Exception) {
-        "ไม่ระบุ"
+        dateTimeStr // กรณีที่ format ไม่ได้ให้ส่งค่าเดิมกลับไป
     }
 }
 
-fun calculateNumOfDays(checkIn: String?, checkOut: String?): Long {
+fun calculateNumOfDays(checkIn: String, checkOut: String): Long {
     return try {
-        if (!checkIn.isNullOrEmpty() && !checkOut.isNullOrEmpty()) {
-            val formatter = DateTimeFormatter.ISO_DATE_TIME
-            val checkInDate = LocalDate.parse(checkIn, formatter)
-            val checkOutDate = LocalDate.parse(checkOut, formatter)
-            ChronoUnit.DAYS.between(checkInDate, checkOutDate)
-        } else {
-            0
-        }
+        val checkInDate = LocalDate.parse(checkIn.split("T")[0])
+        val checkOutDate = LocalDate.parse(checkOut.split("T")[0])
+        ChronoUnit.DAYS.between(checkInDate, checkOutDate)
     } catch (e: Exception) {
-        0
+        0 // กรณีที่คำนวณไม่ได้ให้ส่ง 0 วันกลับไป
     }
 }
