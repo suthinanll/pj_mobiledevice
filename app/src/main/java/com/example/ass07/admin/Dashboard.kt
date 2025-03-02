@@ -41,6 +41,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 
 import com.example.ass07.R
 import kotlinx.coroutines.Dispatchers
@@ -48,6 +49,13 @@ import kotlinx.coroutines.withContext
 import com.example.ass07.admin.booking.BookingAPI
 import com.example.ass07.admin.booking.Booking
 import com.example.ass07.admin.PetApi
+import com.example.ass07.customer.LoginRegister.LoginClass
+import com.example.ass07.customer.LoginRegister.ScreenLogin
+import com.example.ass07.customer.LoginRegister.SharePreferencesManager
+import com.example.ass07.customer.Screen
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -58,7 +66,8 @@ import java.time.temporal.ChronoUnit
 fun AdminDashboard(
     onNavigateToBookingDetails: (Int) -> Unit = {},
     onNavigateToRooms: () -> Unit = {},
-    onNavigateToPets: () -> Unit = {}
+    onNavigateToPets: () -> Unit = {},
+    navController : NavHostController
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -210,12 +219,17 @@ fun AdminDashboard(
                     todayCheckIns = todayCheckIns,
                     roomStatistics = roomStatistics,
                     recentBookings = recentBookings,
-                    onBookingClick = onNavigateToBookingDetails
+                    onBookingClick = {
+                        selectedTab = 1
+                    },
+                    navController = navController
                 )
                 1 -> BookingsTab(
                     paddingValues = paddingValues,
                     bookings = bookings,
-                    onBookingClick = onNavigateToBookingDetails
+                    onBookingClick = {
+                        selectedTab = 2
+                    }
                 )
                 2 -> RoomsTab(
                     paddingValues = paddingValues,
@@ -238,8 +252,14 @@ fun DashboardTab(
     todayCheckIns: Int,
     roomStatistics: List<RoomStatistic>,
     recentBookings: List<Booking>,
-    onBookingClick: (Int) -> Unit
+    onBookingClick: (Int) -> Unit,
+    navController: NavHostController
 ) {
+    val context = LocalContext.current
+    val sharePreferences = remember { SharePreferencesManager(context) }
+
+    var logoutAlert by remember { mutableStateOf(false) }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -377,9 +397,52 @@ fun DashboardTab(
                             )
                         }
                     }
+                    Button(
+                        onClick = {
+                            logoutAlert = true
+                        },
+                        modifier = Modifier.fillMaxWidth().padding(20.dp)
+                    ) {
+                        Text("Logout")
+                    }
                 }
             }
         }
+
+
+    }
+
+    if(logoutAlert){
+        AlertDialog(
+            onDismissRequest = {logoutAlert = false},
+            title = {
+                Text("ออกจากระบบ")
+            },
+            text = {
+                Text("คุณต้องการออกจากระบบหรือไม่?")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        sharePreferences.clearUserAll()
+                        navController.navigate(ScreenLogin.Login.route)
+                    }
+
+                ) {
+                    Text("ตกลง")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        logoutAlert = false
+                    }
+
+                ) {
+                    Text("ยกเลิก")
+                }
+            }
+        )
     }
 }
 @Composable

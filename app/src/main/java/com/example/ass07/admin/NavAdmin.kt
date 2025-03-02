@@ -37,7 +37,7 @@ fun NavGraphAdmin(navController: NavHostController) {
         }
 
         composable (route =  ScreenAdmin.Dashboard.route){
-            AdminDashboard()
+            AdminDashboard(navController = navController)
         }
         composable(route = ScreenAdmin.RoomEditType.route) {
             RoomEditType(navController)

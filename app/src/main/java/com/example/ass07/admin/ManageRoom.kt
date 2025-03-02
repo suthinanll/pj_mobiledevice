@@ -63,6 +63,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import coil.compose.rememberAsyncImagePainter
 import com.example.ass07.R
 import com.example.ass07.admin.Room
 import com.example.ass07.admin.RoomAPI
@@ -235,7 +236,8 @@ fun ManageRoom(navController: NavController) {
                             petType = key.third,
                             availableCount = groupedRooms.count { it.room_status == 1 },
                             occupiedCount = groupedRooms.count { it.room_status == 0 },
-                            improvedCount = groupedRooms.count { it.room_status == 3 }
+                            improvedCount = groupedRooms.count { it.room_status == 3 },
+                            image = groupedRooms.firstOrNull()?.image ?: "" ,
                         )
                     }
 
@@ -451,11 +453,22 @@ fun GroupedRoomCard(roomGroup: RoomGroupInfo, onCardClick: (RoomGroupInfo) -> Un
                     .background(Color(0xFFFDE68A), RoundedCornerShape(8.dp))
                     .padding(8.dp)
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.logoapp),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize()
-                )
+                if(roomGroup.image.isNotEmpty()){
+                    Image(
+                        painter = rememberAsyncImagePainter(
+                            model = roomGroup.image.replace("uploads\\","http://10.0.2.2:3000/uploads/")
+                        ),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+                else {
+                    Image(
+                        painter = painterResource(id = R.drawable.logoapp),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.width(16.dp))
@@ -629,11 +642,23 @@ fun RoomCard(room: Room,navController: NavController) {
                     .padding(8.dp)
             ) {
                 // ใช้รูปภาพห้อง (ถ้ามี)
-                Image(
-                    painter = painterResource(id = R.drawable.logoapp), // เปลี่ยนเป็นรูปภาพห้องถ้ามี
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize()
-                )
+                if(room.image != null){
+                    Image(
+                        painter = rememberAsyncImagePainter(
+                            room.image.replace("uploads\\","http://10.0.2.2:3000/uploads/")
+                        ), // เปลี่ยนเป็นรูปภาพห้องถ้ามี
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }else{
+                    Log.e("Room",room.toString())
+                    Image(
+                        painter = painterResource(id = R.drawable.logoapp), // เปลี่ยนเป็นรูปภาพห้องถ้ามี
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+
             }
 
             Spacer(modifier = Modifier.width(16.dp))

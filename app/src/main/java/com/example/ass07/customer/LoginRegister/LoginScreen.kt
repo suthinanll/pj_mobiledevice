@@ -1,5 +1,6 @@
 package com.example.ass07.customer.LoginRegister
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -86,7 +87,11 @@ fun Login(navController : NavHostController) {
             Lifecycle.State.STARTED -> {}
             Lifecycle.State.RESUMED -> {
                 if (sharePreferences.isLoggedIn) {
-                    navController.navigate(Screen.Profile.route)
+                    if (sharePreferences.userRole == "1") {
+                        navController.navigate(ScreenAdmin.Dashboard.route)
+                    } else{
+                        navController.navigate(Screen.Profile.route)
+                    }
                 }
 
                 if (!sharePreferences.email.isNullOrEmpty()) {

@@ -63,6 +63,7 @@ fun RoomEdit(navController: NavHostController, room_id: Int) {
                 if (response.isSuccessful) {
                     room = response.body()
 
+                    Log.e("Error",room.toString())
                     room?.let {
                         // ตั้งค่า roomStatus ให้ตรงกับสถานะห้องที่ได้รับจาก API
                         roomStatus = it.room_status // กำหนดสถานะห้องที่ดึงมาจาก API

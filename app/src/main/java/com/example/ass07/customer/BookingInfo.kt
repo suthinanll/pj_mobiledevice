@@ -1,6 +1,7 @@
 
 import android.app.DatePickerDialog
 import android.content.Context
+import android.os.Parcelable
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -23,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
 import com.example.ass07.R
 import com.example.ass07.admin.Room
 import com.example.ass07.customer.API.PetApi
@@ -37,6 +39,9 @@ import com.example.ass07.customer.Profile.User
 import com.example.ass07.customer.Screen
 import com.example.ass07.customer.convertDateToMonthName
 import com.example.ass07.ui.theme.ASS07Theme
+import com.google.gson.annotations.Expose
+import com.google.gson.annotations.SerializedName
+import kotlinx.parcelize.Parcelize
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -73,6 +78,8 @@ fun BookingScreen(
 
     val userId = preferencesManager.userId ?: 0
     var selectedPet by remember { mutableStateOf("") }
+    var selectedPetId by remember { mutableIntStateOf(0) }
+    var additionalInfo by remember { mutableStateOf("") }
 
     val room = navController.previousBackStackEntry?.savedStateHandle?.get<Room>("room_data")
     val checkin = navController.previousBackStackEntry?.savedStateHandle?.get<String>("checkin")
@@ -113,10 +120,19 @@ fun BookingScreen(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                        contentDescription = "Room Image"
-                    )
+                    if(bookingData?.image != null && bookingData.image.isNotEmpty()){
+                        AsyncImage(
+                            model = bookingData.image,
+                            contentDescription = "Room Image",
+                            modifier = Modifier.size(100.dp)
+                        )
+
+                    }else{
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                            contentDescription = "Room Image"
+                        )
+                    }
                     Spacer(modifier = Modifier.width(8.dp))
                     Column {
                         Text("$days วัน", fontSize = 18.sp, fontWeight = FontWeight.Bold)
@@ -151,7 +167,17 @@ fun BookingScreen(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
-                DropDown(selectedPet = selectedPet, onPetSelected = { selectedPet = it }, userId = userId)
+                DropDown(selectedPet = selectedPet, onPetSelected = { selectedPet = it }
+                    , selectedPetId = selectedPetId, onSelectedPetId = { selectedPetId = it }
+                    , additionalInfo = additionalInfo, onAdditionalInfoChange = { additionalInfo = it }
+                    , userId = userId,pet ?: 0)
+
+                LaunchedEffect(selectedPet) {
+                    Log.e("Data Booking Info",
+                        "check_in : $checkin check_out : $checkout " +
+                                "price : $totalPrice pet_type_id : $pet selected_pet : $selectedPet selected_pet_id :$selectedPetId " +
+                                "addtional_info : $additionalInfo room_id: ${bookingData?.roomId}")
+                }
             }
         }
 
@@ -193,6 +219,14 @@ fun BookingScreen(
                 navController.currentBackStackEntry?.savedStateHandle?.set("checkOut", bookingData?.checkOutDate ?: "")
                 navController.currentBackStackEntry?.savedStateHandle?.set("days", days)
                 navController.currentBackStackEntry?.savedStateHandle?.set("petType", bookingData?.petType ?: "")
+                navController.currentBackStackEntry?.savedStateHandle?.set("image", bookingData?.image ?: "")
+
+                navController.currentBackStackEntry?.savedStateHandle?.set("checkin",checkin)
+                navController.currentBackStackEntry?.savedStateHandle?.set("checkout",checkout)
+                navController.currentBackStackEntry?.savedStateHandle?.set("additional_info",additionalInfo)
+                navController.currentBackStackEntry?.savedStateHandle?.set("pay",totalPrice)
+                navController.currentBackStackEntry?.savedStateHandle?.set("pet_id",selectedPetId)
+                navController.currentBackStackEntry?.savedStateHandle?.set("room_id",bookingData?.roomId?.toIntOrNull() ?: 0)
 
                 navController.currentBackStackEntry?.savedStateHandle?.set("totalPrice", totalPrice)
 
@@ -231,22 +265,31 @@ fun BookingHeader(roomType: String, petType: String, checkIn: String, checkOut: 
     }
 }
 
+@Parcelize
+data class PetMemberData(
+    val id : Int,
+    val name : String,
+    val additionalInfo : String
+) : Parcelable
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DropDown(selectedPet: String, onPetSelected: (String) -> Unit, userId: Int) {
+fun DropDown(selectedPet: String, onPetSelected: (String) -> Unit ,selectedPetId: Int,onSelectedPetId : (Int) -> Unit
+             , additionalInfo: String , onAdditionalInfoChange : (String) -> Unit,userId: Int , petId : Int) {
     val context = LocalContext.current
-    var petList by remember { mutableStateOf(listOf<String>()) }
+    var petList by remember { mutableStateOf<List<PetMemberData>>(emptyList()) }
     var isExpanded by remember { mutableStateOf(false) }
 
     // ดึงข้อมูลสัตว์เลี้ยงจาก API
     LaunchedEffect(userId) {
         val api = PetApi.create()
-        api.mypet(userId).enqueue(object : Callback<List<petMember>> {
+        api.myPetByPetId(userId,petId).enqueue(object : Callback<List<petMember>> {
             override fun onResponse(call: Call<List<petMember>>, response: Response<List<petMember>>) {
                 if (response.isSuccessful) {
                     // แสดงประเภทสัตว์เลี้ยงที่ถูกต้องจากฐานข้อมูล
-                    petList = response.body()?.map { it.petName } ?: listOf("ไม่มีสัตว์เลี้ยง")
+                    petList = response.body()?.map { PetMemberData(it.petID.toIntOrNull() ?: 0, it.petName , it.additionalInfo) }
+                        ?: listOf(PetMemberData(0, "ไม่มีสัตว์เลี้ยง","ไม่มีคำอธิบาย"))
+
                 }
             }
 
@@ -281,9 +324,11 @@ fun DropDown(selectedPet: String, onPetSelected: (String) -> Unit, userId: Int) 
                 onDismissRequest = { isExpanded = false }) {
                 petList.forEach { pet ->
                     DropdownMenuItem(
-                        text = { Text(pet) },
+                        text = { Text(pet.name) },
                         onClick = {
-                            onPetSelected(pet)
+                            onPetSelected(pet.name)
+                            onSelectedPetId(pet.id)
+                            onAdditionalInfoChange(pet.additionalInfo)
                             isExpanded = false
                         }
                     )

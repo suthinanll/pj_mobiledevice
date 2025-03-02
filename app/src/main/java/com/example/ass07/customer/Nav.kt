@@ -23,13 +23,11 @@ import com.example.ass07.admin.RoomEdit
 import com.example.ass07.admin.RoomInsert
 import com.example.ass07.admin.ScreenAdmin
 import com.example.ass07.admin.booking.BookingDetail
-<<<<<<< HEAD
-=======
 import com.example.ass07.admin.PetsAdmin
 import com.example.ass07.admin.RoomEditType2
->>>>>>> 03b69733ab39602669d52a2b071e8a592bd117da
 import com.example.ass07.customer.Home.Home
 import com.example.ass07.customer.Home.Search
+import com.example.ass07.customer.Home.SearchDetail
 import com.example.ass07.customer.LoginRegister.Login
 import com.example.ass07.customer.LoginRegister.Register
 import com.example.ass07.customer.LoginRegister.ScreenLogin
@@ -45,7 +43,7 @@ import java.net.URLDecoder
 fun NavGraph(navController: NavHostController) {
     NavHost(
         navController = navController,
-        startDestination = ScreenAdmin.Dashboard.route
+        startDestination = ScreenLogin.Login.route
     ) {
         composable(route = ScreenLogin.Login.route) {
             Login(navController)
@@ -105,7 +103,7 @@ fun NavGraph(navController: NavHostController) {
         }
 
         composable (route =  ScreenAdmin.Dashboard.route){
-            AdminDashboard()
+            AdminDashboard(navController = navController)
         }
         composable(route = ScreenAdmin.RoomEditType.route) {
             RoomEditType(navController)
@@ -198,5 +196,9 @@ fun NavGraph(navController: NavHostController) {
             PaymentScreen(navController)
         }
 
+
+        composable(Screen.SearchDetail.route) {
+            SearchDetail(navController)
+        }
     }
 }

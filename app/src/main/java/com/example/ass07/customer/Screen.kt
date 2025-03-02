@@ -100,6 +100,12 @@ object RoomDetail : Screen(
         }
     )
 
+    object SearchDetail:Screen(
+        route = "SearchDetail",
+        name = "SearchDetail",
+        icon = { painterResource(R.drawable.user) }
+    )
+
 
 
 }
