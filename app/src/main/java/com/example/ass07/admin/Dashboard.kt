@@ -344,7 +344,7 @@ fun DashboardTab(
                                 color = MaterialTheme.colorScheme.primary
                             )
                             Text(
-                                "จอง",
+                                "จองแล้ว",
                                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.error
                             )
@@ -742,10 +742,10 @@ fun RoomGridItem(
                     onClick = { /* Handle booking */ },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
+                        containerColor = MaterialTheme.colorScheme.onSecondary
                     )
                 ) {
-                    Text("จองเลย")
+                    Text("ว่าง")
                 }
             } else if (room.room_status == 1) { // Booked
                 OutlinedButton(

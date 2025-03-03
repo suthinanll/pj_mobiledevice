@@ -217,6 +217,7 @@ fun RoomInsert(navController: NavHostController) {
                                             "เพิ่มประเภทห้องพักสำเร็จ",
                                             Toast.LENGTH_SHORT
                                         ).show()
+                                        navController.navigate(ScreenAdmin.ManageRoom.route)
                                     } else {
                                         Toast.makeText(
                                             contextForToast,

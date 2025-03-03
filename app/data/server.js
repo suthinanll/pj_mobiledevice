@@ -755,40 +755,40 @@ app.post('/addRoomType', upload.single('image'), function (req, res) {
 
 
 
-app.get('/updateroomtype/:room_type_id', async (req, res) => {
-    const { room_type_id } = req.params;  // Get room_type_id from URL parameters
+app.get('/updateroomtype/:room_type_id', function (req, res) {
+    const room_type_id = req.params.room_type_id;  // Get room_type_id from URL parameters
 
-    try {
-        // Query the database to fetch the room type by room_type_id
-        const [roomResults] = await dbConn.promise().query(
-            'SELECT * FROM room_type WHERE type_id = ? AND deleted_at IS NULL',
-            [room_type_id]
-        );
+    // Query the database to fetch the room type by room_type_id
+    dbConn.query(
+        'SELECT * FROM room_type WHERE type_id = ? AND deleted_at IS NULL',
+        [room_type_id],
+        function (error, roomResults) {
+            // Check if there was an error with the query
+            if (error) {
+                console.error("Error fetching room type:", error);
+                return res.status(500).json({
+                    error: true,
+                    message: 'เกิดข้อผิดพลาดในการดึงข้อมูลห้องพัก',  // "Error fetching room data"
+                    details: error.message
+                });
+            }
 
-        // Check if the room type exists
-        if (roomResults.length === 0) {
-            return res.status(404).json({
-                error: true,
-                message: 'ไม่พบห้องที่ระบุ'  // "Room not found"
-            });
+            // Check if the room type exists
+            if (roomResults.length === 0) {
+                return res.status(404).json({
+                    error: true,
+                    message: 'ไม่พบห้องที่ระบุ'  // "Room not found"
+                });
+            }
+
+            // Room type found, return the first result (room type data)
+            const roomtype = roomResults[0];
+            console.log("Fetched roomtype:", roomtype);  // Log room details for debugging (remove in production)
+
+            // Return the room type data
+            return res.json(roomtype);
         }
-
-        // Room type found, return the first result (room type data)
-        const roomtype = roomResults[0];
-        console.log("Fetched roomtype:", roomtype);  // Log room details for debugging (remove in production)
-
-        // Return the room type data
-        return res.json(roomtype);
-
-    } catch (error) {
-        // Catch any errors and send a 500 Internal Server Error
-        console.error("Error fetching room type:", error);
-        return res.status(500).json({
-            error: true,
-            message: 'เกิดข้อผิดพลาดในการดึงข้อมูลห้องพัก',  // "Error fetching room data"
-            details: error.message
-        });
-    }
+    );
 });
 
 
