@@ -1,5 +1,7 @@
 package com.example.ass07.customer.Home
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -59,10 +61,13 @@ fun Search(
 
     LaunchedEffect(key1 = pet, key2 = checkin, key3 = checkout) {
         fetchAvailableRooms(checkin, checkout, pet) { rooms, error ->
+            Log.d("API Response", "Rooms: $rooms, Error: $error")
+
             if (error.isNullOrEmpty()) {
                 availableRooms = rooms
             } else {
                 errorMessage = error
+                Toast.makeText(contextForToast, "Error: $error", Toast.LENGTH_LONG).show()
             }
             isLoading = false
         }
