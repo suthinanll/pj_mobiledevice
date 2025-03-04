@@ -232,7 +232,7 @@ fun RoomEditForm(roomType: RoomType, room_type_id: Int, navController: NavContro
                             }
                             rememberAsyncImagePainter(
                                 model = ImageRequest.Builder(LocalContext.current)
-                                    .data("$baseUrl${roomType.image}")
+                                    .data("http://10.0.2.2:3000/${roomType.image}")
                                     .crossfade(true)
                                     .build(),
                                 onError = {
