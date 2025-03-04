@@ -797,7 +797,7 @@ app.use(bodyParser.json()); // ใช้สำหรับ解析 JSON body
 
 
 
-app.put('/updateRoomType/:room_type_id', upload.single('image'), async function (req, res) {
+app.put('/updateRoomType/:room_type_id', upload.single('image'), function (req, res) {
     const room_type_id = req.params.room_type_id;
 
     // Check if the image exists in the request
@@ -825,31 +825,32 @@ app.put('/updateRoomType/:room_type_id', upload.single('image'), async function 
     }
 
     // Perform the database update
-    try {
-        const [results] = await dbConn.promise().query(
-            'UPDATE room_type SET name_type = ?, price_per_day = ?, pet_type = ?, image = ? WHERE type_id = ?',
-            [roomType.name_type, roomType.price_per_day, roomType.pet_type, imagePath, room_type_id]
-        );
+    dbConn.query(
+        'UPDATE room_type SET name_type = ?, price_per_day = ?, pet_type = ?, image = ? WHERE type_id = ?',
+        [roomType.name_type, roomType.price_per_day, roomType.pet_type, imagePath, room_type_id],
+        function (error, results) {
+            if (error) {
+                console.error("Error during update:", error);
+                return res.status(500).send({
+                    error: true,
+                    message: "เกิดข้อผิดพลาดในการอัปเดตประเภทห้องพัก",
+                    details: error.message
+                });
+            }
 
-        if (results.affectedRows === 0) {
-            return res.status(404).send({
-                error: true,
-                message: "ไม่พบประเภทห้องที่ต้องการอัปเดต"
+            if (results.affectedRows === 0) {
+                return res.status(404).send({
+                    error: true,
+                    message: "ไม่พบประเภทห้องที่ต้องการอัปเดต"
+                });
+            }
+
+            res.status(200).send({
+                error: false,
+                message: "อัปเดตประเภทห้องพักสำเร็จ"
             });
         }
-
-        res.status(200).send({
-            error: false,
-            message: "อัปเดตประเภทห้องพักสำเร็จ"
-        });
-    } catch (error) {
-        console.error("Error during update:", error);
-        res.status(500).send({
-            error: true,
-            message: "เกิดข้อผิดพลาดในการอัปเดตประเภทห้องพัก",
-            details: error.message
-        });
-    }
+    );
 });
 
 

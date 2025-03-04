@@ -70,9 +70,12 @@ dependencies {
     implementation(libs.androidx.junit.ktx)
     implementation(libs.androidx.ui.test.android)
     implementation(libs.androidx.benchmark.traceprocessor.android)
+    implementation(libs.androidx.foundation.android)
     testImplementation(libs.junit)
     implementation("io.coil-kt:coil-compose:2.0.0")
     androidTestImplementation(libs.junit.junit) // ใช้แสดงรูปภาพจาก URL หรือไฟล์
+    implementation("androidx.compose.foundation:foundation:1.5.0")
+    implementation ("androidx.compose.ui:ui:1.5.0")
 
 
 }
