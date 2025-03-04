@@ -48,6 +48,7 @@ import kotlinx.coroutines.withContext
 import com.example.ass07.admin.booking.BookingAPI
 import com.example.ass07.admin.booking.Booking
 import com.example.ass07.admin.PetApi
+import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -60,15 +61,13 @@ import java.time.temporal.ChronoUnit
 @Composable
 fun AdminDashboard(
     onNavigateToBookingDetails: (Int) -> Unit = {},
-    onNavigateToRooms: () -> Unit = {},
-    onNavigateToPets: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val roomAPI = remember { RoomAPI.create() }
     val bookingAPI = remember { BookingAPI.create() }
-    val petAPI = remember { PetApi.create() } // เพิ่ม PetAPI
-
+    val petAPI = remember { PetApi.create() }
+    var totalRooms by remember { mutableStateOf(0) }
     var isLoading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
 
@@ -87,6 +86,21 @@ fun AdminDashboard(
 
     // Selected tab
     var selectedTab by remember { mutableStateOf(0) }
+
+    // ฟังก์ชันสำหรับแปลงวันที่จาก ISO 8601 เป็น LocalDate
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    fun parseDate(dateString: String): LocalDate? {
+        return try {
+            // แปลงวันที่จากรูปแบบ ISO 8601 ไปเป็น ZonedDateTime ก่อน
+            val instant = Instant.parse(dateString)
+            // แปลงจาก Instant เป็น LocalDate โดยใช้ timezone ของระบบ
+            // API Level 26+ compatible
+            instant.atZone(ZoneId.systemDefault()).toLocalDate()
+        } catch (e: Exception) {
+            Log.e("DateParsing", "ไม่สามารถแปลงวันที่: $dateString - ${e.message}")
+            null
+        }
+    }
 
     LaunchedEffect(Unit) {
         try {
@@ -112,6 +126,7 @@ fun AdminDashboard(
                         val roomsList = roomResponse.body()
                         if (roomsList != null) {
                             rooms = roomsList
+                            totalRooms = rooms.size
                             availableRooms = rooms.count { it.room_status == 0 }
 
                             roomStatistics = rooms
@@ -142,29 +157,42 @@ fun AdminDashboard(
                                 Log.d("BookingDebug", "Booking #$index - checkIn: '${booking.checkIn}', checkOut: '${booking.checkOut}'")
                             }
                         }
+
                         if (bookingsList != null) {
                             bookings = bookingsList
-
-
 
                             val today = LocalDate.now()
 
                             activeBookings = bookings.count { it.status == 1 }
 
+                            // คำนวณ pendingCheckouts (จะออกเร็วๆนี้)
                             pendingCheckouts = bookings.count { booking ->
-                                val checkoutDate = parseDate(booking.checkOut)
-                                if (checkoutDate != null) {
-                                    val daysUntilCheckout = ChronoUnit.DAYS.between(today, checkoutDate)
-                                    booking.status == 1 && daysUntilCheckout in 0..2
-                                } else {
+                                try {
+                                    val checkoutDate = parseDate(booking.checkOut)
+                                    if (checkoutDate != null) {
+                                        val daysUntilCheckout = ChronoUnit.DAYS.between(today, checkoutDate)
+                                        // Consider active bookings with checkout in next 2 days
+                                        booking.status == 1 && daysUntilCheckout in 0..2
+                                    } else {
+                                        false
+                                    }
+                                } catch (e: Exception) {
+                                    Log.e("CheckoutDebug", "Error calculating: ${e.message}")
                                     false
                                 }
                             }
 
+                            // คำนวณ todayCheckIns (เช็คอินวันนี้)
                             todayCheckIns = bookings.count { booking ->
-                                val checkinDate = parseDate(booking.checkIn)
-                                booking.status == 0 && checkinDate?.isEqual(today) == true
+                                try {
+                                    val checkinDate = parseDate(booking.checkIn)
+                                    checkinDate?.isEqual(today) == true && booking.status == 1
+                                } catch (e: Exception) {
+                                    false
+                                }
                             }
+
+
 
                             recentBookings = bookings
                                 .sortedByDescending { it.createdAt }
@@ -196,6 +224,7 @@ fun AdminDashboard(
             }
         }
     }
+
     // UI Components
     Scaffold { paddingValues ->
         if (isLoading) {
@@ -220,15 +249,14 @@ fun AdminDashboard(
                     todayCheckIns = todayCheckIns,
                     roomStatistics = roomStatistics,
                     recentBookings = recentBookings,
-                    onBookingClick = onNavigateToBookingDetails
+                    onBookingClick = onNavigateToBookingDetails,
+                    totalRooms = totalRooms
                 )
                 1 -> BookingsTab(
                     paddingValues = paddingValues,
                     bookings = bookings,
                     onBookingClick = onNavigateToBookingDetails
                 )
-
-
             }
         }
     }
@@ -240,6 +268,7 @@ fun DashboardTab(
     paddingValues: PaddingValues,
     totalPets: Int,
     availableRooms: Int,
+    totalRooms: Int,
     activeBookings: Int,
     pendingCheckouts: Int,
     todayCheckIns: Int,
@@ -263,6 +292,7 @@ fun DashboardTab(
             ) {
                 StatCard(
                     modifier = Modifier.weight(1f),
+                    Horizontal = Alignment.Center,
                     painterResource(id = R.drawable.animals),
                     title = "สัตว์เลี้ยงทั้งหมด",
                     value = "$totalPets ตัว",
@@ -270,14 +300,22 @@ fun DashboardTab(
                 )
                 StatCard(
                     modifier = Modifier.weight(1f),
+                    Horizontal = Alignment.Center,
                     painterResource(id = R.drawable.open_door),
                     title = "ห้องว่าง",
                     value = "$availableRooms ห้อง",
                     color = MaterialTheme.colorScheme.secondaryContainer
                 )
+                StatCard(
+                    modifier = Modifier.weight(1f),
+                    Horizontal = Alignment.Center,
+                    painterResource(id = R.drawable.open_door),
+                    title = "ห้องทั้งหมด",
+                    value = "$totalRooms ห้อง",
+                    color = MaterialTheme.colorScheme.secondaryContainer
+                )
             }
         }
-
         // Booking Stats
         item {
             Row(
@@ -331,7 +369,7 @@ fun DashboardTab(
                                 color = MaterialTheme.colorScheme.primary
                             )
                             Text(
-                                "จอง",
+                                "ไม่ว่าง",
                                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.error
                             )
@@ -358,34 +396,7 @@ fun DashboardTab(
             }
         }
 
-        // Recent bookings
-        item {
-            DashboardCard(
-                title = "การจองล่าสุด",
-                icon = Icons.Default.DateRange
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    if (recentBookings.isEmpty()) {
-                        Text(
-                            "ไม่มีการจองล่าสุด",
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 16.dp),
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    } else {
-                        recentBookings.forEach { booking ->
-                            RecentBookingItem(
-                                booking = booking,
-                                onClick = { onBookingClick(booking.bookingId) }
-                            )
-                        }
-                    }
-                }
-            }
-        }
+
     }
 }
 @Composable
@@ -406,7 +417,7 @@ fun BookingsTab(
             val statusMatches = when (selectedStatusFilter) {
                 "รอเช็คอิน" -> booking.status == 0
                 "เข้าพักอยู่" -> booking.status == 1
-                "สำเร็จ" -> booking.status == 2
+                "เช็คเอาท์แล้ว" -> booking.status == 2
                 "ยกเลิก" -> booking.status == 3
                 else -> true // "ทั้งหมด"
             }
@@ -419,28 +430,6 @@ fun BookingsTab(
 
             statusMatches && queryMatches
         }
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingValues)
-            .padding(16.dp)
-    ) {
-        // Search bar
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = { searchQuery = it },
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("ค้นหาชื่อ, สัตว์เลี้ยง หรือเบอร์โทร") },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = "ค้นหา") },
-            singleLine = true,
-            shape = RoundedCornerShape(12.dp)
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-
     }
 }
 
@@ -491,6 +480,7 @@ fun ErrorDisplay(
 @Composable
 fun StatCard(
     modifier: Modifier = Modifier,
+    Horizontal : Alignment,
     painter: Painter,
     title: String,
     value: String,
@@ -749,28 +739,16 @@ fun RecentBookingItem(
     }
 }
 @RequiresApi(Build.VERSION_CODES.O)
+// ฟังก์ชันสำหรับแปลงวันที่จาก ISO 8601 เป็น LocalDate
 private fun parseDate(dateString: String): LocalDate? {
-    // ดีบักวันที่ที่ได้รับจาก API
-    Log.d("DateDebug", "Trying to parse date: '$dateString'")
-
     return try {
-        if (dateString.contains("T") && dateString.contains("Z")) {
-            // ISO 8601 format: 2023-10-18T08:00:00.000Z
-            Log.d("DateDebug", "Parsing as ISO 8601 format")
-            val instant = Instant.parse(dateString)
-            instant.atZone(ZoneId.systemDefault()).toLocalDate()
-        } else if (dateString.contains(" ")) {
-            // Database format: 2025-02-12 15:44:18
-            Log.d("DateDebug", "Parsing as database format")
-            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-            LocalDateTime.parse(dateString, formatter).toLocalDate()
-        } else {
-            // Simple date: 2023-10-18
-            Log.d("DateDebug", "Parsing as simple date")
-            LocalDate.parse(dateString)
-        }
+        // แปลงวันที่จากรูปแบบ ISO 8601 ไปเป็น ZonedDateTime ก่อน
+        val instant = Instant.parse(dateString)
+        // แปลงจาก Instant เป็น LocalDate โดยใช้ timezone ของระบบ
+        // API Level 26+ compatible
+        instant.atZone(ZoneId.systemDefault()).toLocalDate()
     } catch (e: Exception) {
-        Log.e("DateParsing", "Failed to parse date: $dateString", e)
+        Log.e("DateParsing", "ไม่สามารถแปลงวันที่: $dateString - ${e.message}")
         null
     }
 }
