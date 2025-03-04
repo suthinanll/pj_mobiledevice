@@ -612,17 +612,19 @@ app.post('/addroom' , async (req, res) => {
     // }
 });
 
-app.post('/softDeleteRoom', function (req, res) {
-    const { room_id, deleted_at } = req.body;
 
-    if (!room_id || !deleted_at) {
-        console.error("Missing parameters:", { room_id, deleted_at });
-        return res.status(400).send({ message: "Missing required parameters" });
+app.post('/softDeleteRoom', function (req, res) {
+    const { room_id } = req.body; // กำหนดรับแค่ room_id เท่านั้น, `deleted_at` ใช้ `NOW()` ใน SQL
+
+    // ตรวจสอบว่า `room_id` ถูกส่งมาหรือไม่
+    if (!room_id) {
+        console.error("Missing room_id:", { room_id });
+        return res.status(400).send({ message: "Missing required room_id" });
     }
 
-    const query = `UPDATE rooms SET deleted_at = ? WHERE room_id = ?`;
+    const query = `UPDATE rooms SET deleted_at = NOW() WHERE room_id = ?`;
 
-    dbConn.query(query, [deleted_at, room_id], function (error, results) {
+    dbConn.query(query, [room_id], function (error, results) {
         if (error) {
             console.error("Database error:", error);
             return res.status(500).send({ error: true, message: "Database update failed", details: error });
@@ -630,9 +632,11 @@ app.post('/softDeleteRoom', function (req, res) {
         if (results.affectedRows === 0) {
             return res.status(404).send({ message: "Room ID not found" });
         }
-        return res.send({ message: "Soft delete successful" });
+        return res.send({ message: "Soft delete successful for room" });
     });
 });
+
+
 
 
 app.get('/getRoomTypes', function (req, res) {
@@ -877,6 +881,7 @@ app.post('/softDeleteRoomType', function (req, res) {
         return res.send({ message: "Soft delete successful for room type" });
     });
 });
+
 
 
 app.get('/updateroom/:room_id', async (req, res) => {
