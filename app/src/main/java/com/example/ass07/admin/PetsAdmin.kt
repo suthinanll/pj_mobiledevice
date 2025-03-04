@@ -219,26 +219,6 @@ fun PetsAdmin(navController: NavHostController){
 
         }
     }
-
-
-
-//
-////        Image(
-////            painter = painterResource(id = R.drawable.img_8229),
-////            contentDescription = "me",
-////            modifier = Modifier.size(300.dp)
-////        )
-//
-//        Text(
-//            text = "Pets",
-//            fontSize = 25.sp,
-//            fontWeight = FontWeight.Bold,
-//            textAlign = TextAlign.Center,
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(16.dp)
-//        )
-//    }
 }
 
 
@@ -269,18 +249,19 @@ fun PetCard2(pet: petMember, onDelete: () -> Unit, navController: NavHostControl
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 Button(
+                    modifier = Modifier.fillMaxWidth(),
                     onClick = { },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD966))
                 ) {
-                    Text("แก้ไข", color = Color.Black)
+                    Text("รายละเอียด", color = Color.Black)
                 }
 
-                Button(
-                    onClick = onDelete,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xD7EE2C2C))
-                ) {
-                    Text("ลบ", color = Color.White)
-                }
+//                Button(
+//                    onClick = onDelete,
+//                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xD7EE2C2C))
+//                ) {
+//                    Text("ลบ", color = Color.White)
+//                }
             }
         }
     }
@@ -297,12 +278,6 @@ fun PetTypeDropdownMenu(
     Box(
         modifier = Modifier.fillMaxWidth()
     ) {
-//        Button(
-//            onClick = { expanded = true },
-//            modifier = Modifier.fillMaxWidth()
-//        ) {
-//            Text(text = selectedPetType?.Pet_name_type ?: "เลือกประเภทสัตว์เลี้ยง")
-//        }
         Row(
             modifier = Modifier
                 .fillMaxWidth()

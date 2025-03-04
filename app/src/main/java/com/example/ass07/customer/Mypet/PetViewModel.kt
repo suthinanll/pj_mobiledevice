@@ -13,6 +13,9 @@ class PetViewModel : ViewModel() {
     private val _pet = MutableLiveData<petMember?>()
     val pet: LiveData<petMember?> = _pet
 
+    private val _petTypes = MutableLiveData<List<PetType>>()
+    val petTypes: LiveData<List<PetType>> = _petTypes
+
     fun loadPet(petId: Int) {
         val createClient = PetApi.create()
         createClient.getPet(petId).enqueue(object : Callback<petMember> {

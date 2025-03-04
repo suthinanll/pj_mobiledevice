@@ -26,7 +26,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.ass07.customer.Mypet.PetType
-import com.example.ass07.customer.Mypet.PetTypeDropdown
 import com.example.ass07.customer.Mypet.petMember
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -64,6 +63,7 @@ fun RoomEdit(navController: NavHostController, room_id: Int) {
                 if (response.isSuccessful) {
                     room = response.body()
 
+                    Log.e("Error",room.toString())
                     room?.let {
                         // ตั้งค่า roomStatus ให้ตรงกับสถานะห้องที่ได้รับจาก API
                         roomStatus = it.room_status // กำหนดสถานะห้องที่ดึงมาจาก API

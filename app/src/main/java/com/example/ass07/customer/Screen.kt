@@ -7,12 +7,26 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import com.example.ass07.R
+import com.example.ass07.customer.LoginRegister.ScreenLogin
 
 sealed class Screen(val route: String, val name: String, val icon: (@Composable () -> Painter)) {
     object Home : Screen(route = "Home", name = "Home", icon = { painterResource(id = R.drawable.home) })
     object History : Screen(route = "History", name = "History", icon = { painterResource(id = R.drawable.history) })
     object MyPet : Screen(route = "MyPet", name = "MyPet", icon = { painterResource(id = R.drawable.mypet) })
     object Profile : Screen(route = "Profile", name = "Profile", icon = { painterResource(id = R.drawable.user) })
+
+
+    object BookingInfo : Screen(route = "BookingInfo", name = "BookingInfo", icon = { painterResource(id = R.drawable.user) })
+    object Payment : Screen(route = "payment_screen/{checkIn}/{checkOut}/{totalPrice}", name = "Payment", icon = { painterResource(id = R.drawable.user) })
+//    object RoomDetail : Screen(route = "RoomDetail", name = "Roomdetail", icon = { painterResource(id = R.drawable.user) })
+object RoomDetail : Screen(
+    route = "RoomDetail/{encodedRoomType}/{checkin}/{checkout}/{pet}/{pricePerDay}/{roomId}",
+    name = "RoomDetail",
+    icon = { painterResource(id = R.drawable.user) }
+)
+
+
+
 
     object Search : Screen(route = "Search", name="Search",icon = {
         remember {
@@ -85,6 +99,13 @@ sealed class Screen(val route: String, val name: String, val icon: (@Composable 
             }
         }
     )
+
+    object SearchDetail:Screen(
+        route = "SearchDetail",
+        name = "SearchDetail",
+        icon = { painterResource(R.drawable.user) }
+    )
+
 
 
 }

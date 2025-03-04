@@ -14,6 +14,7 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface projectApi {
     @FormUrlEncoded
@@ -46,6 +47,9 @@ interface projectApi {
         @Path("id") userId: Int,
         @Body request: UpdateProfileRequest
     ): Call<UpdateProfileResponse>
+
+
+
 
 
     companion object{

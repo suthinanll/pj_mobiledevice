@@ -1,10 +1,13 @@
 package com.example.ass07.customer
 
 
+import BookingScreen
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -24,6 +27,7 @@ import com.example.ass07.admin.PetsAdmin
 import com.example.ass07.admin.RoomEditType2
 import com.example.ass07.customer.Home.Home
 import com.example.ass07.customer.Home.Search
+import com.example.ass07.customer.Home.SearchDetail
 import com.example.ass07.customer.LoginRegister.Login
 import com.example.ass07.customer.LoginRegister.Register
 import com.example.ass07.customer.LoginRegister.ScreenLogin
@@ -33,6 +37,7 @@ import com.example.ass07.customer.Mypet.Mypetinsert
 import com.example.ass07.customer.Mypet.PetViewModel
 import com.example.ass07.customer.Profile.EditProfile
 import com.example.ass07.customer.Profile.Profile
+import java.net.URLDecoder
 
 @Composable
 fun NavGraph(navController: NavHostController) {
@@ -63,7 +68,11 @@ fun NavGraph(navController: NavHostController) {
            Mypetinsert(navController)
         }
 
-        composable(route = Screen.Mypetedit.route + "/{petId}") { backStackEntry ->
+
+
+
+
+            composable(route = Screen.Mypetedit.route + "/{petId}") { backStackEntry ->
             val petId = backStackEntry.arguments?.getString("petId")?.toIntOrNull()
             val petViewModel: PetViewModel = viewModel()
             val pet by petViewModel.pet.observeAsState()
@@ -94,7 +103,7 @@ fun NavGraph(navController: NavHostController) {
         }
 
         composable (route =  ScreenAdmin.Dashboard.route){
-            AdminDashboard()
+            AdminDashboard(navController = navController)
         }
         composable(route = ScreenAdmin.RoomEditType.route) {
             RoomEditType(navController)
@@ -140,8 +149,56 @@ fun NavGraph(navController: NavHostController) {
             val pet = backStackEntry.arguments?.getString("pet")?.toIntOrNull() ?: 0
             val checkin = backStackEntry.arguments?.getString("checkin") ?: ""
             val checkout = backStackEntry.arguments?.getString("checkout") ?: ""
-
             Search(navController, pet, checkin, checkout)
         }
+
+//        composable(route = Screen.Search.route) {
+//            Search(navController)
+//        }
+
+        composable(route = "BookingInfo") {
+//            val roomId = 1
+//            val days = 2
+//            val petType = ""
+//            val roomType = ""
+//            val checkIn = ""
+//            val checkOut = ""
+            BookingScreen(navController )
+        }
+//        composable(
+//            route = "payment_screen/{checkIn}/{checkOut}/{totalPrice}",
+//        ) { backStackEntry ->
+//            val checkIn = backStackEntry.arguments?.getString("checkIn") ?: "N/A"
+//            val checkOut = backStackEntry.arguments?.getString("checkOut") ?: "N/A"
+//            val totalPrice = backStackEntry.arguments?.getDouble("totalPrice") ?: 0.0 // แปลงเป็น Double
+//
+//            // ส่งข้อมูลไปยัง PaymentScreen
+//            PaymentScreen(navController, checkIn, checkOut, totalPrice)
+//        }
+
+
+//        composable(route = Screen.RoomDetail.route) {
+//            HotelBookingScreen(navController)
+//        }
+
+        composable(
+            route = "RoomDetail",
+        ) {
+
+            HotelBookingScreen(
+                navController = navController
+            )
+        }
+
+        composable(
+            route = "payment_screen",
+        ) { backStackEntry ->
+            PaymentScreen(navController)
+        }
+
+
+        composable(Screen.SearchDetail.route) {
+            SearchDetail(navController)
         }
     }
+}

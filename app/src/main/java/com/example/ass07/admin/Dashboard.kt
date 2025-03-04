@@ -41,6 +41,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 
 import com.example.ass07.R
 import kotlinx.coroutines.Dispatchers
@@ -48,6 +49,13 @@ import kotlinx.coroutines.withContext
 import com.example.ass07.admin.booking.BookingAPI
 import com.example.ass07.admin.booking.Booking
 import com.example.ass07.admin.PetApi
+import com.example.ass07.customer.LoginRegister.LoginClass
+import com.example.ass07.customer.LoginRegister.ScreenLogin
+import com.example.ass07.customer.LoginRegister.SharePreferencesManager
+import com.example.ass07.customer.Screen
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -58,7 +66,8 @@ import java.time.temporal.ChronoUnit
 fun AdminDashboard(
     onNavigateToBookingDetails: (Int) -> Unit = {},
     onNavigateToRooms: () -> Unit = {},
-    onNavigateToPets: () -> Unit = {}
+    onNavigateToPets: () -> Unit = {},
+    navController : NavHostController
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -210,12 +219,17 @@ fun AdminDashboard(
                     todayCheckIns = todayCheckIns,
                     roomStatistics = roomStatistics,
                     recentBookings = recentBookings,
-                    onBookingClick = onNavigateToBookingDetails
+                    onBookingClick = {
+                        selectedTab = 1
+                    },
+                    navController = navController
                 )
                 1 -> BookingsTab(
                     paddingValues = paddingValues,
                     bookings = bookings,
-                    onBookingClick = onNavigateToBookingDetails
+                    onBookingClick = {
+                        selectedTab = 2
+                    }
                 )
                 2 -> RoomsTab(
                     paddingValues = paddingValues,
@@ -238,8 +252,14 @@ fun DashboardTab(
     todayCheckIns: Int,
     roomStatistics: List<RoomStatistic>,
     recentBookings: List<Booking>,
-    onBookingClick: (Int) -> Unit
+    onBookingClick: (Int) -> Unit,
+    navController: NavHostController
 ) {
+    val context = LocalContext.current
+    val sharePreferences = remember { SharePreferencesManager(context) }
+
+    var logoutAlert by remember { mutableStateOf(false) }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -324,7 +344,7 @@ fun DashboardTab(
                                 color = MaterialTheme.colorScheme.primary
                             )
                             Text(
-                                "จอง",
+                                "จองแล้ว",
                                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.error
                             )
@@ -377,9 +397,52 @@ fun DashboardTab(
                             )
                         }
                     }
+                    Button(
+                        onClick = {
+                            logoutAlert = true
+                        },
+                        modifier = Modifier.fillMaxWidth().padding(20.dp)
+                    ) {
+                        Text("Logout")
+                    }
                 }
             }
         }
+
+
+    }
+
+    if(logoutAlert){
+        AlertDialog(
+            onDismissRequest = {logoutAlert = false},
+            title = {
+                Text("ออกจากระบบ")
+            },
+            text = {
+                Text("คุณต้องการออกจากระบบหรือไม่?")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        sharePreferences.clearUserAll()
+                        navController.navigate(ScreenLogin.Login.route)
+                    }
+
+                ) {
+                    Text("ตกลง")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        logoutAlert = false
+                    }
+
+                ) {
+                    Text("ยกเลิก")
+                }
+            }
+        )
     }
 }
 @Composable
@@ -607,7 +670,7 @@ fun RoomGridItem(
 
     val statusText = when (room.room_status) {
         0 -> "ว่าง"
-        1 -> "จอง"
+        1 -> "ไมว่าง"
         2 -> "ทำความสะอาด"
         else -> "ไม่ทราบสถานะ"
     }
@@ -679,10 +742,10 @@ fun RoomGridItem(
                     onClick = { /* Handle booking */ },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
+                        containerColor = MaterialTheme.colorScheme.onSecondary
                     )
                 ) {
-                    Text("จองเลย")
+                    Text("ว่าง")
                 }
             } else if (room.room_status == 1) { // Booked
                 OutlinedButton(
@@ -930,7 +993,7 @@ fun RecentBookingItem(
     val statusColor = when (booking.status) {
         0 -> Color(0xFF3F51B5) // รอเช็คอิน
         1 -> Color(0xFF4CAF50) // เข้าพักอยู่
-        2 -> Color(0xFF9E9E9E) // สำเร็จ
+        2 -> Color(0xFF9E9E9E) //เช็คเอาท์
         3 -> Color(0xFFF44336) // ยกเลิก
         else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
@@ -938,7 +1001,7 @@ fun RecentBookingItem(
     val statusText = when (booking.status) {
         0 -> "รอเช็คอิน"
         1 -> "เข้าพักอยู่"
-        2 -> "สำเร็จ"
+        2 -> "เช็คเอาท์"
         3 -> "ยกเลิก"
         else -> "ไม่ทราบสถานะ"
     }

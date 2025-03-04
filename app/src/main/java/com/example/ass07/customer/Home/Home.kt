@@ -29,6 +29,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -72,6 +73,17 @@ fun Home(navController: NavHostController) {
 
     // เพิ่มตัวแปรเก็บข้อความแจ้งเตือน
     var errorMessage by remember { mutableStateOf("") }
+//    var selectedRoomType by remember { mutableStateOf("Standard") }
+//    var totalPrice by remember { mutableStateOf(0.0) }
+
+// คำนวณราคาทุกครั้งที่มีการเปลี่ยนแปลง
+//    LaunchedEffect(selectedRoomType, checkInDate, checkOutDate) {
+//        totalPrice = calculateRoomPrice(selectedRoomType, checkInDate, checkOutDate)
+//    }
+
+
+
+
 
     Column(
         modifier = Modifier
@@ -193,6 +205,7 @@ fun Home(navController: NavHostController) {
                         fontWeight = FontWeight.Bold
                     )
                 }
+
             }
         }
     }
@@ -332,5 +345,29 @@ fun isCheckoutAfterCheckin(checkinStr: String, checkoutStr: String): Boolean {
         return !checkoutDate.before(checkinDate)
     } catch (e: Exception) {
         return false
+    }
+}
+
+
+
+
+fun calculateRoomPrice(roomType: String, checkinStr: String, checkoutStr: String): Double {
+    val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+    return try {
+        val checkinDate: Date = dateFormat.parse(checkinStr) ?: return 0.0
+        val checkoutDate: Date = dateFormat.parse(checkoutStr) ?: return 0.0
+
+        val nights = ((checkoutDate.time - checkinDate.time) / (1000 * 60 * 60 * 24)).toInt()
+        if (nights <= 0) return 0.0
+
+        val pricePerNight = when (roomType) {
+            "Standard" -> 350.0
+            "Deluxe" -> 550.0
+            "VIP" -> 750.0
+            else -> 0.0
+        }
+        nights * pricePerNight
+    } catch (e: Exception) {
+        0.0
     }
 }

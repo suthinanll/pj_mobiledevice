@@ -63,6 +63,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import coil.compose.rememberAsyncImagePainter
 import com.example.ass07.R
 import com.example.ass07.admin.Room
 import com.example.ass07.admin.RoomAPI
@@ -72,15 +73,9 @@ import com.example.ass07.admin.ScreenAdmin
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import com.example.ass07.admin.RoomStatus.RoomSort
 import com.example.ass07.admin.RoomStatus.RoomFilter
 
-enum class RoomSort {
-    PRICE_LOW_TO_HIGH,
-    PRICE_HIGH_TO_LOW,
-    NAME_A_TO_Z,
-    NAME_Z_TO_A
-}
+
 
 
 @Composable
@@ -96,7 +91,6 @@ fun ManageRoom(navController: NavController) {
     var filterDialogOpen by remember { mutableStateOf(false) }
     var sortDialogOpen by remember { mutableStateOf(false) }
     var selectedFilter by remember { mutableStateOf(RoomFilter.ALL) }
-    var selectedSort by remember { mutableStateOf<RoomSort?>(null) }
     var rooms by remember { mutableStateOf<List<Room>>(emptyList()) }
     var roomType by remember { mutableStateOf<List<RoomType>>(emptyList()) }
     var filteredRooms by remember { mutableStateOf<List<Room>>(emptyList()) }
@@ -137,7 +131,7 @@ fun ManageRoom(navController: NavController) {
     val uniquePetTypes = rooms.map { it.pet_type }.distinct()
 
     // แก้ไขฟังก์ชัน filterAndSortRooms
-    fun filterAndSortRooms() {
+    fun FilterRooms() {
         var result = rooms
 
         // กรองตามสถานะ
@@ -154,21 +148,14 @@ fun ManageRoom(navController: NavController) {
         }
 
 
-        // เรียงลำดับ
-        result = when (selectedSort) {
-            RoomSort.PRICE_LOW_TO_HIGH -> result.sortedBy { it.price_per_day }
-            RoomSort.PRICE_HIGH_TO_LOW -> result.sortedByDescending { it.price_per_day }
-            RoomSort.NAME_A_TO_Z -> result.sortedBy { it.room_type }
-            RoomSort.NAME_Z_TO_A -> result.sortedByDescending { it.room_type }
-            null -> result
-        }
+
 
         filteredRooms = result
     }
 
     // อัพเดทรายการห้องเมื่อมีการเปลี่ยนแปลง filter หรือ sort
-    LaunchedEffect(selectedFilter, selectedSort, rooms) {
-        filterAndSortRooms()
+    LaunchedEffect(selectedFilter, rooms) {
+        FilterRooms()
     }
 
     Column(
@@ -207,28 +194,6 @@ fun ManageRoom(navController: NavController) {
             }
 
             Spacer(modifier = Modifier.width(8.dp))
-
-            Button(
-                onClick = { /* Handle sort */ },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,
-                    contentColor = Color(0xFF6B7280)
-                ),
-                border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.logoapp),
-                        contentDescription = "Sort",
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Text("Sort")
-                }
-            }
         }
 
         // Room List
@@ -271,7 +236,8 @@ fun ManageRoom(navController: NavController) {
                             petType = key.third,
                             availableCount = groupedRooms.count { it.room_status == 1 },
                             occupiedCount = groupedRooms.count { it.room_status == 0 },
-                            improvedCount = groupedRooms.count { it.room_status == 3 }
+                            improvedCount = groupedRooms.count { it.room_status == 3 },
+                            image = groupedRooms.firstOrNull()?.image ?: "" ,
                         )
                     }
 
@@ -463,46 +429,7 @@ fun ManageRoom(navController: NavController) {
             }
         )
     }
-    // Sort Dialog
-    if (sortDialogOpen) {
-        AlertDialog(
-            onDismissRequest = { sortDialogOpen = false },
-            title = { Text("เรียงลำดับ") },
-            text = {
-                Column {
-                    FilterOption("ราคาน้อยไปมาก") {
-                        selectedSort = RoomSort.PRICE_LOW_TO_HIGH
-                        sortDialogOpen = false
-                    }
-                    FilterOption("ราคามากไปน้อย") {
-                        selectedSort = RoomSort.PRICE_HIGH_TO_LOW
-                        sortDialogOpen = false
-                    }
-                    FilterOption("ชื่อ A-Z") {
-                        selectedSort = RoomSort.NAME_A_TO_Z
-                        sortDialogOpen = false
-                    }
-                    FilterOption("ชื่อ Z-A") {
-                        selectedSort = RoomSort.NAME_Z_TO_A
-                        sortDialogOpen = false
-                    }
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = { sortDialogOpen = false },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFBBF24))
-                ) {
-                    Text("ตกลง")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { sortDialogOpen = false }) {
-                    Text("ยกเลิก")
-                }
-            }
-        )
-    }
+
 }
 
 
@@ -526,11 +453,22 @@ fun GroupedRoomCard(roomGroup: RoomGroupInfo, onCardClick: (RoomGroupInfo) -> Un
                     .background(Color(0xFFFDE68A), RoundedCornerShape(8.dp))
                     .padding(8.dp)
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.logoapp),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize()
-                )
+                if(roomGroup.image.isNotEmpty()){
+                    Image(
+                        painter = rememberAsyncImagePainter(
+                            model = roomGroup.image.replace("uploads\\","http://10.0.2.2:3000/uploads/")
+                        ),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+                else {
+                    Image(
+                        painter = painterResource(id = R.drawable.logoapp),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.width(16.dp))
@@ -704,11 +642,23 @@ fun RoomCard(room: Room,navController: NavController) {
                     .padding(8.dp)
             ) {
                 // ใช้รูปภาพห้อง (ถ้ามี)
-                Image(
-                    painter = painterResource(id = R.drawable.logoapp), // เปลี่ยนเป็นรูปภาพห้องถ้ามี
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize()
-                )
+                if(room.image != null){
+                    Image(
+                        painter = rememberAsyncImagePainter(
+                            room.image.replace("uploads\\","http://10.0.2.2:3000/uploads/")
+                        ), // เปลี่ยนเป็นรูปภาพห้องถ้ามี
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }else{
+                    Log.e("Room",room.toString())
+                    Image(
+                        painter = painterResource(id = R.drawable.logoapp), // เปลี่ยนเป็นรูปภาพห้องถ้ามี
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+
             }
 
             Spacer(modifier = Modifier.width(16.dp))
