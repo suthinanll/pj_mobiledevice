@@ -234,7 +234,7 @@ fun BookingDetail(bookingId: Int) {
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "สรุปค่าใช้จ่าย",
+                                    text = "ข้อมูลการชำระเงิน",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = primaryColor
@@ -243,6 +243,12 @@ fun BookingDetail(bookingId: Int) {
 
                             Spacer(modifier = Modifier.height(4.dp))
 
+                            ExpenseItem(
+                                title = "วิธีการชำระเงิน",
+                                amount = "${bookingData.methodName}"
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
                             ExpenseItem(
                                 title = "ค่าห้องพัก (${bookingData.pricePerDay} บาท/วัน)",
                                 subtitle = "[ก่อนขยายเวลา]",
@@ -374,7 +380,7 @@ fun BookingDetail(bookingId: Int) {
                                     // แสดงข้อมูลที่อัพเดตสำเร็จ
                                     Toast.makeText(
                                         context,
-                                        "ขยายเวลาเข้าพักสำเร็จ (${days} วัน, ${cost} บาท)",
+                                        "ขยายเวลาเข้าพักสำเร็จ (${days-1} วัน, ${cost} บาท)",
                                         Toast.LENGTH_SHORT
                                     ).show()
                                     refreshTrigger = !refreshTrigger  // รีเฟรชข้อมูล
@@ -623,7 +629,7 @@ fun ExtendStayDialog(
     }
 
     // Calculate additional cost based on days difference
-    val additionalCost = daysDifference * pricePerDay
+    val additionalCost = (daysDifference-1) * pricePerDay
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -663,7 +669,7 @@ fun ExtendStayDialog(
                 // Show days difference
                 if (daysDifference > 0) {
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("จำนวนวันที่ขยาย: $daysDifference วัน")
+                    Text("จำนวนวันที่ขยาย: ${daysDifference-1} วัน")
                     Spacer(modifier = Modifier.height(4.dp))
                     Text("ค่าใช้จ่ายเพิ่มเติม: $additionalCost บาท")
                 } else {

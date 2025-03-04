@@ -22,6 +22,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -40,14 +41,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import coil.compose.rememberAsyncImagePainter
 import com.example.ass07.R
 import com.example.ass07.admin.RoomAPI
-import com.example.ass07.admin.ScreenAdmin
 import com.example.ass07.customer.LoginRegister.SharePreferencesManager
 import okhttp3.ResponseBody
 import retrofit2.Call
@@ -76,6 +75,8 @@ fun History() {
 
     var paymentAlert by remember { mutableStateOf(false) }
     var selectedBooking by remember { mutableIntStateOf(0) }
+    var totalPrice by remember { mutableIntStateOf(0) }
+
 
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     val lifecycleState by lifecycleOwner.lifecycle.currentStateFlow.collectAsState()
@@ -231,6 +232,9 @@ fun History() {
             }
 
             var isPaid by remember { mutableStateOf(booking.totalPay == 0) }
+            var isExtend by remember { mutableStateOf(booking.adjust != 0 && isPaid) }
+
+            totalPrice = booking.pay + (booking.adjust ?: 0)
 
             Card(
                 modifier = Modifier
@@ -415,18 +419,39 @@ fun History() {
                             )
 
                             Text(
-                                text = "THB ${booking.pay}",
+                                text = "THB $totalPrice",
                                 fontSize = 16.sp
                             )
                         }
 
+                        Spacer(modifier = Modifier.height(4.dp))
+                        if(isExtend){
+                            Row (
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ){
+                                Text(
+                                    text = "ค่าใช้จ่ายเพิ่มเติม\n[ขยายเวลา]",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+
+                                Text(
+                                    text = "THB ${booking.adjust}",
+                                    fontSize = 16.sp
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(4.dp))
                         Row (
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ){
                             Text(
-                                text = "ภาษาค่าธรรมเนียม",
+                                text = "ภาษีค่าธรรมเนียม",
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Medium
                             )
@@ -436,6 +461,7 @@ fun History() {
                                 fontSize = 16.sp
                             )
                         }
+
                     }
 
                     HorizontalDivider(thickness = 0.5.dp)
@@ -452,7 +478,7 @@ fun History() {
                         )
 
                         Text(
-                            text = "THB ${booking.pay}",
+                            text = "THB ${totalPrice}",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -528,12 +554,26 @@ fun History() {
                 Text("ชำระเงิน")
             },
             text = {
-                Image(
-                    painter = painterResource(R.drawable.qr_code),
-                    contentDescription = null,
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.size(200.dp)
-                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.qr_code),
+                        contentDescription = null,
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.size(200.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "ยอดชำระ $totalPrice บาท",
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             },
             confirmButton = {
                 TextButton(

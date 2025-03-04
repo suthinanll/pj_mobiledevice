@@ -53,10 +53,11 @@ import com.example.ass07.admin.ScreenAdmin
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.text.SimpleDateFormat
 import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import java.util.Locale
+import java.util.TimeZone
 
 // // ประกาศสีหลักที่ใช้ในแอพพลิเคชัน
 private val backgroundColor = Color(0xFFFFFAF0)
@@ -76,6 +77,7 @@ fun Booking(navController: NavController) {
 
     val context = LocalContext.current
     val bookingService = BookingAPI.create()
+
 
     LaunchedEffect(Unit) {
         fetchBookings(bookingService) { bookings ->
@@ -534,10 +536,27 @@ fun onCancelBooking(bookingId: Int, bookingService: BookingAPI, onResult: (List<
 
 fun formatDateTime(dateTimeStr: String): String {
     return try {
-        val dateTime = LocalDateTime.parse(dateTimeStr, DateTimeFormatter.ISO_DATE_TIME)
-        dateTime.format(DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm"))
+        // รูปแบบแรก yyyy-MM-dd HH:mm:ss
+        val inputFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+        val date = inputFormatter.parse(dateTimeStr)
+
+        // ใช้รูปแบบเดียวกับโค้ดด้านบน แต่เพิ่ม HH:mm สำหรับเวลา
+        val outputFormatter = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+        date?.let { outputFormatter.format(it) } ?: dateTimeStr
     } catch (e: Exception) {
-        dateTimeStr // กรณีที่ format ไม่ได้ให้ส่งค่าเดิมกลับไป
+        try {
+            // ลองรูปแบบ ISO หากรูปแบบแรกไม่สำเร็จ
+            // ต้องแปลง ISO format เป็น SimpleDateFormat pattern
+            val inputFormatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+            inputFormatter.timeZone = TimeZone.getTimeZone("UTC") // ISO มักอยู่ในรูปแบบ UTC
+            val date = inputFormatter.parse(dateTimeStr)
+
+            val outputFormatter = SimpleDateFormat("dd MMM yyyy HH:mm", Locale.getDefault())
+            date?.let { outputFormatter.format(it) } ?: dateTimeStr
+        } catch (e: Exception) {
+            // คืนค่าเดิมหากไม่สามารถแปลงได้
+            dateTimeStr
+        }
     }
 }
 

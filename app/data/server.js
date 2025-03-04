@@ -1359,7 +1359,7 @@ app.put("/bookings/extend/:id", function (req, res) {
 
             // คำนวณค่าใช้จ่ายรวมใหม่
             const newAdjust = (currentBooking.adjust || 0) + parseInt(additionalCost);
-            const newTotalPay = (currentBooking.total_pay || 0) + parseInt(additionalCost);
+            const newTotalPay = 0;
 
             // อัพเดทข้อมูลในฐานข้อมูล
             dbConn.query(
