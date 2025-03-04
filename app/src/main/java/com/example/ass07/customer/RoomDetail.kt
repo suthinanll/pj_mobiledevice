@@ -1,6 +1,7 @@
 package com.example.ass07.customer
 
 import android.os.Parcelable
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -23,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import coil.compose.rememberAsyncImagePainter
 import com.example.ass07.R
 import com.example.ass07.admin.Room
 import kotlinx.parcelize.Parcelize
@@ -53,6 +55,7 @@ fun HotelBookingScreen(
         else -> R.drawable.test
     }
 
+
     val formattedCheckIn = convertDateToMonthName(checkin ?: "")
     val formattedCheckOut = convertDateToMonthName(checkout ?: "")
 
@@ -66,7 +69,33 @@ fun HotelBookingScreen(
     )
     {
         BookingHeader(room?.name_type ?: "", petTypeName, formattedCheckIn, formattedCheckOut)
-        HotelImageSection(roomImage)
+
+        Column(modifier = Modifier.fillMaxWidth()) {
+            if(room?.image != null){
+                Image(
+                    painter = rememberAsyncImagePainter(
+                        model = room.image
+                    ),
+                    contentDescription = "Main Room Image",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            }else{
+                Image(
+                    painter = painterResource(R.drawable.room_standard),
+                    contentDescription = "Main Room Image",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            }
+        }
+
         HotelDetailSection(room?.name_type ?: "", room?.price_per_day.toString() ?: "0")
 //        BookingButton(navController, room?.room_id.toString() ?: "", room?.name_type.toString() ?: "",
 //            formattedCheckIn, formattedCheckOut, petTypeName, room?.price_per_day.toString() ?: "0")
@@ -82,9 +111,20 @@ fun HotelBookingScreen(
                         checkInDate = formattedCheckIn,
                         checkOutDate = formattedCheckOut,
                         petType = petTypeName,
-                        price = room?.price_per_day.toString() ?: "0"
+                        price = room?.price_per_day.toString() ?: "0",
+                        image = room?.image ?: ""
                     )
                 )
+
+                navController.currentBackStackEntry?.savedStateHandle?.set(
+                    "checkin" , checkin
+                )
+
+                navController.currentBackStackEntry?.savedStateHandle?.set(
+                    "checkout",checkout
+                )
+
+                navController.currentBackStackEntry?.savedStateHandle?.set("pet",pet)
 
                 // ส่ง totalPrice ไปยัง BookingScreen
                 navController.currentBackStackEntry?.savedStateHandle?.set("total_price", totalPrice)
@@ -206,7 +246,8 @@ data class BookingClass(
     val checkInDate: String,
     val checkOutDate: String,
     val petType: String,
-    val price: String
+    val price: String,
+    val image : String
 ) : Parcelable
 
 @Composable
@@ -217,7 +258,8 @@ fun BookingButton(
     checkInDate: String,
     checkOutDate: String,
     petType: String,
-    price: String
+    price: String,
+    image: String,
 ) {
     Button(
         onClick = {
@@ -233,9 +275,11 @@ fun BookingButton(
                     checkInDate = checkInDate,
                     checkOutDate = checkOutDate,
                     petType = petType,
-                    price = price
+                    price = price,
+                    image = image
                 )
             )
+
 
             // ส่ง totalPrice ไปยัง BookingScreen
             navController.currentBackStackEntry?.savedStateHandle?.set("total_price", totalPrice)

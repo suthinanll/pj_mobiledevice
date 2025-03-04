@@ -83,10 +83,11 @@ class AdminNav {
                 ScreenAdmin.Dashboard,
                 ScreenAdmin.ManageRoom,
                 ScreenAdmin.Booking,
-                ScreenAdmin.PetsAdmin
+                ScreenAdmin.PetsAdmin,
+                ScreenAdmin.Dashboard
             )
 
-            var selectedScreen by remember { mutableStateOf(0) }
+            var selectedScreen by remember { mutableStateOf(3) }
 
             NavigationBar(
                 containerColor = Color(0xFFFFBC2B) // สีพื้นหลังของ Bottom Bar

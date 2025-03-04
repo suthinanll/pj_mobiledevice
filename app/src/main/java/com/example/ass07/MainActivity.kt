@@ -28,16 +28,12 @@ class MainActivity : ComponentActivity() {
             val context = LocalContext.current
             val roomId = 1
 
-
             ASS07Theme {
-
                 BB.MyScaffoldLayout()
                 AdminNav.MyScaffoldLayout()
 //                MyScreen()
 //                HotelBookingScreen(navController)
 //                NavGraph(navController) // ถ้าไม่มีมันจะไม่ไปหน้าจองทำไมกันใครทราบที่แน่ๆผมไม่ทราบ
-
-
 
             }
 

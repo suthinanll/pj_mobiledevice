@@ -1,11 +1,18 @@
 package com.example.ass07.admin
 
 
+import com.example.ass07.customer.BookingData
 import com.example.ass07.customer.Mypet.PetType
+import com.example.ass07.customer.PaymentMethodData
+import com.example.ass07.customer.PetData
+import com.example.ass07.customer.RoomData
+import com.example.ass07.customer.RoomTypeData
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.Response
+import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -86,9 +93,6 @@ interface RoomAPI {
     ): Call<RoomTypeResponse>
 
 
-
-
-
     @GET("updateroom/{room_id}")
     fun getRoomById(
         @Path("room_id") room_id: Int,
@@ -114,6 +118,48 @@ interface RoomAPI {
     fun softDeleteRoomType(
         @Field("room_type_id") room_type_id: Int
     ): Call<Void>
+
+    @GET("get-booking/{user_id}")
+    fun getBooking(@Path("user_id") userId: Int) : Call<List<BookingData>>
+
+    @GET("get-payment-method/{method_id}")
+    fun getPaymentMethod(
+        @Path("method_id") methodId: Int
+    ) : Call<PaymentMethodData>
+
+    @GET("get-pet/{pet_id}")
+    fun getPet(
+        @Path("pet_id") petId: Int
+    ) : Call<PetData>
+
+    @GET("get-room/{room_id}")
+    fun getRoom(
+        @Path("room_id") roomId: Int
+    ) : Call<RoomData>
+
+    @GET("get-room-type/{type_id}")
+    fun getRoomType(
+        @Path("type_id") typeId : Int
+    ) : Call<RoomTypeData>
+
+    @PUT("update-booking-status/{booking_id}")
+    fun updateBookingStatus(
+        @Path("booking_id") bookingId: Int,
+    ): Call<ResponseBody>
+
+    @FormUrlEncoded
+    @POST("insert-booking")
+    fun insertBooking(
+        @Field("check_in") checkIn : String,
+        @Field("check_out") checkOut : String,
+        @Field("additional_info") additionalInfo : String,
+        @Field("pay") pay : Int,
+        @Field("total_pay") totalPay : Int,
+        @Field("payment_method") paymentMethod : Int,
+        @Field("pet_id") petId : Int,
+        @Field("room_id") roomId : Int
+    ) : Call<ResponseBody>
+
 
 
     companion object {
