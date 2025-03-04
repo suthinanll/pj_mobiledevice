@@ -1,11 +1,9 @@
 package com.example.ass07.customer.API
 
-import com.example.ass07.customer.Mypet.AddPetTypeResponse
 import com.example.ass07.customer.Mypet.PetType
 import com.example.ass07.customer.Mypet.UpdatePetRequest
 import com.example.ass07.customer.Mypet.petMember
 import retrofit2.Call
-import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
@@ -51,9 +49,12 @@ interface PetApi {
 
     ): Call<petMember>
 
-    @FormUrlEncoded
-    @POST("addPetType") //
-    fun addPetType(@Field("pet_name_type") petTypeName: String): Call<AddPetTypeResponse> // Use the new data class
+//    @FormUrlEncoded
+//    @POST("addPetType") //
+//    fun addPetType(@Field("pet_name_type") petTypeName: String): Call<AddPetTypeResponse> // Use the new data class
+
+    @POST("addPetType")
+    fun addPetType(@Body petName: String): Call<Void>
 
     @GET("getPet/{id}")
     fun getPet(@Path("id") petID: Int): Call<petMember>
