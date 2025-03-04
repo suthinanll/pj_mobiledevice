@@ -43,7 +43,6 @@ data class RoomStatistic(
     val clean: Int
 )
 
-
 data class Booking(
     val bookingId: Int,
     val name: String,

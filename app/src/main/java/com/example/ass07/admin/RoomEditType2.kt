@@ -1,15 +1,14 @@
 package com.example.ass07.admin
 
+//import androidx.benchmark.traceprocessor.Row
 import android.net.Uri
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.benchmark.traceprocessor.Row
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,10 +17,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -44,8 +44,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -53,7 +51,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.media3.common.util.Size
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
@@ -69,6 +66,51 @@ import retrofit2.Response
 import java.io.File
 import java.io.FileOutputStream
 
+//@Composable
+//fun RoomEditType2(room_type_id: Int, navController: NavController) {
+//    var roomType by remember { mutableStateOf<RoomType?>(null) }
+//    var isLoading by remember { mutableStateOf(true) }
+//    var errorMessage by remember { mutableStateOf<String?>(null) }
+//
+//    // Fetch room data from API
+//    LaunchedEffect(room_type_id) {
+//        val api = RoomAPI.create()
+//
+//        // Make GET request to fetch room details by room_type_id
+//        api.getRoomTypeById(room_type_id).enqueue(object : Callback<RoomType> {
+//            override fun onResponse(call: Call<RoomType>, response: Response<RoomType>) {
+//                if (response.isSuccessful) {
+//                    roomType = response.body()
+//                } else {
+//                    errorMessage = "Error: ${response.message()}"
+//                }
+//                isLoading = false
+//            }
+//
+//            override fun onFailure(call: Call<RoomType>, t: Throwable) {
+//                errorMessage = "Error: ${t.message}"
+//                isLoading = false
+//            }
+//        })
+//    }
+//
+//    Column(
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .background(Color(0xFFFFFBEB))
+//    ) {
+//        if (isLoading) {
+//            Text("กำลังโหลดข้อมูล...", modifier = Modifier.padding(16.dp))
+//        } else if (errorMessage != null) {
+//            Text("เกิดข้อผิดพลาด: $errorMessage", modifier = Modifier.padding(16.dp))
+//        } else {
+//            roomType?.let {
+//                // Room edit form
+//                RoomEditForm(roomType = it, room_type_id = room_type_id, navController = navController)
+//            }
+//        }
+//    }
+//}
 @Composable
 fun RoomEditType2(room_type_id: Int, navController: NavController) {
     var roomType by remember { mutableStateOf<RoomType?>(null) }
@@ -101,6 +143,7 @@ fun RoomEditType2(room_type_id: Int, navController: NavController) {
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFFFFBEB))
+            .verticalScroll(rememberScrollState()) // Add verticalScroll here
     ) {
         if (isLoading) {
             Text("กำลังโหลดข้อมูล...", modifier = Modifier.padding(16.dp))
@@ -114,6 +157,7 @@ fun RoomEditType2(room_type_id: Int, navController: NavController) {
         }
     }
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RoomEditForm(roomType: RoomType, room_type_id: Int, navController: NavController) {
@@ -232,7 +276,7 @@ fun RoomEditForm(roomType: RoomType, room_type_id: Int, navController: NavContro
                             }
                             rememberAsyncImagePainter(
                                 model = ImageRequest.Builder(LocalContext.current)
-                                    .data("$baseUrl${roomType.image}")
+                                    .data("http://10.0.2.2:3000/${roomType.image}")
                                     .crossfade(true)
                                     .build(),
                                 onError = {
