@@ -18,7 +18,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -262,21 +261,21 @@ fun PetCard2(pet: petMember, onDelete: () -> Unit, navController: NavHostControl
                     .padding(top = 8.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Button(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = { },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD966))
-                ) {
-                    Text("รายละเอียด", color = Color.Black)
-                }
-
 //                Button(
-//                    onClick = onDelete,
-//                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xD7EE2C2C))
+//                    modifier = Modifier.fillMaxWidth(),
+//                    onClick = { },
+//                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD966))
 //                ) {
-//                    Text("ลบ", color = Color.White)
+//                    Text("รายละเอียด", color = Color.Black)
 //                }
-            }
+//
+////                Button(
+////                    onClick = onDelete,
+////                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xD7EE2C2C))
+////                ) {
+////                    Text("ลบ", color = Color.White)
+////                }
+//            }
         }
     }
 }
@@ -333,6 +332,7 @@ fun PetTypeDropdownMenu(
             }
         }
     }
+}
 }
 
 
