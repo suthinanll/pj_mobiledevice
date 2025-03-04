@@ -80,7 +80,8 @@ class AdminNav {
             val navigationItems = listOf(
                 ScreenAdmin.ManageRoom,
                 ScreenAdmin.Booking,
-                ScreenAdmin.PetsAdmin
+                ScreenAdmin.PetsAdmin,
+                ScreenAdmin.Dashboard
             )
 
             var selectedScreen by remember { mutableStateOf(0) }

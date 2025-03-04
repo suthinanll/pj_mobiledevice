@@ -253,9 +253,8 @@ fun AdminDashboard(
                     totalRooms = totalRooms
                 )
                 1 -> BookingsTab(
-                    paddingValues = paddingValues,
+
                     bookings = bookings,
-                    onBookingClick = onNavigateToBookingDetails
                 )
             }
         }
@@ -374,7 +373,7 @@ fun DashboardTab(
                                 color = MaterialTheme.colorScheme.error
                             )
                             Text(
-                                "ทำความสะอาด",
+                                "ปรับปรุง",
                                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                                 color = Color(0xFFFFC107)
                             )
@@ -401,12 +400,9 @@ fun DashboardTab(
 }
 @Composable
 fun BookingsTab(
-    paddingValues: PaddingValues,
     bookings: List<Booking>,
-    onBookingClick: (Int) -> Unit
 ) {
     var selectedStatusFilter by remember { mutableStateOf("ทั้งหมด") }
-    val statusOptions = listOf("ทั้งหมด", "รอเช็คอิน", "เข้าพักอยู่", "สำเร็จ", "ยกเลิก")
 
     var searchQuery by remember { mutableStateOf("") }
     var filteredBookings by remember { mutableStateOf(bookings) }

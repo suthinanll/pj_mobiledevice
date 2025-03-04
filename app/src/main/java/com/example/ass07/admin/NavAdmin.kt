@@ -21,7 +21,7 @@ import com.example.ass07.customer.Booking
 fun NavGraphAdmin(navController: NavHostController) {
     NavHost(
         navController = navController,
-        startDestination = ScreenAdmin.Dashboard.route
+        startDestination = ScreenAdmin.ManageRoom.route
     ) {
         composable(route = ScreenAdmin.ManageRoom.route ) {
             ManageRoom(navController)

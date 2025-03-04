@@ -61,14 +61,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.ass07.R
-import com.example.ass07.admin.Room
-import com.example.ass07.admin.RoomAPI
-import com.example.ass07.admin.RoomGroupInfo
-import com.example.ass07.admin.RoomType
-import com.example.ass07.admin.ScreenAdmin
+
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -86,12 +81,9 @@ fun defult(){
 
 @Composable
 fun ManageRoom(navController: NavController) {
-    val context = LocalContext.current
     var filterDialogOpen by remember { mutableStateOf(false) }
-    var sortDialogOpen by remember { mutableStateOf(false) }
     var selectedFilter by remember { mutableStateOf(RoomFilter.ALL) }
     var rooms by remember { mutableStateOf<List<Room>>(emptyList()) }
-    var roomType by remember { mutableStateOf<List<RoomType>>(emptyList()) }
     var filteredRooms by remember { mutableStateOf<List<Room>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -145,13 +137,8 @@ fun ManageRoom(navController: NavController) {
             } ?: result
             RoomFilter.ALL -> result
         }
-
-
-
-
         filteredRooms = result
     }
-
     // อัพเดทรายการห้องเมื่อมีการเปลี่ยนแปลง filter หรือ sort
     LaunchedEffect(selectedFilter, rooms) {
         FilterRooms()
@@ -194,7 +181,6 @@ fun ManageRoom(navController: NavController) {
 
             Spacer(modifier = Modifier.width(8.dp))
         }
-
         // Room List
         LazyColumn(
             modifier = Modifier
@@ -327,9 +313,6 @@ fun ManageRoom(navController: NavController) {
                             }
                         }
                     }
-
-                    Divider(modifier = Modifier.padding(vertical = 8.dp))
-
                     // ประเภทห้อง
                     Column {
                         Row(
@@ -364,8 +347,6 @@ fun ManageRoom(navController: NavController) {
                             }
                         }
                     }
-
-                    Divider(modifier = Modifier.padding(vertical = 8.dp))
 
                     // ประเภทสัตว์เลี้ยง
                     Column {
@@ -726,30 +707,6 @@ fun FilterOption(text: String, onClick: () -> Unit) {
                 .padding(vertical = 4.dp),
             textAlign = TextAlign.Start
         )
-    }
-}
-@Composable
-fun ShowAllMatchingRooms(
-    rooms: List<Room>,
-    selectedRoomGroup: RoomGroupInfo,
-    navController: NavController
-) {
-    val filteredRooms = remember(selectedRoomGroup) {
-        rooms.filter { room ->
-            room.room_type == selectedRoomGroup.roomType && room.pet_type == selectedRoomGroup.petType
-        }
-    }
-
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        items(filteredRooms) { room ->
-            RoomCard(room = room,navController=navController)
-
-        }
     }
 }
 

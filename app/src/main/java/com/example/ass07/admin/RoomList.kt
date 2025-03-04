@@ -31,7 +31,6 @@ fun RoomList(
     petType: String,
     navController: NavController
 ) {
-    val context = LocalContext.current
     var rooms by remember { mutableStateOf<List<Room>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }

@@ -44,7 +44,7 @@ import java.net.URLDecoder
 fun NavGraph(navController: NavHostController) {
     NavHost(
         navController = navController,
-        startDestination = ScreenAdmin.Dashboard.route
+        startDestination = ScreenAdmin.ManageRoom.route
     ) {
         composable(route = ScreenLogin.Login.route) {
             Login(navController)

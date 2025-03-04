@@ -12,7 +12,7 @@ sealed class ScreenAdmin(val route: String, val name: String, val icon: (@Compos
     object ManageRoom : ScreenAdmin(route = "ManageRoom", name = "Manage Room", icon = { painterResource(id = R.drawable.home) })
     object Booking : ScreenAdmin(route = "Booking", name = "Room Reservation", icon = { painterResource(id = R.drawable.history) })
     object PetsAdmin : ScreenAdmin(route = "PetsAdmin", name = "Pets", icon = { painterResource(id = R.drawable.mypet) })
-    object Dashboard : ScreenAdmin(route = "Dashboard",name = "Dashboard", icon = { painterResource(id=R.drawable.avatar_3)})
+    object Dashboard : ScreenAdmin(route = "Dashboard",name = "Dashboard", icon = { painterResource(id=R.drawable.dashboard_4_)})
     object RoomInsert : ScreenAdmin(
         route = "RoomInsert",
         name = "RoomInsert",
