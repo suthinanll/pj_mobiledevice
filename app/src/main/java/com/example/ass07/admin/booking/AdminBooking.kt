@@ -271,7 +271,7 @@ fun BookingItem(
     onResult: (List<Booking>) -> Unit
 ) {
     val numOfDays = calculateNumOfDays(booking.checkIn, booking.checkOut)
-    val totalPrice = booking.totalPay ?: 0
+    val totalPrice = booking.pay + (booking.adjust ?:0)
 
     Card(
         modifier = Modifier

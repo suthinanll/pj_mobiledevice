@@ -326,7 +326,7 @@ fun History() {
                             )
 
                             Text(
-                                    text = "ชื่อผู้เข้าพัก : ${pet?.petName}",
+                                text = "ชื่อผู้เข้าพัก : ${pet?.petName}",
                                 fontSize = 14.sp
                             )
 

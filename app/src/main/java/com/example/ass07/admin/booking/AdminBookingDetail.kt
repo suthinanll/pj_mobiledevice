@@ -700,7 +700,7 @@ fun ExtendStayDialog(
                 border = BorderStroke(1.dp, primaryColor),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = primaryColor),
                 shape = RoundedCornerShape(8.dp)
-                ) {
+            ) {
                 Text("ยกเลิก")
             }
         }
@@ -733,7 +733,7 @@ fun ExtendStayDialog(
                 },
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = extendColor)
-                    ) {
+                ) {
                     Text("ตกลง")
                 }
             },
@@ -742,7 +742,7 @@ fun ExtendStayDialog(
                     border = BorderStroke(1.dp, primaryColor),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = primaryColor),
                     shape = RoundedCornerShape(8.dp)
-                    ) {
+                ) {
                     Text("ยกเลิก")
                 }
             }

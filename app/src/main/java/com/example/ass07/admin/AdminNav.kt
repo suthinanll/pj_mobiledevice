@@ -83,8 +83,7 @@ class AdminNav {
                 ScreenAdmin.Dashboard,
                 ScreenAdmin.ManageRoom,
                 ScreenAdmin.Booking,
-                ScreenAdmin.PetsAdmin,
-                ScreenAdmin.Dashboard
+                ScreenAdmin.PetsAdmin
             )
 
             var selectedScreen by remember { mutableStateOf(3) }
