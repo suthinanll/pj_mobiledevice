@@ -43,6 +43,7 @@ android {
 
 dependencies {
 
+    implementation ("androidx.compose.material:material-icons-extended:1.6.0") //ไอคอนนะอย่าลบ
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
