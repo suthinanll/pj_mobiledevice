@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.ass07.customer.API.projectApi
 import com.example.ass07.customer.LoginRegister.SharePreferencesManager
+import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -92,7 +93,16 @@ fun EditProfile(navController: NavHostController) {
                     Toast.makeText(context, "บันทึกการแก้ไขสำเร็จ", Toast.LENGTH_SHORT).show()
                     navController.popBackStack()
                 } else {
-                    Toast.makeText(context, "เกิดข้อผิดพลาดในการอัปเดต", Toast.LENGTH_SHORT).show()
+                    // รับ message จาก response body
+                    val errorMessage = response.errorBody()?.string()
+                    // สมมุติว่า response เป็น JSON ที่มี key "message"
+                    try {
+                        val jsonObject = JSONObject(errorMessage)
+                        val message = jsonObject.optString("message", "เกิดข้อผิดพลาดในการอัปเดต")
+                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                    } catch (e: Exception) {
+                        Toast.makeText(context, "เกิดข้อผิดพลาดในการอัปเดต", Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
 

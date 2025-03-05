@@ -1455,23 +1455,36 @@ app.put("/profile/edit/:id", function (req, res) {
         message: "Please provide name, email, tell_number, and avatar",
       });
     }
-  
-    const query = `UPDATE users 
-                   SET name = ?, email = ?, tell_number = ?, avatar = ?
-                   WHERE user_id = ? AND deleted_at IS NULL`;
-  
-    dbConn.query(query, [name, email, tell_number, avatar, userId], function (error, results) {
+
+    // ตรวจสอบว่า email มีอยู่ในฐานข้อมูลแล้วหรือไม่
+    const checkEmailQuery = `SELECT user_id FROM users WHERE email = ? AND user_id != ? AND deleted_at IS NULL`;
+    dbConn.query(checkEmailQuery, [email, userId], function (error, results) {
       if (error) {
         console.error("Database error:", error);
         return res.status(500).json({ error: true, message: error.message });
       }
-  
-      if (results.affectedRows === 0) {
-        return res.status(404).json({ error: true, message: "User not found or already deleted" });
+
+      if (results.length > 0) {
+        return res.status(400).json({ error: true, message: "Email already exists" });
       }
-  
-      console.log("User data " + name + " updated successfully");
-      return res.json({ message: "User profile updated successfully" });
+
+      const query = `UPDATE users 
+                     SET name = ?, email = ?, tell_number = ?, avatar = ?
+                     WHERE user_id = ? AND deleted_at IS NULL`;
+    
+      dbConn.query(query, [name, email, tell_number, avatar, userId], function (error, results) {
+        if (error) {
+          console.error("Database error:", error);
+          return res.status(500).json({ error: true, message: error.message });
+        }
+    
+        if (results.affectedRows === 0) {
+          return res.status(404).json({ error: true, message: "User not found or already deleted" });
+        }
+    
+        console.log("User data " + name + " updated successfully");
+        return res.json({ message: "User profile updated successfully" });
+      });
     });
   });
 

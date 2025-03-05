@@ -257,6 +257,7 @@ fun History() {
                 ){
                     Text(
                         text = "รายละเอียดห้องพัก",
+//                        text = "รายละเอียดห้องพัก ${room?.roomId}",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.align(Alignment.Start)
