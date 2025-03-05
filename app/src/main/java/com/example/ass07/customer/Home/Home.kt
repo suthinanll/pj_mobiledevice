@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -29,7 +28,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,7 +43,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.example.ass07.customer.Screen
 import java.net.URLEncoder
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -345,29 +342,5 @@ fun isCheckoutAfterCheckin(checkinStr: String, checkoutStr: String): Boolean {
         return !checkoutDate.before(checkinDate)
     } catch (e: Exception) {
         return false
-    }
-}
-
-
-
-
-fun calculateRoomPrice(roomType: String, checkinStr: String, checkoutStr: String): Double {
-    val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-    return try {
-        val checkinDate: Date = dateFormat.parse(checkinStr) ?: return 0.0
-        val checkoutDate: Date = dateFormat.parse(checkoutStr) ?: return 0.0
-
-        val nights = ((checkoutDate.time - checkinDate.time) / (1000 * 60 * 60 * 24)).toInt()
-        if (nights <= 0) return 0.0
-
-        val pricePerNight = when (roomType) {
-            "Standard" -> 350.0
-            "Deluxe" -> 550.0
-            "VIP" -> 750.0
-            else -> 0.0
-        }
-        nights * pricePerNight
-    } catch (e: Exception) {
-        0.0
     }
 }

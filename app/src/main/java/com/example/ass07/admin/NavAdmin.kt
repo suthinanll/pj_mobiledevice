@@ -1,21 +1,14 @@
 package com.example.ass07.admin
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-
 import com.example.ass07.RoomEditType
-
 import com.example.ass07.RoomList
 import com.example.ass07.admin.booking.BookingDetail
-import com.example.ass07.customer.Booking
 
 @Composable
 fun NavGraphAdmin(navController: NavHostController) {
@@ -25,9 +18,6 @@ fun NavGraphAdmin(navController: NavHostController) {
     ) {
         composable(route = ScreenAdmin.ManageRoom.route ) {
             ManageRoom(navController)
-        }
-        composable(route = ScreenAdmin.Booking.route) {
-            Booking(navController)
         }
         composable(route = ScreenAdmin.PetsAdmin.route) {
             PetsAdmin(navController)
