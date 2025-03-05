@@ -12,7 +12,7 @@ sealed class ScreenAdmin(val route: String, val name: String, val icon: (@Compos
     object ManageRoom : ScreenAdmin(route = "ManageRoom", name = "Manage Room", icon = { painterResource(id = R.drawable.home) })
     object Booking : ScreenAdmin(route = "Booking", name = "Reservation", icon = { painterResource(id = R.drawable.history) })
     object PetsAdmin : ScreenAdmin(route = "PetsAdmin", name = "Pets", icon = { painterResource(id = R.drawable.mypet) })
-    object Dashboard : ScreenAdmin(route = "Dashboard",name = "Dashboard", icon = { painterResource(id=R.drawable.user)})
+    object Dashboard : ScreenAdmin(route = "Dashboard",name = "Dashboard", icon = { painterResource(id= R.drawable.user)})
     object RoomInsert : ScreenAdmin(
         route = "RoomInsert",
         name = "RoomInsert",
@@ -65,6 +65,32 @@ sealed class ScreenAdmin(val route: String, val name: String, val icon: (@Compos
     object BookingDetail : ScreenAdmin(
         route = "BookingDetail",
         name = "BookingDetail",
+        icon = {
+            remember {
+                object : Painter() {
+                    override val intrinsicSize = Size(1f, 1f)
+                    override fun DrawScope.onDraw() { /* ไม่วาดอะไร */ }
+                }
+            }
+        }
+    )
+
+    object AddPetType : ScreenAdmin(
+        route = "AddPetType",
+        name = "AddPetType",
+        icon = {
+            remember {
+                object : Painter() {
+                    override val intrinsicSize = Size(1f, 1f)
+                    override fun DrawScope.onDraw() { /* ไม่วาดอะไร */ }
+                }
+            }
+        }
+    )
+
+    object AddAdmin : ScreenAdmin(
+        route = "AddAdmin",
+        name = "AddAdmin",
         icon = {
             remember {
                 object : Painter() {

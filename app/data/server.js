@@ -51,7 +51,7 @@ app.post("/insertAccount",async function(req,res){
             VALUES('${name}','${password_hash}','${tell_number}','${email}', 2)`
           }else{
             var insertData = `INSERT INTO users (name,password,tell_number,email,user_type)  
-            VALUES('${name}','${password_hash}','${tell_number}','${email}', 2)`;
+            VALUES('${name}','${password_hash}','${tell_number}','${email}',  ${user_type})`;
           }
 
           dbConn.query(insertData,function(error,results,fields){
@@ -61,6 +61,7 @@ app.post("/insertAccount",async function(req,res){
       }
   })
 })
+
 
 app.post("/login",async function(req,res){  
   let user = req.body
@@ -266,6 +267,7 @@ app.get('/getPetTypes', function (req, res) {
 
 
 app.post('/addPetType', function (req, res) {
+    console.log("Received Data:", req.body);
     const petType = {
         pet_name_type: req.body.pet_name_type
     };
@@ -279,53 +281,62 @@ app.post('/addPetType', function (req, res) {
     }
 
     // ตรวจสอบว่ามีประเภทสัตว์เลี้ยงนี้อยู่แล้วหรือไม่
-    dbConn.promise().query(
+    dbConn.query(
         'SELECT * FROM pet_type WHERE pet_name_type = ? AND deleted_at IS NULL',
-        [petType.pet_name_type]
-    ).then(function ([results]) {
-        if (results.length > 0) {
-            return res.status(400).send({
-                error: true,
-                message: "มีประเภทสัตว์เลี้ยงนี้อยู่แล้ว"
-            });
-        }
-
-        // เพิ่มประเภทสัตว์เลี้ยงใหม่
-        dbConn.promise().query(
-            'INSERT INTO pet_type (pet_name_type) VALUES (?)',
-            [petType.pet_name_type]
-        ).then(function ([insertResult]) {
-            // ดึงข้อมูลที่เพิ่มเข้าไปใหม่
-            dbConn.promise().query(
-                'SELECT * FROM pet_type WHERE pet_type_id = ?',
-                [insertResult.insertId]
-            ).then(function ([newPetType]) {
-                return res.status(201).send({
-                    error: false,
-                    message: "เพิ่มประเภทสัตว์เลี้ยงสำเร็จ",
-                    petType: newPetType[0]
-                });
-            }).catch(function (error) {
+        [petType.pet_name_type],
+        function (error, results) {
+            if (error) {
                 return res.status(500).send({
                     error: true,
-                    message: "เพิ่มข้อมูลสำเร็จแต่ไม่สามารถดึงข้อมูลได้",
+                    message: "เกิดข้อผิดพลาดในการตรวจสอบประเภทสัตว์เลี้ยง",
                     details: error
                 });
-            });
-        }).catch(function (error) {
-            return res.status(500).send({
-                error: true,
-                message: "เกิดข้อผิดพลาดในการเพิ่มประเภทสัตว์เลี้ยง",
-                details: error
-            });
-        });
-    }).catch(function (error) {
-        return res.status(500).send({
-            error: true,
-            message: "เกิดข้อผิดพลาดในการตรวจสอบประเภทสัตว์เลี้ยง",
-            details: error
-        });
-    });
+            }
+
+            if (results.length > 0) {
+                return res.status(400).send({
+                    error: true,
+                    message: "มีประเภทสัตว์เลี้ยงนี้อยู่แล้ว"
+                });
+            }
+
+            // เพิ่มประเภทสัตว์เลี้ยงใหม่
+            dbConn.query(
+                'INSERT INTO pet_type (pet_name_type) VALUES (?)',
+                [petType.pet_name_type],
+                function (error, insertResult) {
+                    if (error) {
+                        return res.status(500).send({
+                            error: true,
+                            message: "เกิดข้อผิดพลาดในการเพิ่มประเภทสัตว์เลี้ยง",
+                            details: error
+                        });
+                    }
+
+                    // ดึงข้อมูลที่เพิ่มเข้าไปใหม่
+                    dbConn.query(
+                        'SELECT * FROM pet_type WHERE pet_type_id = ?',
+                        [insertResult.insertId],
+                        function (error, newPetType) {
+                            if (error) {
+                                return res.status(500).send({
+                                    error: true,
+                                    message: "เพิ่มข้อมูลสำเร็จแต่ไม่สามารถดึงข้อมูลได้",
+                                    details: error
+                                });
+                            }
+
+                            return res.status(201).send({
+                                error: false,
+                                message: "เพิ่มประเภทสัตว์เลี้ยงสำเร็จ",
+                                petType: newPetType[0]
+                            });
+                        }
+                    );
+                }
+            );
+        }
+    );
 });
 
 // อัพเดทประเภทสัตว์เลี้ยง
@@ -1444,23 +1455,36 @@ app.put("/profile/edit/:id", function (req, res) {
         message: "Please provide name, email, tell_number, and avatar",
       });
     }
-  
-    const query = `UPDATE users 
-                   SET name = ?, email = ?, tell_number = ?, avatar = ?
-                   WHERE user_id = ? AND deleted_at IS NULL`;
-  
-    dbConn.query(query, [name, email, tell_number, avatar, userId], function (error, results) {
+
+    // ตรวจสอบว่า email มีอยู่ในฐานข้อมูลแล้วหรือไม่
+    const checkEmailQuery = `SELECT user_id FROM users WHERE email = ? AND user_id != ? AND deleted_at IS NULL`;
+    dbConn.query(checkEmailQuery, [email, userId], function (error, results) {
       if (error) {
         console.error("Database error:", error);
         return res.status(500).json({ error: true, message: error.message });
       }
-  
-      if (results.affectedRows === 0) {
-        return res.status(404).json({ error: true, message: "User not found or already deleted" });
+
+      if (results.length > 0) {
+        return res.status(400).json({ error: true, message: "Email already exists" });
       }
-  
-      console.log("User data " + name + " updated successfully");
-      return res.json({ message: "User profile updated successfully" });
+
+      const query = `UPDATE users 
+                     SET name = ?, email = ?, tell_number = ?, avatar = ?
+                     WHERE user_id = ? AND deleted_at IS NULL`;
+    
+      dbConn.query(query, [name, email, tell_number, avatar, userId], function (error, results) {
+        if (error) {
+          console.error("Database error:", error);
+          return res.status(500).json({ error: true, message: error.message });
+        }
+    
+        if (results.affectedRows === 0) {
+          return res.status(404).json({ error: true, message: "User not found or already deleted" });
+        }
+    
+        console.log("User data " + name + " updated successfully");
+        return res.json({ message: "User profile updated successfully" });
+      });
     });
   });
 
@@ -1613,6 +1637,7 @@ app.post("/insert-booking", function (req, res) {
     }
   );
 });
+
 
 
 app.listen(3000, function () {

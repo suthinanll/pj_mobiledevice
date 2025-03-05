@@ -127,7 +127,7 @@ fun PaymentScreen(
                 modifier = Modifier.padding(16.dp)
             ) {
                 Text(
-                    text = "รายละเอียดห้องพัก",
+                    text = "รายละเอียดห้อง ${roomId}",
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
                 )

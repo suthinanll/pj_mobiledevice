@@ -16,15 +16,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -40,16 +38,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavHostController
 import com.example.ass07.customer.API.PetApi
-import com.example.ass07.customer.Mypet.PetCard
-import com.example.ass07.customer.Mypet.petMember
-import com.example.ass07.customer.Screen
 import com.example.ass07.customer.Mypet.PetType
+import com.example.ass07.customer.Mypet.petMember
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -206,6 +201,24 @@ fun PetsAdmin(navController: NavHostController){
                     )
                 }
             }
+            OutlinedButton(
+                onClick = { navController.navigate("AddPetType") },
+                shape = RoundedCornerShape(8.dp), // ปรับมุมโค้ง
+                border = BorderStroke(1.dp, Color.Gray), // เพิ่มเส้นขอบ
+                colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White),
+                modifier = Modifier.padding(10.dp,0.dp)
+            ) {
+                Text(
+                    text = "เพิ่มประเภท",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium
+                )
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add type",
+                    modifier = Modifier.size(18.dp)
+                )
+            }
         }
         LazyColumn(
             modifier = Modifier
@@ -248,21 +261,21 @@ fun PetCard2(pet: petMember, onDelete: () -> Unit, navController: NavHostControl
                     .padding(top = 8.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Button(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = { },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD966))
-                ) {
-                    Text("รายละเอียด", color = Color.Black)
-                }
-
 //                Button(
-//                    onClick = onDelete,
-//                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xD7EE2C2C))
+//                    modifier = Modifier.fillMaxWidth(),
+//                    onClick = { },
+//                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD966))
 //                ) {
-//                    Text("ลบ", color = Color.White)
+//                    Text("รายละเอียด", color = Color.Black)
 //                }
-            }
+//
+////                Button(
+////                    onClick = onDelete,
+////                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xD7EE2C2C))
+////                ) {
+////                    Text("ลบ", color = Color.White)
+////                }
+//            }
         }
     }
 }
@@ -319,6 +332,7 @@ fun PetTypeDropdownMenu(
             }
         }
     }
+}
 }
 
 

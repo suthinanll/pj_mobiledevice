@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.outlined.AccountBox
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.ExitToApp
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -60,6 +61,7 @@ import androidx.navigation.NavHostController
 import com.example.ass07.R
 import com.example.ass07.admin.booking.Booking
 import com.example.ass07.admin.booking.BookingAPI
+import com.example.ass07.customer.LoginRegister.ScreenLogin
 import com.example.ass07.customer.LoginRegister.SharePreferencesManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -264,7 +266,8 @@ fun AdminDashboard(
                     roomStatistics = roomStatistics,
                     recentBookings = recentBookings,
                     onBookingClick = onNavigateToBookingDetails,
-                    totalRooms = totalRooms
+                    totalRooms = totalRooms,
+                    navController = navController
                 )
                 1 -> BookingsTab(
 
@@ -287,132 +290,223 @@ fun DashboardTab(
     todayCheckIns: Int,
     roomStatistics: List<RoomStatistic>,
     recentBookings: List<Booking>,
-    onBookingClick: (Int) -> Unit
+    onBookingClick: (Int) -> Unit,
+    navController: NavHostController
 ) {
     val context = LocalContext.current
     val sharePreferences = remember { SharePreferencesManager(context) }
     var logoutAlert by remember { mutableStateOf(false) }
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingValues)
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(vertical = 16.dp)
-    ) {
-        // Quick stats
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                StatCard(
-                    modifier = Modifier.weight(1f),
-                    Horizontal = Alignment.Center,
-                    painterResource(id = R.drawable.animals),
-                    title = "สัตว์เลี้ยงทั้งหมด",
-                    value = "$totalPets ตัว",
-                    color = MaterialTheme.colorScheme.primaryContainer
-                )
-                StatCard(
-                    modifier = Modifier.weight(1f),
-                    Horizontal = Alignment.Center,
-                    painterResource(id = R.drawable.open_door),
-                    title = "ห้องว่าง",
-                    value = "$availableRooms ห้อง",
-                    color = MaterialTheme.colorScheme.secondaryContainer
-                )
-                StatCard(
-                    modifier = Modifier.weight(1f),
-                    Horizontal = Alignment.Center,
-                    painterResource(id = R.drawable.open_door),
-                    title = "ห้องทั้งหมด",
-                    value = "$totalRooms ห้อง",
-                    color = MaterialTheme.colorScheme.secondaryContainer
-                )
-            }
-        }
-        // Booking Stats
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                BookingStatCard(
-                    modifier = Modifier.weight(1f),
-                    icon = Icons.Outlined.CheckCircle,
-                    title = "การจองที่ยังอยู่",
-                    value = "$activeBookings",
-                    color = MaterialTheme.colorScheme.tertiaryContainer
-                )
-                BookingStatCard(
-                    modifier = Modifier.weight(1f),
-                    icon = Icons.Outlined.ExitToApp,
-                    title = "จะออกเร็วๆ นี้",
-                    value = "$pendingCheckouts",
-                    color = MaterialTheme.colorScheme.errorContainer
-                )
-                BookingStatCard(
-                    modifier = Modifier.weight(1f),
-                    icon = Icons.Outlined.AccountBox,
-                    title = "เช็คอินวันนี้",
-                    value = "$todayCheckIns",
-                    color = MaterialTheme.colorScheme.surfaceVariant
-                )
-            }
-        }
-
-        // Room status
-        item {
-            DashboardCard(
-                title = "สถานะห้องพัก",
-                icon = Icons.Default.Home
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    // Header row
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            "ประเภท",
-                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+    Scaffold(
+        bottomBar = {
+//            Button(
+//                onClick = {
+//                    navController.navigate(ScreenAdmin.AddAdmin.route)
+//                },
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(16.dp),
+//                colors = ButtonDefaults.buttonColors(
+//                    containerColor = MaterialTheme.colorScheme.primaryContainer
+//                )
+//            ) {
+//                Text("เพิ่มแอดมิน", color = Color.White)
+//            }
+//            Button(
+//                onClick = { logoutAlert = true },
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(16.dp),
+//                colors = ButtonDefaults.buttonColors(
+//                    containerColor = MaterialTheme.colorScheme.error
+//                )
+//            ) {
+//                Text("ออกจากระบบ", color = Color.White)
+//            }
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    Button(
+                        onClick = {
+                            navController.navigate(ScreenAdmin.AddAdmin.route)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp), // เพิ่มระยะห่างระหว่างปุ่ม
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
                         )
-                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    ) {
+                        Text("เพิ่มแอดมิน", color = Color.White)
+                    }
+
+                    Button(
+                        onClick = { logoutAlert = true },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error
+                        )
+                    ) {
+                        Text("ออกจากระบบ", color = Color.White)
+                    }
+                }
+        }
+    ){paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(vertical = 16.dp)
+        ) {
+            // Quick stats
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    StatCard(
+                        modifier = Modifier.weight(1f),
+                        Horizontal = Alignment.Center,
+                        painterResource(id = R.drawable.animals),
+                        title = "สัตว์เลี้ยงทั้งหมด",
+                        value = "$totalPets ตัว",
+                        color = MaterialTheme.colorScheme.primaryContainer
+                    )
+                    StatCard(
+                        modifier = Modifier.weight(1f),
+                        Horizontal = Alignment.Center,
+                        painterResource(id = R.drawable.open_door),
+                        title = "ห้องว่าง",
+                        value = "$availableRooms ห้อง",
+                        color = MaterialTheme.colorScheme.secondaryContainer
+                    )
+                    StatCard(
+                        modifier = Modifier.weight(1f),
+                        Horizontal = Alignment.Center,
+                        painterResource(id = R.drawable.open_door),
+                        title = "ห้องทั้งหมด",
+                        value = "$totalRooms ห้อง",
+                        color = MaterialTheme.colorScheme.secondaryContainer
+                    )
+                }
+            }
+            // Booking Stats
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    BookingStatCard(
+                        modifier = Modifier.weight(1f),
+                        icon = Icons.Outlined.CheckCircle,
+                        title = "การจองที่ยังอยู่",
+                        value = "$activeBookings",
+                        color = MaterialTheme.colorScheme.tertiaryContainer
+                    )
+                    BookingStatCard(
+                        modifier = Modifier.weight(1f),
+                        icon = Icons.Outlined.ExitToApp,
+                        title = "จะออกเร็วๆ นี้",
+                        value = "$pendingCheckouts",
+                        color = MaterialTheme.colorScheme.errorContainer
+                    )
+                    BookingStatCard(
+                        modifier = Modifier.weight(1f),
+                        icon = Icons.Outlined.AccountBox,
+                        title = "เช็คอินวันนี้",
+                        value = "$todayCheckIns",
+                        color = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                }
+            }
+
+            // Room status
+            item {
+                DashboardCard(
+                    title = "สถานะห้องพัก",
+                    icon = Icons.Default.Home
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        // Header row
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
                             Text(
-                                "ว่าง",
-                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.primary
+                                "ประเภท",
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
                             )
-                            Text(
-                                "ไม่ว่าง",
-                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.error
-                            )
-                            Text(
-                                "ปรับปรุง",
-                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                                color = Color(0xFFFFC107)
+                            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                                Text(
+                                    "ว่าง",
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Text(
+                                    "ไม่ว่าง",
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                                Text(
+                                    "ปรับปรุง",
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                    color = Color(0xFFFFC107)
+                                )
+                            }
+                        }
+
+                        Divider(modifier = Modifier.padding(vertical = 8.dp))
+
+                        // Room stats
+                        roomStatistics.forEach { stat ->
+                            RoomTypeRow(
+                                type = stat.type,
+                                available = "${stat.available}",
+                                booked = "${stat.booked}",
+                                clean = "${stat.clean}"
                             )
                         }
                     }
-
-                    Divider(modifier = Modifier.padding(vertical = 8.dp))
-
-                    // Room stats
-                    roomStatistics.forEach { stat ->
-                        RoomTypeRow(
-                            type = stat.type,
-                            available = "${stat.available}",
-                            booked = "${stat.booked}",
-                            clean = "${stat.clean}"
-                        )
-                    }
                 }
             }
+
         }
+    }
 
+        if(logoutAlert){
+        AlertDialog(
+            onDismissRequest = {logoutAlert = false},
+            title = {
+                Text("ออกจากระบบ")
+            },
+            text = {
+                Text("คุณต้องการออกจากระบบหรือไม่?")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        sharePreferences.clearUserAll()
+                        navController.navigate(ScreenLogin.Login.route)
+                    }
 
+                ) {
+                    Text("ตกลง")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        logoutAlert = false
+                    }
+
+                ) {
+                    Text("ยกเลิก")
+                }
+            }
+        )
     }
 }
 @Composable

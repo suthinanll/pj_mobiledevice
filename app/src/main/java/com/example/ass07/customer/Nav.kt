@@ -6,8 +6,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -16,15 +14,16 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.ass07.RoomEditType
 import com.example.ass07.RoomList
+import com.example.ass07.admin.AddAdmin
+import com.example.ass07.admin.AddPetType
 import com.example.ass07.admin.AdminDashboard
 import com.example.ass07.admin.ManageRoom
 import com.example.ass07.admin.PetsAdmin
 import com.example.ass07.admin.RoomEdit
+import com.example.ass07.admin.RoomEditType2
 import com.example.ass07.admin.RoomInsert
 import com.example.ass07.admin.ScreenAdmin
 import com.example.ass07.admin.booking.BookingDetail
-import com.example.ass07.admin.PetsAdmin
-import com.example.ass07.admin.RoomEditType2
 import com.example.ass07.customer.Home.Home
 import com.example.ass07.customer.Home.Search
 import com.example.ass07.customer.Home.SearchDetail
@@ -37,7 +36,6 @@ import com.example.ass07.customer.Mypet.Mypetinsert
 import com.example.ass07.customer.Mypet.PetViewModel
 import com.example.ass07.customer.Profile.EditProfile
 import com.example.ass07.customer.Profile.Profile
-import java.net.URLDecoder
 
 @Composable
 fun NavGraph(navController: NavHostController) {
@@ -199,6 +197,14 @@ fun NavGraph(navController: NavHostController) {
 
         composable(Screen.SearchDetail.route) {
             SearchDetail(navController)
+        }
+
+        composable(route = ScreenAdmin.AddPetType.route) {
+            AddPetType(navController)
+        }
+
+        composable(route = ScreenAdmin.AddAdmin.route) {
+            AddAdmin(navController)
         }
     }
 }
