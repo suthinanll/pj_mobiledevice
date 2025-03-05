@@ -14,7 +14,6 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
-import retrofit2.http.Query
 
 interface projectApi {
     @FormUrlEncoded
@@ -35,7 +34,8 @@ interface projectApi {
         @Field("name") name: String,
         @Field("password") password: String,
         @Field("tell_number") tell_number: String,
-        @Field("email") email: String
+        @Field("email") email: String,
+        @Field("user_type") user_type: Int
     ): Call<LoginClass>
 
 

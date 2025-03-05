@@ -51,7 +51,7 @@ app.post("/insertAccount",async function(req,res){
             VALUES('${name}','${password_hash}','${tell_number}','${email}', 2)`
           }else{
             var insertData = `INSERT INTO users (name,password,tell_number,email,user_type)  
-            VALUES('${name}','${password_hash}','${tell_number}','${email}', 2)`;
+            VALUES('${name}','${password_hash}','${tell_number}','${email}',  ${user_type})`;
           }
 
           dbConn.query(insertData,function(error,results,fields){
@@ -61,6 +61,7 @@ app.post("/insertAccount",async function(req,res){
       }
   })
 })
+
 
 app.post("/login",async function(req,res){  
   let user = req.body
@@ -1623,6 +1624,7 @@ app.post("/insert-booking", function (req, res) {
     }
   );
 });
+
 
 
 app.listen(3000, function () {

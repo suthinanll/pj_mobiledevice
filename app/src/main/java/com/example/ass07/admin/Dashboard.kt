@@ -298,17 +298,59 @@ fun DashboardTab(
     var logoutAlert by remember { mutableStateOf(false) }
     Scaffold(
         bottomBar = {
-            Button(
-                onClick = { logoutAlert = true },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error
-                )
-            ) {
-                Text("ออกจากระบบ", color = Color.White)
-            }
+//            Button(
+//                onClick = {
+//                    navController.navigate(ScreenAdmin.AddAdmin.route)
+//                },
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(16.dp),
+//                colors = ButtonDefaults.buttonColors(
+//                    containerColor = MaterialTheme.colorScheme.primaryContainer
+//                )
+//            ) {
+//                Text("เพิ่มแอดมิน", color = Color.White)
+//            }
+//            Button(
+//                onClick = { logoutAlert = true },
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(16.dp),
+//                colors = ButtonDefaults.buttonColors(
+//                    containerColor = MaterialTheme.colorScheme.error
+//                )
+//            ) {
+//                Text("ออกจากระบบ", color = Color.White)
+//            }
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    Button(
+                        onClick = {
+                            navController.navigate(ScreenAdmin.AddAdmin.route)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp), // เพิ่มระยะห่างระหว่างปุ่ม
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Text("เพิ่มแอดมิน", color = Color.White)
+                    }
+
+                    Button(
+                        onClick = { logoutAlert = true },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error
+                        )
+                    ) {
+                        Text("ออกจากระบบ", color = Color.White)
+                    }
+                }
         }
     ){paddingValues ->
         LazyColumn(

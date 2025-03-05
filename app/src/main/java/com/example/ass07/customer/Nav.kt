@@ -14,6 +14,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.ass07.RoomEditType
 import com.example.ass07.RoomList
+import com.example.ass07.admin.AddAdmin
 import com.example.ass07.admin.AddPetType
 import com.example.ass07.admin.AdminDashboard
 import com.example.ass07.admin.ManageRoom
@@ -200,6 +201,10 @@ fun NavGraph(navController: NavHostController) {
 
         composable(route = ScreenAdmin.AddPetType.route) {
             AddPetType(navController)
+        }
+
+        composable(route = ScreenAdmin.AddAdmin.route) {
+            AddAdmin(navController)
         }
     }
 }

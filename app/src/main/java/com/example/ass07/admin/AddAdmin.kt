@@ -1,4 +1,4 @@
-package com.example.ass07.customer.LoginRegister
+package com.example.ass07.admin
 
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
@@ -47,12 +47,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.ass07.customer.API.projectApi
+import com.example.ass07.customer.LoginRegister.LoginClass
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
 @Composable
-fun Register(navController: NavHostController) {
+fun AddAdmin(navController: NavHostController) {
     val contextForToast = LocalContext.current
     val studentClient = projectApi.create()
 
@@ -60,6 +61,7 @@ fun Register(navController: NavHostController) {
     var password by remember { mutableStateOf("") }
     var tell_number by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
+    var user_type by remember { mutableStateOf(1) }
 
 
     var isButtonEnabled by remember { mutableStateOf(false) }
@@ -95,7 +97,7 @@ fun Register(navController: NavHostController) {
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
-                    text = "Register",
+                    text = "Register Admin",
                     fontSize = 25.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
@@ -215,7 +217,7 @@ fun Register(navController: NavHostController) {
                         keyboardController?.hide()
                         focusManager.clearFocus()
                         studentClient.register_acc(
-                            username, password, tell_number, email, user_type = 2
+                            username, password, tell_number, email, user_type
                         ).enqueue(object : Callback<LoginClass> {
                             override fun onResponse(
                                 call: Call<LoginClass>,
@@ -227,7 +229,7 @@ fun Register(navController: NavHostController) {
                                         Toast.LENGTH_SHORT
                                     ).show()
 
-                                    navController.navigate(ScreenLogin.Login.route)
+                                    navController.navigate(ScreenAdmin.Dashboard.route)
                                 } else {
                                     Toast.makeText(
                                         contextForToast, "Insert Failed",
@@ -256,7 +258,7 @@ fun Register(navController: NavHostController) {
                     )
                 ) {
                     Text(
-                        "Register",
+                        "Register Admin",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -265,7 +267,7 @@ fun Register(navController: NavHostController) {
                     onClick = {
                         keyboardController?.hide()
                         focusManager.clearFocus()
-                        navController.navigate(ScreenLogin.Login.route)
+                        navController.navigate(ScreenAdmin.Dashboard.route)
                     },
                     modifier = Modifier
                         .fillMaxWidth()
