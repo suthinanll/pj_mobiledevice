@@ -209,7 +209,7 @@ fun PetsAdmin(navController: NavHostController){
                 modifier = Modifier.padding(10.dp,0.dp)
             ) {
                 Text(
-                    text = selectedPetType?.Pet_name_type ?: "เพิ่มประเภท",
+                    text = "เพิ่มประเภท",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium
                 )

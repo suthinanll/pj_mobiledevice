@@ -10,7 +10,6 @@ import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -26,7 +25,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.ass07.customer.NavGraph
@@ -80,10 +78,11 @@ class AdminNav {
         @Composable
         fun MyBottomBarAdmin(navController: NavHostController, contextForToast: Context) {
             val navigationItems = listOf(
-                ScreenAdmin.Dashboard,
+
                 ScreenAdmin.ManageRoom,
                 ScreenAdmin.Booking,
-                ScreenAdmin.PetsAdmin
+                ScreenAdmin.PetsAdmin,
+                ScreenAdmin.Dashboard
             )
 
             var selectedScreen by remember { mutableStateOf(3) }

@@ -3,17 +3,23 @@ package com.example.ass07.admin
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -58,13 +64,28 @@ fun AddPetType(navController: NavHostController) {
                 modifier = Modifier.padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Row (
+                    modifier = Modifier.fillMaxWidth()
+                ){
+                    IconButton(
+                        onClick = { navController.navigate(ScreenAdmin.PetsAdmin.route)} // Navigate back on click
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "back",
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+
                 Text(
-                    text = "เพิ่มประเภทสัตว์ใหม่",
+                    text = "เพิ่มประเภทสัตว์เลี้ยง",
                     fontSize = 25.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
+
 
                 OutlinedTextField(
                     value = newPetTypeName,
