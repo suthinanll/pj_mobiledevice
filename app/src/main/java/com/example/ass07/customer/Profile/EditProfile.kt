@@ -160,13 +160,31 @@ fun EditProfile(navController: NavHostController) {
                             .border(2.dp, Color.Gray, CircleShape)
                             .clickable { showAvatarSelectionDialog() }
                     )
-                }
 
+                }
+                Text(text = "คลิกที่รูปเพื่อเปลี่ยน", fontSize = 14.sp, color = Color.Gray)
                 Spacer(modifier = Modifier.height(16.dp))
 
                 EditProfileTextField("ชื่อผู้ใช้", username, { username = it })
-                EditProfileTextField("อีเมล", email, { email = it })
-                EditProfileTextField("เบอร์โทรศัพท์", tel, { tel = it })
+
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text(text = "อีเมล", fontSize = 14.sp, color = Color.Black, fontWeight = FontWeight.Bold)
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = false
+                    )
+
+                    Text(text = "เบอร์โทรศัพท์", fontSize = 14.sp, color = Color.Black, fontWeight = FontWeight.Bold)
+                    OutlinedTextField(
+                        value = tel,
+                        onValueChange = { tel = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = false
+                    )
+                }
+
 
                 Spacer(modifier = Modifier.height(24.dp))
 

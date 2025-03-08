@@ -75,7 +75,7 @@ fun History() {
 
     var paymentAlert by remember { mutableStateOf(false) }
     var selectedBooking by remember { mutableIntStateOf(0) }
-    var totalPrice by remember { mutableIntStateOf(0) }
+    var selectedTotalPrice by remember { mutableIntStateOf(0) }
 
 
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
@@ -232,9 +232,8 @@ fun History() {
             }
 
             var isPaid by remember { mutableStateOf(booking.totalPay == 0) }
-            var isExtend by remember { mutableStateOf(booking.adjust != 0 && isPaid) }
-
-            totalPrice = booking.pay + (booking.adjust ?: 0)
+            var isExtend by remember { mutableStateOf(booking.adjust != 0 && isPaid || !isPaid) }
+            val totalPrice = booking.pay + (booking.adjust ?: 0)
 
             Card(
                 modifier = Modifier
@@ -248,6 +247,7 @@ fun History() {
                     defaultElevation = 4.dp
                 )
             ) {
+
                 Column (
                     modifier = Modifier
                         .fillMaxWidth()
@@ -397,6 +397,7 @@ fun History() {
 
                     HorizontalDivider(thickness = 0.5.dp)
 
+
                     Text(
                         text = "ข้อมูลการชำระเงิน",
                         fontWeight = FontWeight.Bold,
@@ -524,6 +525,7 @@ fun History() {
                     Button(
                         onClick = {
                             selectedBooking = booking.bookingId
+                            selectedTotalPrice = totalPrice
                             paymentAlert = true
                         },
                         shape = RoundedCornerShape(10.dp),
@@ -569,7 +571,7 @@ fun History() {
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = "ยอดชำระ $totalPrice บาท",
+                        text = "ยอดชำระ $selectedTotalPrice บาท",
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary

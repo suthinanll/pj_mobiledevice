@@ -40,6 +40,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDatePickerState
@@ -61,6 +62,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -85,6 +87,8 @@ fun BookingDetail(bookingId: Int) {
     var showExtendDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
     var refreshTrigger by remember { mutableStateOf(false) } // refresh ข้อมูลหลังจากกด checkout, extend
+
+
 
     LaunchedEffect(bookingId, refreshTrigger) {
         isLoading = true
@@ -289,27 +293,19 @@ fun BookingDetail(bookingId: Int) {
 
                     // Action Buttons for status 1 (checked in)
                     AnimatedVisibility(visible = bookingData.status == 1) {
+                        val isTodayCheckout = try {
+                            val checkoutDate = LocalDate.parse(bookingData.checkOut.split("T")[0])
+                            checkoutDate == LocalDate.now()
+                        } catch (e: Exception) {
+                            false
+                        }
+
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 16.dp)
                         ) {
-                            Button(
-                                onClick = { showCheckoutDialog = true },
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = checkoutColor
-                                ),
-                                shape = RoundedCornerShape(10.dp)
-                            ) {
-                                Icon(
-                                    Icons.AutoMirrored.Filled.ExitToApp,
-                                    contentDescription = null,
-                                    modifier = Modifier.padding(end = 8.dp)
-                                )
-                                Text("เช็คเอาท์", fontWeight = FontWeight.Bold)
-                            }
-                            Spacer(modifier = Modifier.height(8.dp))
+
                             Button(
                                 onClick = { showExtendDialog = true },
                                 modifier = Modifier.fillMaxWidth(),
@@ -324,6 +320,26 @@ fun BookingDetail(bookingId: Int) {
                                     modifier = Modifier.padding(end = 8.dp)
                                 )
                                 Text("ขยายเวลา", fontWeight = FontWeight.Bold)
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Button(
+                                onClick = { showCheckoutDialog = true },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = checkoutColor
+                                ),
+                                shape = RoundedCornerShape(10.dp)
+                            ) {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ExitToApp,
+                                    contentDescription = null,
+                                    modifier = Modifier.padding(end = 8.dp)
+                                )
+                                if (isTodayCheckout) {
+                                    Text("เช็คเอาท์", fontWeight = FontWeight.Bold)
+                                } else {
+                                    Text("เช็คเอาท์ก่อนกำหนด", fontWeight = FontWeight.Bold)
+                                }
                             }
                         }
                     }
@@ -573,7 +589,8 @@ fun CheckoutConfirmationDialog(
         titleContentColor = primaryColor,
         textContentColor = Color.Black.copy(alpha = 0.7f),
         title = { Text("ยืนยันการเช็คเอาท์", fontWeight = FontWeight.Bold) },
-        text = { Text("คุณต้องการเช็คเอาท์การจองนี้ใช่หรือไม่?") },
+        text = {
+            Text("คุณต้องการเช็คเอาท์การจองนี้ใช่หรือไม่?") },
         confirmButton = {
             Button(
                 onClick = onConfirm,
@@ -710,8 +727,16 @@ fun ExtendStayDialog(
     if (showDatePicker) {
         // Convert LocalDateTime to millis for DatePicker
         val initialSelectedDateMillis = selectedDate.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        val currentCheckoutDateMillis = currentCheckOutDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = initialSelectedDateMillis
+            initialSelectedDateMillis = initialSelectedDateMillis,
+            selectableDates = object : SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                    // Only allow dates after current checkout date
+                    return utcTimeMillis >= currentCheckoutDateMillis
+                }
+            }
         )
 
         DatePickerDialog(

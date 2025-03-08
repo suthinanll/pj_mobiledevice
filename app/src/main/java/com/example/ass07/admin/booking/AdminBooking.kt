@@ -54,8 +54,10 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.text.SimpleDateFormat
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
+import java.time.temporal.TemporalAdjusters
 import java.util.Locale
 import java.util.TimeZone
 
@@ -73,11 +75,11 @@ private val dividerColor = Color(0xFFEEE0D0)
 fun Booking(navController: NavController) {
     var searchQuery by remember { mutableStateOf("") }
     var selectedStatus by remember { mutableStateOf("ทั้งหมด") }
+    var selectedCheckoutFilter by remember { mutableStateOf("ทั้งหมด") }
     var bookingList by remember { mutableStateOf<List<Booking>>(emptyList()) }
 
     val context = LocalContext.current
     val bookingService = BookingAPI.create()
-
 
     LaunchedEffect(Unit) {
         fetchBookings(bookingService) { bookings ->
@@ -86,21 +88,51 @@ fun Booking(navController: NavController) {
         }
     }
 
-    val statusValue = when (selectedStatus) {
-        "ยังไม่เช็คอิน" -> "0"
-        "เช็คอินแล้ว" -> "1"
-        "เช็คเอาท์แล้ว" -> "2"
-        "ยกเลิก" -> "3"
-        else -> "ทั้งหมด"
+    val filteredBookings = bookingList.filter { booking ->
+        // Filter by status
+        val statusMatch = when (selectedStatus) {
+            "ทั้งหมด" -> true
+            "ยังไม่เช็คอิน" -> booking.status?.toString() == "0"
+            "เช็คอินแล้ว" -> booking.status?.toString() == "1"
+            "เช็คเอาท์แล้ว" -> booking.status?.toString() == "2"
+            "ยกเลิก" -> booking.status?.toString() == "3"
+            else -> false
+        }
+
+        // Filter by search query
+        val searchMatch = searchQuery.isEmpty() ||
+                booking.petName?.contains(searchQuery, ignoreCase = true) == true ||
+                booking.name?.contains(searchQuery, ignoreCase = true) == true ||
+                booking.roomType?.contains(searchQuery, ignoreCase = true) == true ||
+                booking.bookingId?.toString()?.contains(searchQuery) == true
+
+        // Filter by checkout date
+        val checkoutMatch = when (selectedCheckoutFilter) {
+            "ทั้งหมด" -> true
+            "ออกเร็วๆนี้ (2 วัน)" -> {
+                // เฉพาะ booking ที่เช็คอินแล้วเท่านั้น
+                if (booking.status?.toString() == "1") isCheckoutWithinDays(booking.checkOut, 2) else false
+            }
+            "ออกในอาทิตย์นี้" -> {
+                if (booking.status?.toString() == "1") isCheckoutWithinDays(booking.checkOut, 7) else false
+            }
+            "ออกในสัปดาห์หน้า" -> {
+                if (booking.status?.toString() == "1") isCheckoutWithinDays(booking.checkOut, 14) else false
+            }
+            "ออกในเดือนนี้" -> {
+                if (booking.status?.toString() == "1") isCheckoutWithinDays(booking.checkOut, 30) else false
+            }
+            else -> true
+        }
+
+
+        // Combine all filters
+        statusMatch && searchMatch && checkoutMatch
+    }
+    bookingList.forEach { booking ->
+        Log.d("BookingStatus", "Booking ID: ${booking.bookingId}, Status: ${booking.status}\n")
     }
 
-    val filteredBookings = bookingList.filter {
-        (statusValue == "ทั้งหมด" || it.status?.toString() == statusValue) &&
-                (it.petName?.contains(searchQuery, ignoreCase = true) == true ||
-                        it.name?.contains(searchQuery, ignoreCase = true) == true ||
-                        it.roomType?.contains(searchQuery, ignoreCase = true) == true ||
-                        it.bookingId?.toString()?.contains(searchQuery) == true)
-    }
 
     Column(
         modifier = Modifier
@@ -117,7 +149,6 @@ fun Booking(navController: NavController) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Search field with rounded corners
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
@@ -153,10 +184,17 @@ fun Booking(navController: NavController) {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Status dropdown with improved styling
-        StatusDropdown(selectedStatus) { newStatus ->
-            selectedStatus = newStatus
-        }
+        // Updated Status Dropdown
+        StatusDropdown(
+            selectedStatus = selectedStatus,
+            selectedCheckoutFilter = selectedCheckoutFilter,
+            onStatusSelected = { newStatus ->
+                selectedStatus = newStatus
+            },
+            onCheckoutFilterSelected = { newFilter ->
+                selectedCheckoutFilter = newFilter
+            }
+        )
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -181,8 +219,47 @@ fun Booking(navController: NavController) {
     }
 }
 
+// เช็ควันที่ checkout
+fun isCheckoutWithinDays(checkOutStr: String?, days: Long): Boolean {
+    return try {
+        val checkOutDate = LocalDate.parse(checkOutStr?.split("T")?.get(0))
+        val today = LocalDate.now()
+        val startOfWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+        val endOfWeek = startOfWeek.plusDays(6)
+
+        when (days) {
+            2L -> { // ออกเร็วๆนี้ (2 วัน)
+                val twoDaysFromNow = today.plusDays(2)
+                checkOutDate in today..twoDaysFromNow
+            }
+            7L -> { // ออกในอาทิตย์นี้
+                checkOutDate in startOfWeek..endOfWeek
+            }
+            14L -> { // ออกในสัปดาห์หน้า
+                val nextWeekStart = endOfWeek.plusDays(1)
+                val nextWeekEnd = nextWeekStart.plusDays(6)
+                checkOutDate in nextWeekStart..nextWeekEnd
+            }
+            30L -> { // ออกในเดือนนี้
+                val startOfMonth = today.withDayOfMonth(1)
+                val endOfMonth = today.withDayOfMonth(today.lengthOfMonth())
+                checkOutDate in startOfMonth..endOfMonth
+            }
+            else -> true
+        }
+    } catch (e: Exception) {
+        false
+    }
+}
+
+
 @Composable
-fun StatusDropdown(selectedStatus: String, onStatusSelected: (String) -> Unit) {
+fun StatusDropdown(
+    selectedStatus: String,
+    selectedCheckoutFilter: String,
+    onStatusSelected: (String) -> Unit,
+    onCheckoutFilterSelected: (String) -> Unit
+) {
     val statusOptions = listOf(
         "ทั้งหมด",
         "ยังไม่เช็คอิน",
@@ -190,55 +267,127 @@ fun StatusDropdown(selectedStatus: String, onStatusSelected: (String) -> Unit) {
         "เช็คเอาท์แล้ว",
         "ยกเลิก"
     )
-    var expanded by remember { mutableStateOf(false) }
 
-    Box(modifier = Modifier.fillMaxWidth()) {
-        OutlinedButton(
-            onClick = { expanded = true },
-            modifier = Modifier.align(Alignment.CenterEnd),
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.outlinedButtonColors(
-                contentColor = primaryColor,
-                containerColor = cardBackground
-            )
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
+    val checkoutFilterOptions = listOf(
+        "ทั้งหมด",
+        "ออกเร็วๆนี้ (2 วัน)",
+        "ออกในอาทิตย์นี้",
+        "ออกในสัปดาห์หน้า",
+        "ออกในเดือนนี้"
+    )
+
+    var expandedStatus by remember { mutableStateOf(false) }
+    var expandedCheckout by remember { mutableStateOf(false) }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Status Dropdown
+        Box(modifier = Modifier.weight(1f)) {
+            OutlinedButton(
+                onClick = { expandedStatus = true },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = primaryColor,
+                    containerColor = cardBackground
+                )
             ) {
-                Text(
-                    "สถานะ: $selectedStatus",
-                    fontSize = 14.sp
-                )
-                Icon(
-                    Icons.Outlined.KeyboardArrowDown,
-                    contentDescription = "Dropdown Arrow"
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "สถานะ: $selectedStatus",
+                        fontSize = 14.sp
+                    )
+                    Icon(
+                        Icons.Outlined.KeyboardArrowDown,
+                        contentDescription = "Dropdown Arrow"
+                    )
+                }
+            }
+
+            DropdownMenu(
+                expanded = expandedStatus,
+                onDismissRequest = { expandedStatus = false },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(cardBackground)
+            ) {
+                statusOptions.forEach { status ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                status,
+                                fontSize = 14.sp
+                            )
+                        },
+                        onClick = {
+                            onStatusSelected(status)
+                            expandedStatus = false
+                        }
+                    )
+
+                    if (status != statusOptions.last()) {
+                        Divider(color = dividerColor, thickness = 0.5.dp)
+                    }
+                }
             }
         }
 
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(cardBackground)
-        ) {
-            statusOptions.forEach { status ->
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            status,
-                            fontSize = 14.sp
-                        )
-                    },
-                    onClick = {
-                        onStatusSelected(status)
-                        expanded = false
-                    }
-                )
+        Spacer(modifier = Modifier.width(8.dp))
 
-                if (status != statusOptions.last()) {
-                    Divider(color = dividerColor, thickness = 0.5.dp)
+        // Checkout Filter Dropdown
+        Box(modifier = Modifier.weight(1f)) {
+            OutlinedButton(
+                onClick = { expandedCheckout = true },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = primaryColor,
+                    containerColor = cardBackground
+                )
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "ใกล้เช็คเอาท์: $selectedCheckoutFilter",
+                        fontSize = 14.sp
+                    )
+                    Icon(
+                        Icons.Outlined.KeyboardArrowDown,
+                        contentDescription = "Dropdown Arrow"
+                    )
+                }
+            }
+
+            DropdownMenu(
+                expanded = expandedCheckout,
+                onDismissRequest = { expandedCheckout = false },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(cardBackground)
+            ) {
+                checkoutFilterOptions.forEach { filter ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                filter,
+                                fontSize = 14.sp
+                            )
+                        },
+                        onClick = {
+                            onCheckoutFilterSelected(filter)
+                            expandedCheckout = false
+                        }
+                    )
+
+                    if (filter != checkoutFilterOptions.last()) {
+                        Divider(color = dividerColor, thickness = 0.5.dp)
+                    }
                 }
             }
         }
