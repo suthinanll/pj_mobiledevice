@@ -209,16 +209,25 @@ fun Mypetinsert(navController: NavHostController) {
 
                 OutlinedTextField(
                     value = textFieldPetAge,
-                    onValueChange = { textFieldPetAge = it },
+                    onValueChange = { newValue ->
+
+                        if (newValue.isEmpty() || newValue.toIntOrNull()?.let { it >= 0 } == true) {
+                            textFieldPetAge = newValue
+                        }
+                    },
                     label = { Text("อายุ") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-
                 OutlinedTextField(
                     value = textFieldPetWeight,
-                    onValueChange = { textFieldPetWeight = it },
+                    onValueChange = { newValue ->
+
+                        if (newValue.isEmpty() || newValue.toDoubleOrNull()?.let { it >= 0 } == true) {
+                            textFieldPetWeight = newValue
+                        }
+                    },
                     label = { Text("น้ำหนัก") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.fillMaxWidth()
