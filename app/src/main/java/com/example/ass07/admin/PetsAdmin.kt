@@ -18,13 +18,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -59,6 +62,38 @@ fun PetsAdmin(navController: NavHostController){
     var petType = remember { mutableStateListOf<PetType>() }
     var selectedPetType by remember { mutableStateOf<PetType?>(null) } // สถานะการเลือกประเภทสัตว์เลี้ยง
     var expanded by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
+
+//    fun getdata() {
+//        val createClient = PetApi.create()
+//        createClient.allpet()
+//            .enqueue(object : Callback<List<petMember>> {
+//                override fun onResponse(
+//                    call: Call<List<petMember>>, response: Response<List<petMember>>
+//                ) {
+//                    petItemsList.clear()
+//
+//                    if (response.isSuccessful) {
+//                        val pets = response.body()
+//                        pets?.let {
+//                            val filteredPets = it.filter { pet -> pet.deleted_at.isNullOrEmpty() }
+//                            val filteredByPetType = if (selectedPetType != null) {
+//                                filteredPets.filter { pet -> pet.petTypename == selectedPetType?.Pet_name_type }
+//                            } else {
+//                                filteredPets
+//                            }
+//                            petItemsList.addAll(filteredByPetType)
+//                        }
+//                    } else {
+//                        Log.e("API_ERROR", "Response failed: ${response.errorBody()?.string()}")
+//                    }
+//                }
+//
+//                override fun onFailure(call: Call<List<petMember>>, t: Throwable) {
+//                    Toast.makeText(contextForToast, "Error: ${t.message}", Toast.LENGTH_LONG).show()
+//                }
+//            })
+//    }
 
     fun getdata() {
         val createClient = PetApi.create()
@@ -73,12 +108,24 @@ fun PetsAdmin(navController: NavHostController){
                         val pets = response.body()
                         pets?.let {
                             val filteredPets = it.filter { pet -> pet.deleted_at.isNullOrEmpty() }
+
                             val filteredByPetType = if (selectedPetType != null) {
                                 filteredPets.filter { pet -> pet.petTypename == selectedPetType?.Pet_name_type }
                             } else {
                                 filteredPets
                             }
-                            petItemsList.addAll(filteredByPetType)
+
+                            // ✅ เพิ่มการค้นหาด้วยชื่อหรือ ID
+                            val filteredBySearch = if (searchQuery.isNotEmpty()) {
+                                filteredByPetType.filter { pet ->
+                                    pet.petName.contains(searchQuery, ignoreCase = true) ||
+                                            pet.petID.toString() == searchQuery
+                                }
+                            } else {
+                                filteredByPetType
+                            }
+
+                            petItemsList.addAll(filteredBySearch)
                         }
                     } else {
                         Log.e("API_ERROR", "Response failed: ${response.errorBody()?.string()}")
@@ -90,6 +137,7 @@ fun PetsAdmin(navController: NavHostController){
                 }
             })
     }
+
 
     fun getPetTypes() {
         val createClient = PetApi.create()
@@ -157,6 +205,23 @@ fun PetsAdmin(navController: NavHostController){
             fontSize = 24.sp, fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(16.dp)
         )
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
+            label = { Text("🔍 ค้นหาด้วยชื่อหรือ ID") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            singleLine = true,
+            trailingIcon = {
+                IconButton(onClick = { getdata() }) {
+                    Icon(imageVector = Icons.Default.Search, contentDescription = "ค้นหา")
+                }
+            }
+        )
+
+
+
 
         Box(
             modifier = Modifier.fillMaxWidth()
@@ -244,6 +309,7 @@ fun PetCard2(pet: petMember, onDelete: () -> Unit, navController: NavHostControl
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
         Column(modifier = Modifier.padding(25.dp)) {
+            Text("🔑 ID: ${pet.petID}", fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Text("🐾 ชื่อสัตว์เลี้ยง: ${pet.petName}", fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Text("ประเภท: ${pet.petTypename}", fontSize = 16.sp)
             Text(
