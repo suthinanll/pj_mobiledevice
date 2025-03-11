@@ -135,8 +135,11 @@ fun AddAdmin(navController: NavHostController) {
                 OutlinedTextField(
                     value = tell_number,
                     onValueChange = {
-                        tell_number = it
-                        isButtonEnabled = username.isNotEmpty() && password.isNotEmpty()
+                        // ตรวจสอบความยาวของตัวอักษรใน tell_number ถ้าเกิน 10 ตัวจะไม่ให้เปลี่ยนค่า
+                        if (it.length <= 10) {
+                            tell_number = it
+                            isButtonEnabled = username.isNotEmpty() && password.isNotEmpty()
+                        }
                     },
                     label = { Text("Phone number") },
                     leadingIcon = {
