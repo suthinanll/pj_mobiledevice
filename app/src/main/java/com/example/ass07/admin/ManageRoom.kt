@@ -11,7 +11,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -38,8 +37,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -61,21 +58,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.ass07.R
-import com.example.ass07.admin.Room
-import com.example.ass07.admin.RoomAPI
-import com.example.ass07.admin.RoomGroupInfo
-import com.example.ass07.admin.RoomType
-import com.example.ass07.admin.ScreenAdmin
+import com.example.ass07.admin.RoomStatus.RoomFilter
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import com.example.ass07.admin.RoomStatus.RoomFilter
-
-
 
 
 @Composable
@@ -665,6 +654,15 @@ fun RoomCard(room: Room,navController: NavController) {
 
             // Room details (รายละเอียดห้อง)
             Column(modifier = Modifier.weight(1f)) {
+
+                Text(
+                    text = "ห้องหมายเลข #"+room.room_id.toString(), // หมายเลขห้อง
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color(0xFF1F2937) // สีเทาเข้ม
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
                 Text(
                     text = room.room_type, // ชื่อห้อง
                     style = MaterialTheme.typography.titleMedium,

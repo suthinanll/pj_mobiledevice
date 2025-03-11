@@ -173,7 +173,7 @@ fun BookingDetail(bookingId: Int) {
                         title = "ข้อมูลเจ้าของ",
                         content = {
                             DetailRow("ชื่อ", bookingData.name)
-                            DetailRow("เบอร์โทร", bookingData.tellNumber)
+                            DetailRow("เบอร์โทรศัพท์", bookingData.tellNumber)
                             DetailRow("อีเมล", bookingData.email)
                         }
                     )
@@ -187,8 +187,11 @@ fun BookingDetail(bookingId: Int) {
                         content = {
                             DetailRow("ชื่อ", bookingData.petName)
                             DetailRow("ประเภท", bookingData.petNameType)
+                            DetailRow("เพศ", if (bookingData.petGender == "M") "เพศผู้" else if (bookingData.petGender == "F") "เพศเมีย" else "ไม่ระบุ")
                             DetailRow("สายพันธุ์", bookingData.petBreed)
                             DetailRow("อายุ", "${bookingData.petAge} ปี")
+                            DetailRow("น้ำหนัก", "${bookingData.petWeight} กิโลกรัม")
+                            DetailRow("คำแนะนำ/อธิบายเพิ่มเติม","${bookingData.additionalInfo}")
                         }
                     )
 
@@ -199,10 +202,11 @@ fun BookingDetail(bookingId: Int) {
                         icon = Icons.Filled.Home,
                         title = "รายละเอียดการเข้าพัก",
                         content = {
+                            DetailRow("หมายเลขห้อง","#"+bookingData.roomId.toString())
                             DetailRow("ประเภทห้อง", bookingData.roomType)
                             DetailRow("วันที่เช็คอิน", formatDateTime(bookingData.checkIn)+" น.")
                             DetailRow("วันที่เช็คเอาท์", formatDateTime(bookingData.checkOut)+" น." )
-                            DetailRow("จำนวนวัน", "$totalDays วัน")
+                            DetailRow("จำนวนวันที่เข้าพัก", "$totalDays วัน")
                         }
                     )
 
