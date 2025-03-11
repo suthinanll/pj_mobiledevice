@@ -1,20 +1,25 @@
 package com.example.ass07.customer
 
 import android.os.Parcelable
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -96,7 +101,7 @@ fun HotelBookingScreen(
             }
         }
 
-        HotelDetailSection(room?.name_type ?: "", room?.price_per_day.toString() ?: "0")
+        HotelDetailSection(room?.name_type ?: "", room?.price_per_day.toString() ?: "0", room?.room_id.toString() ?: "")
 //        BookingButton(navController, room?.room_id.toString() ?: "", room?.name_type.toString() ?: "",
 //            formattedCheckIn, formattedCheckOut, petTypeName, room?.price_per_day.toString() ?: "0")
 
@@ -174,7 +179,7 @@ fun HotelImageSection(roomImage: Int) {
 }
 
 @Composable
-fun HotelDetailSection(roomType: String, price: String) {
+fun HotelDetailSection(roomType: String, price: String, roomId: String) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -188,7 +193,7 @@ fun HotelDetailSection(roomType: String, price: String) {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column {
-                    Text(text = roomType, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                    Text(text = "${roomType} ID ${roomId}", fontWeight = FontWeight.Bold, fontSize = 20.sp)
                 }
                 Column {
                     Text(

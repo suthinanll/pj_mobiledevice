@@ -33,7 +33,6 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.ass07.R
 import com.example.ass07.admin.Room
 import com.example.ass07.customer.API.SearchApi
-import com.example.ass07.customer.Screen
 import com.example.ass07.customer.convertDateToMonthName
 import retrofit2.Call
 import retrofit2.Callback
@@ -52,6 +51,7 @@ fun SearchDetail(navController : NavHostController){
     var availableRooms by remember { mutableStateOf<List<Room>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf("") }
+    Log.e("check_in",checkin.toString())
 
         // ดึงชื่อสัตว์จากหมายเลข
         val petType = when (pet) {
