@@ -34,6 +34,11 @@ app.post("/insertAccount", async function (req, res) {
     let password = post.password
     let user_type = post.user_type
 
+    // Check if tell_number is exactly 10 digits
+    if (!tell_number || tell_number.length !== 10 || !/^\d{10}$/.test(tell_number)) {
+        return res.status(400).send({ error: true, message: 'Phone number must be exactly 10 digits' })
+    }
+
     const salt = await bcrypt.genSalt(10)
     let password_hash = await bcrypt.hash(password, salt)
 
@@ -1063,12 +1068,10 @@ app.get('/availableRooms', function (req, res) {
     const checkOut = req.query.check_out;
     const petTypeId = req.query.pet_type_id;
 
-    console.log("Check-in in avalibaleRoom :", checkIn, "Check-out:", checkOut, "Pet Type ID:", petTypeId);
-
-    if (!checkIn || !checkOut) {
+    if (!checkIn || !checkOut || !petTypeId) {
         return res.status(400).send({
             error: true,
-            message: "กรุณาระบุวันเช็คอินและเช็คเอาท์"
+            message: "กรุณาระบุวันเช็คอิน, เช็คเอาท์ และประเภทสัตว์เลี้ยง"
         });
     }
 
@@ -1085,44 +1088,34 @@ app.get('/availableRooms', function (req, res) {
             pt.pet_type_id,
             pt.pet_name_type AS pet_type,
             COUNT(r.room_id) AS available
-        FROM 
-            rooms r
-        JOIN 
-            room_type rt ON r.type_type_id = rt.type_id
-        JOIN 
-            pet_type pt ON rt.pet_type = pt.pet_type_id
-        WHERE 
-            r.status IN (1, 2)  -- 1 = ว่าง, 2 = จอง
+        FROM rooms r
+        JOIN room_type rt ON r.type_type_id = rt.type_id
+        JOIN pet_type pt ON rt.pet_type = pt.pet_type_id
+        WHERE r.status IN (1, 0)
             AND r.deleted_at IS NULL
             AND rt.deleted_at IS NULL
+            AND pt.pet_type_id = ?
             AND r.room_id NOT IN (
-                SELECT 
-                    b.room_id 
-                FROM 
-                    bookings b 
-                WHERE 
-                    b.deleted_at IS NULL
-                    AND b.booking_status NOT IN (2, 3)  -- ไม่เช็คเอาท์หรือยกเลิก
+                SELECT room_id 
+                FROM bookings 
+                WHERE booking_status NOT IN (1 ,2)
+                    AND deleted_at IS NULL
                     AND (
-                        (b.check_in <= ? AND b.check_out >= ?)  -- เช็คอินก่อนหรือวันเดียวกันกับที่ต้องการเช็คเอาท์
-                        OR (b.check_in >= ? AND b.check_out < ?)  -- เช็คอินในช่วงที่ต้องการจอง
+                        (check_in <= ? AND check_out >= ?)
+                        OR (check_in >= ? AND check_in < ?)
                     )
             )
+        GROUP BY r.type_type_id, rt.type_id, rt.name_type, rt.price_per_day, rt.image, pt.pet_type_id, pt.pet_name_type
     `;
 
-    // พารามิเตอร์สำหรับ query using formatted dates
-    let params = [formattedCheckOut, formattedCheckIn, formattedCheckIn, formattedCheckOut];
+    let params = [petTypeId, formattedCheckOut, formattedCheckIn, formattedCheckIn, formattedCheckOut];
 
-    console.log("Check-in in avalibaleRoom :", formattedCheckIn, "Check-out:", formattedCheckOut, "Pet Type ID:", petTypeId);
-    // เพิ่มเงื่อนไขกรองตามประเภทสัตว์เลี้ยง (ถ้ามี)
-    if (petTypeId) {
-        query += " AND pt.pet_type_id = ?";
-        params.push(petTypeId);
-    }
+    console.log("Query parameters:", {
+        checkIn: formattedCheckIn,
+        checkOut: formattedCheckOut,
+        petTypeId: petTypeId
+    });
 
-    query += " GROUP BY rt.type_id, rt.name_type, rt.price_per_day, rt.image, pt.pet_type_id, pt.pet_name_type";
-
-    // ทำการค้นหาข้อมูล
     dbConn.query(query, params, function (error, results) {
         if (error) {
             console.error("Database Error:", error);
@@ -1133,10 +1126,8 @@ app.get('/availableRooms', function (req, res) {
             });
         }
 
-        // แปลงรูปแบบ URL ของรูปภาพให้เป็น absolute URL
         const baseUrl = `${req.protocol}://${req.get('host')}`;
         results = results.map(room => {
-            // ถ้ามีรูปภาพและไม่ใช่ URL เต็มรูปแบบ ให้เพิ่ม baseUrl
             if (room.image && !room.image.startsWith('http')) {
                 room.image = `${baseUrl}${room.image.startsWith('/') ? '' : '/'}${room.image}`;
             }
@@ -1146,97 +1137,14 @@ app.get('/availableRooms', function (req, res) {
         return res.json({
             error: false,
             message: "ค้นหาห้องว่างสำเร็จ",
-            check_in: formattedCheckIn,
-            check_out: formattedCheckOut,
+            check_in: checkIn,
+            check_out: checkOut,
             available_rooms: results
         });
     });
 });
 
 
-
-// app.get("/availableRooms/:type_type_id", function (req, res) {
-//     const roomTypeId = req.params.type_type_id;
-//     const checkIn = req.query.check_in;
-//     const checkOut = req.query.check_out;
-
-//     console.log("Check-in:", checkIn, "Check-out:", checkOut, "Room Type ID:", roomTypeId);
-
-//     if (!checkIn || !checkOut) {
-//         return res.status(400).send({
-//             error: true,
-//             message: "กรุณาระบุวันเช็คอินและเช็คเอาท์"
-//         });
-//     }
-
-//     let query = `
-
-//  SELECT
-//             r.room_id,
-//             rt.name_type,
-//             rt.price_per_day,
-//             rt.image,
-//             pt.pet_type_id,
-//             pt.pet_name_type AS pet_type,
-//             COUNT(r.room_id) AS available_rooms
-//         FROM
-
-//             rooms r
-//         JOIN
-//             room_type rt ON r.type_type_id = rt.type_id
-//         JOIN
-//             pet_type pt ON rt.pet_type = pt.pet_type_id
-//         WHERE
-//             r.status = 1
-//             AND r.deleted_at IS NULL
-//             AND rt.deleted_at IS NULL
-//             AND r.type_type_id = ?
-//             AND r.room_id NOT IN (
-//                 SELECT
-//                     b.room_id
-//                 FROM
-//                     bookings b
-//                 WHERE
-//                     b.deleted_at IS NULL
-//                     AND b.booking_status NOT IN (2, 3)
-//                     AND (
-//                         (b.check_in <= ? AND b.check_out >= ?)
-//                         OR (b.check_in >= ? AND b.check_in < ?)
-//                     )
-//             )
-//         GROUP BY
-//             r.room_id, rt.name_type, rt.price_per_day, rt.image, pt.pet_type_id, pt.pet_name_type
-//     `;
-//     let params = [roomTypeId, checkOut, checkIn, checkIn, checkOut];
-
-//     dbConn.query(query, params, function (error, results) {
-//         if (error) {
-//             console.error("Database Error:", error);
-//             return res.status(500).send({
-//                 error: true,
-//                 message: "เกิดข้อผิดพลาดในการค้นหาห้องว่าง",
-//                 details: error
-//             });
-//         }
-
-//         const baseUrl = `${req.protocol}://${req.get('host')}`;
-//         results = results.map(room => {
-//             if (room.image && !room.image.startsWith('http')) {
-//                 room.image = `${baseUrl}${room.image.startsWith('/') ? '' : '/'}${room.image}`;
-//             }
-//             return room;
-//         });
-
-
-//         return res.json({
-//             error: false,
-//             message: "ค้นหาห้องว่างสำเร็จ",
-//             check_in: checkIn,
-//             check_out: checkOut,
-//             available_rooms: results
-//         });
-//     });
-// });
 app.get("/availableRooms/:type_type_id", function (req, res) {
     const roomTypeId = req.params.type_type_id;
     const checkIn = req.query.check_in;
@@ -1245,9 +1153,8 @@ app.get("/availableRooms/:type_type_id", function (req, res) {
     const formattedCheckIn = formatDate(checkIn);
     const formattedCheckOut = formatDate(checkOut);
 
-    console.log("Check-in in type_type_id :", checkIn, "Check-out:", checkOut, "Room Type ID:", roomTypeId);
+    console.log("check-in", formattedCheckIn, "check-out", formattedCheckOut, "Room Type ID:", roomTypeId);
 
-    // ตรวจสอบว่ามี Check-in และ Check-out หรือไม่
     if (!checkIn || !checkOut) {
         return res.status(400).send({
             error: true,
@@ -1255,9 +1162,8 @@ app.get("/availableRooms/:type_type_id", function (req, res) {
         });
     }
 
-    // SQL Query ที่ปรับปรุงให้ใช้ LEFT JOIN แทน NOT IN
     let query = `
-        SELECT
+        SELECT 
             r.room_id,
             rt.name_type,
             rt.price_per_day,
@@ -1265,31 +1171,27 @@ app.get("/availableRooms/:type_type_id", function (req, res) {
             pt.pet_type_id,
             pt.pet_name_type AS pet_type,
             COUNT(DISTINCT r.room_id) AS available_rooms
-        FROM
-            rooms r
-        JOIN
-            room_type rt ON r.type_type_id = rt.type_id
-        JOIN
-            pet_type pt ON rt.pet_type = pt.pet_type_id
-        LEFT JOIN
-            bookings b ON r.room_id = b.room_id
-            AND b.deleted_at IS NULL
-            AND b.booking_status NOT IN (2, 3)
-            AND (
-                (b.check_in <= ? AND b.check_out >= ?)  -- การจองที่อยู่ในช่วงเวลาที่ระบุ
-                OR (b.check_in >= ? AND b.check_in < ?) -- การจองที่เริ่มในช่วงเวลาที่ระบุ
-            )
-        WHERE
-            r.status IN (1, 2)  -- สถานะห้องที่เปิดให้จอง
-            AND r.deleted_at IS NULL
-            AND rt.deleted_at IS NULL
-            AND r.type_type_id = ?
-            AND b.room_id IS NULL  -- ห้องที่ไม่มีการจองที่ทับซ้อนกัน
-        GROUP BY
-            r.room_id, rt.name_type, rt.price_per_day, rt.image, pt.pet_type_id, pt.pet_name_type
+        FROM rooms r
+        JOIN room_type rt ON r.type_type_id = rt.type_id
+        JOIN pet_type pt ON rt.pet_type = pt.pet_type_id
+        WHERE r.status IN (1, 0)
+          AND r.deleted_at IS NULL
+          AND rt.deleted_at IS NULL
+          AND r.type_type_id = ?
+          AND r.room_id NOT IN (
+                SELECT room_id 
+                FROM bookings 
+                WHERE booking_status NOT IN (1, 2)
+                  AND deleted_at IS NULL
+                  AND (
+                    (check_in <= ? AND check_out >= ?)
+                    OR (check_in >= ? AND check_in < ?)
+                  )
+          )
+        GROUP BY r.room_id, rt.name_type, rt.price_per_day, rt.image, pt.pet_type_id, pt.pet_name_type
     `;
 
-    let params = [formattedCheckOut, formattedCheckIn, formattedCheckIn, formattedCheckOut, roomTypeId];
+    let params = [roomTypeId, formattedCheckOut, formattedCheckIn, formattedCheckIn, formattedCheckOut];
 
     dbConn.query(query, params, function (error, results) {
         if (error) {
@@ -1301,7 +1203,6 @@ app.get("/availableRooms/:type_type_id", function (req, res) {
             });
         }
 
-        // ปรับ URL รูปภาพให้เป็นแบบเต็ม
         const baseUrl = `${req.protocol}://${req.get('host')}`;
         results = results.map(room => {
             if (room.image && !room.image.startsWith('http')) {
@@ -1309,7 +1210,6 @@ app.get("/availableRooms/:type_type_id", function (req, res) {
             }
             return room;
         });
-        console.log("Available Rooms:", results);
 
         return res.json({
             error: false,
