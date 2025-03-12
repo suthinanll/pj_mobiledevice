@@ -1,6 +1,7 @@
 package com.example.ass07.customer.Home
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -32,7 +33,9 @@ import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import com.example.ass07.R
 import com.example.ass07.admin.Room
+import com.example.ass07.customer.API.PetApi
 import com.example.ass07.customer.API.SearchApi
+import com.example.ass07.customer.Mypet.PetType
 import com.example.ass07.customer.Screen
 import com.example.ass07.customer.convertDateToMonthName
 import retrofit2.Call
@@ -54,16 +57,31 @@ fun Search(
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf("") }
 
+    var context = LocalContext.current
+    var petTypes by remember { mutableStateOf<List<PetType>>(emptyList()) }
+    val petApi = PetApi.create()
+// โหลดข้อมูลจาก API ใน LaunchedEffect
+    LaunchedEffect(Unit) {
+        petApi.getPetTypes().enqueue(object : Callback<List<PetType>> {
+            override fun onResponse(call: Call<List<PetType>>, response: Response<List<PetType>>) {
+                if (response.isSuccessful) {
+                    petTypes = response.body() ?: emptyList()
+                } else {
+                    Toast.makeText(context, "โหลดข้อมูลสัตว์เลี้ยงล้มเหลว", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: Call<List<PetType>>, t: Throwable) {
+                Toast.makeText(context, "เกิดข้อผิดพลาด: ${t.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
 
     Log.e("Data:","$pet $checkin $checkout")
 
     // ดึงชื่อสัตว์จากหมายเลข
-    val petType = when (pet) {
-        1 -> "สุนัข"
-        2 -> "แมว"
-        3 -> "นก"
-        else -> "ไม่ทราบ"
-    }
+// ค้นหาชื่อประเภทสัตว์เลี้ยงจาก API โดยใช้ pet_type_id
+    val petType = petTypes.firstOrNull { it.Pet_type_id == pet }?.Pet_name_type ?: "ไม่ทราบ"
 
     LaunchedEffect(key1 = pet, key2 = checkin, key3 = checkout) {
         fetchAvailableRooms(checkin, checkout, pet) { rooms, error ->

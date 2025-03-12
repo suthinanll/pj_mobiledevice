@@ -2,6 +2,7 @@ package com.example.ass07.customer.Home
 
 import android.app.DatePickerDialog
 import android.icu.util.Calendar
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,6 +29,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +45,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.example.ass07.customer.API.PetApi
+import com.example.ass07.customer.Mypet.PetType
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.net.URLEncoder
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -54,6 +61,27 @@ fun Home(navController: NavHostController) {
     var selectedPet by remember { mutableStateOf("") }
     var checkInDate by remember { mutableStateOf("") }
     var checkOutDate by remember { mutableStateOf("") }
+    var context = LocalContext.current
+
+    var petTypes by remember { mutableStateOf<List<PetType>>(emptyList()) }
+    val petApi = PetApi.create()
+
+// โหลดข้อมูลจาก API ใน LaunchedEffect
+    LaunchedEffect(Unit) {
+        petApi.getPetTypes().enqueue(object : Callback<List<PetType>> {
+            override fun onResponse(call: Call<List<PetType>>, response: Response<List<PetType>>) {
+                if (response.isSuccessful) {
+                    petTypes = response.body() ?: emptyList()
+                } else {
+                    Toast.makeText(context, "โหลดข้อมูลสัตว์เลี้ยงล้มเหลว", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: Call<List<PetType>>, t: Throwable) {
+                Toast.makeText(context, "เกิดข้อผิดพลาด: ${t.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
 
     // เพิ่มการตรวจสอบข้อมูลครบถ้วน
     val isFormValid by remember(selectedPet, checkInDate, checkOutDate) {
@@ -172,18 +200,11 @@ fun Home(navController: NavHostController) {
                 Button(
                     onClick = {
                         if (isFormValid) {
-                            val petNumber = when (selectedPet) {
-                                "สุนัข" -> 1
-                                "แมว" -> 2
-                                "นก" -> 3
-                                else -> 0
-                            }
+                            val petId = petTypes.firstOrNull { it.Pet_name_type == selectedPet }?.Pet_type_id ?: 0
+                            val checkinFormatted = URLEncoder.encode(checkInDate, "UTF-8")
+                            val checkoutFormatted = URLEncoder.encode(checkOutDate, "UTF-8")
 
-                            if (isFormValid) {
-                                val checkinFormatted = URLEncoder.encode(checkInDate, "UTF-8")
-                                val checkoutFormatted = URLEncoder.encode(checkOutDate, "UTF-8")
-                                navController.navigate("search/${petNumber}/${checkinFormatted}/${checkoutFormatted}")
-                            }
+                            navController.navigate("search/${petId}/${checkinFormatted}/${checkoutFormatted}")
                         }
                     },
                     modifier = Modifier
@@ -227,11 +248,29 @@ fun PetDropdownMenu(
     onPetSelected: (String) -> Unit
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
-    val petsList = listOf("สุนัข", "แมว", "นก")
     var expanded by remember { mutableStateOf(false) }
+    var petTypes by remember { mutableStateOf<List<PetType>>(emptyList()) }
+    val context = LocalContext.current
+    val petApi = PetApi.create()
+
+    // ดึงข้อมูลประเภทสัตว์เลี้ยงจาก API
+    LaunchedEffect(Unit) {
+        petApi.getPetTypes().enqueue(object : Callback<List<PetType>> {
+            override fun onResponse(call: Call<List<PetType>>, response: Response<List<PetType>>) {
+                if (response.isSuccessful) {
+                    petTypes = response.body() ?: emptyList()
+                } else {
+                    Toast.makeText(context, "โหลดข้อมูลประเภทสัตว์เลี้ยงล้มเหลว", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: Call<List<PetType>>, t: Throwable) {
+                Toast.makeText(context, "เกิดข้อผิดพลาด: ${t.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
 
     ExposedDropdownMenuBox(
-        modifier = Modifier,
         expanded = expanded,
         onExpandedChange = {
             expanded = !expanded
@@ -239,16 +278,12 @@ fun PetDropdownMenu(
         }
     ) {
         OutlinedTextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .menuAnchor(),
+            modifier = Modifier.fillMaxWidth().menuAnchor(),
             shape = RoundedCornerShape(corner = CornerSize(10.dp)),
             readOnly = true,
             value = selectedPet,
             onValueChange = {},
-            trailingIcon = {
-                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-            },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             colors = ExposedDropdownMenuDefaults.textFieldColors(
                 focusedContainerColor = Color.White,
                 unfocusedContainerColor = Color.White
@@ -256,17 +291,14 @@ fun PetDropdownMenu(
         )
         ExposedDropdownMenu(
             expanded = expanded,
-            onDismissRequest = {
-                expanded = false
-            }
+            onDismissRequest = { expanded = false }
         ) {
-            petsList.forEach { selectionOption ->
+            petTypes.forEach { pet ->
                 DropdownMenuItem(
-                    modifier = Modifier
-                        .background(color = Color.White),
-                    text = { Text(selectionOption) },
+                    modifier = Modifier.background(color = Color.White),
+                    text = { Text(pet.Pet_name_type) },
                     onClick = {
-                        onPetSelected(selectionOption)
+                        onPetSelected(pet.Pet_name_type)
                         expanded = false
                     },
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
@@ -275,6 +307,7 @@ fun PetDropdownMenu(
         }
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

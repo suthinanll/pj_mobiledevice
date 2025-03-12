@@ -21,8 +21,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.AccountBox
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.ExitToApp
@@ -33,12 +36,16 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -278,6 +285,7 @@ fun AdminDashboard(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DashboardTab(
@@ -296,62 +304,58 @@ fun DashboardTab(
     val context = LocalContext.current
     val sharePreferences = remember { SharePreferencesManager(context) }
     var logoutAlert by remember { mutableStateOf(false) }
+    var showMenu by remember { mutableStateOf(false) }
     Scaffold(
-        bottomBar = {
-//            Button(
-//                onClick = {
-//                    navController.navigate(ScreenAdmin.AddAdmin.route)
-//                },
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .padding(16.dp),
-//                colors = ButtonDefaults.buttonColors(
-//                    containerColor = MaterialTheme.colorScheme.primaryContainer
-//                )
-//            ) {
-//                Text("เพิ่มแอดมิน", color = Color.White)
-//            }
-//            Button(
-//                onClick = { logoutAlert = true },
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .padding(16.dp),
-//                colors = ButtonDefaults.buttonColors(
-//                    containerColor = MaterialTheme.colorScheme.error
-//                )
-//            ) {
-//                Text("ออกจากระบบ", color = Color.White)
-//            }
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Button(
-                        onClick = {
-                            navController.navigate(ScreenAdmin.AddAdmin.route)
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 8.dp), // เพิ่มระยะห่างระหว่างปุ่ม
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        )
-                    ) {
-                        Text("เพิ่มแอดมิน", color = Color.White)
-                    }
-
-                    Button(
-                        onClick = { logoutAlert = true },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.error
-                        )
-                    ) {
-                        Text("ออกจากระบบ", color = Color.White)
+        topBar = {
+            TopAppBar(
+                title = { Text("ผู้ดูแลระบบ", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) },
+                actions = {
+                    Box {
+                        IconButton(onClick = { showMenu = true }) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = "More Options",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = { showMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("เพิ่มแอดมิน") },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.AccountCircle,
+                                        contentDescription = "Add Admin"
+                                    )
+                                },
+                                onClick = {
+                                    showMenu = false
+                                    navController?.navigate(ScreenAdmin.AddAdmin.route)
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("ออกจากระบบ", color = Color.Red) },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Logout,
+                                        contentDescription = "Logout",
+                                        tint = Color.Red
+                                    )
+                                },
+                                onClick = {
+                                    showMenu = false
+                                    logoutAlert = true
+                                }
+                            )
+                        }
                     }
                 }
-        }
+            )
+        },
+        bottomBar = { }
+
     ){paddingValues ->
         LazyColumn(
             modifier = Modifier

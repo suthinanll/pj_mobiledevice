@@ -1092,7 +1092,7 @@ app.get('/availableRooms', function (req, res) {
         JOIN 
             pet_type pt ON rt.pet_type = pt.pet_type_id
         WHERE 
-            r.status = 1  -- สถานะห้องว่าง
+            r.status IN (1, 2)  -- 1 = ว่าง, 2 = จอง
             AND r.deleted_at IS NULL
             AND rt.deleted_at IS NULL
             AND r.room_id NOT IN (
@@ -1280,7 +1280,7 @@ app.get("/availableRooms/:type_type_id", function (req, res) {
                 OR (b.check_in >= ? AND b.check_in < ?) -- การจองที่เริ่มในช่วงเวลาที่ระบุ
             )
         WHERE
-            r.status = 1
+            r.status IN (1, 2)  -- สถานะห้องที่เปิดให้จอง
             AND r.deleted_at IS NULL
             AND rt.deleted_at IS NULL
             AND r.type_type_id = ?
